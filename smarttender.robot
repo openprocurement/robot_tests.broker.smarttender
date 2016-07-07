@@ -71,14 +71,14 @@ Login
     ${enquiry_end_date}=        smarttender_service.convert_datetime_to_smarttender_format         ${enquiry_end_date}
     ${documents}=    create_fake_doc
     Wait Until Page Contains    Рабочий стол    30
-    Click Element    jquery=.listviewDataItem:eq(8)
+    Click Element    jquery=.listviewDataItem:eq(9)
     Wait Until Element Contains    cpModalMode    Условие отбора тендеров    20
     #Click Element    jquery=#cpModalMode .dxWeb_edtCheckBoxChecked_DevEx:eq(0)
     #sleep    1
     Click Image    jquery=#cpModalMode .dxrControl_DevEx .dxr-buttonItem:eq(0) img
     sleep    10
     Click Image    jquery=.dxrControl_DevEx a[title*='(F7)'] img:eq(0)
-    Wait Until Element Contains    cpModalMode    Добавление. Тендеры    20
+    Wait Until Element Contains    cpModalMode    Объявление    20
   
     Focus And Input       \#cpModalMode table[data-name='DDM'] input    ${enquiry_end_date}    SetTextInternal
     Focus And Input      \#cpModalMode table[data-name='D_SCH'] input    ${start_date}    SetTextInternal
@@ -89,6 +89,7 @@ Login
     Focus And Input     \#cpModalMode table[data-name='TITLE'] input     ${title}
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}    
     smarttender.Додати предмет в тендер    ${items[0]}
+	
     Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
     Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
     #Focus And Input     \#cpModalMode table[data-name='DDATETO'] input     ${deliveryDate}     SetTextInternal
@@ -111,9 +112,8 @@ Login
     Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx span[title='Передать вперед (Alt+Right)'] img:eq(0)
 	sleep    3s
     Click Element     jquery=#cpModalMode #contextMenu li:eq(0)
-	sleep    3s
-	sleep    10s
     #smarttender.Дочекатись розблокування інтерфейсу
+	sleep    30s
     ${return_value}     Get Text     jquery=#MainSted2PageControl_TENDER .dxtc-content > div:visible table.dxgvControl_DevEx table.dxgvTable_DevEx.dxgvRBB .dxgvSelectedRow_DevEx td:eq(3)
     [Return]     ${return_value}
 	
@@ -122,14 +122,14 @@ Login
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
-    Wait Until Page Contains     True
+    Wait Until Page Contains     True    30s
 	sleep    30s
-    Go To    ${USERS.users['${ARGUMENTS[0]}'].homepage}
+    Go To    http://test.smarttender.biz/test-tenders?allcat=1
     Wait Until Page Contains    Торговий майданчик    10s
     sleep    1s
     Input Text    MainContent_MainContent_MainContent_ctl14_FilterLayout_FilterTextBox_I    ${ARGUMENTS[1]}
     sleep    1s
-    ${timeout_on_wait}=    Get Broker Property By Username    ${ARGUMENTS[0]}    timeout_on_wait
+    ${timeout_on_wait}=    Set Variable    10
     Click Element    MainContent_MainContent_MainContent_ctl14_FilterLayout_FilterLayout_E1
     sleep    2s
     Location Should Contain    f=${ARGUMENTS[1]}
@@ -147,14 +147,14 @@ Login
 Підготуватися до редагування
 	[Arguments]     ${USER}     ${TENDER_ID}
 	Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
-    Wait Until Page Contains     True
+    Wait Until Page Contains     True     30s
 	sleep    30s
     Go To    ${USERS.users['${USER}'].homepage}
 	Click Element    LoginAnchor
 	#smarttender.Дочекатись розблокування інтерфейсу
     Sleep        5s
 	Wait Until Page Contains    Рабочий стол    20s
-    Click Element    jquery=.listviewDataItem:eq(8)
+    Click Element    jquery=.listviewDataItem:eq(9)
 	#smarttender.Дочекатись розблокування інтерфейсу
     sleep    2s
     #Click Element    jquery=#cpModalMode .dxWeb_edtCheckBoxChecked_DevEx:eq(0)
@@ -187,6 +187,7 @@ Login
 Додати документ
 	[Arguments]     ${document}
 	Log    ${document}
+	#${document}=     Set Variable    C:\\\\robot_tests\\robot_tests\\tmprrnxi1.pdf
 	Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Документы')
     sleep   2s
     Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
@@ -206,7 +207,7 @@ Login
     ${cpv}=     Get From Dictionary    ${ARGUMENTS[0].classification}     id
     ${dkpp}     Get From Dictionary    ${ARGUMENTS[0].additionalClassifications[0]}     id
     ${unit}=     Get From Dictionary    ${ARGUMENTS[0].unit}     name
-    #${unit}=     convert_unit_to_smarttender_format     ${unit}
+    ${unit}=     convert_unit_to_smarttender_format     ${unit}
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${items_description}
 	sleep   5s
 	#smarttender.Дочекатись розблокування інтерфейсу
@@ -217,15 +218,15 @@ Login
 	sleep   5s
 	#smarttender.Дочекатись розблокування інтерфейсу
     Focus And Input      \#cpModalMode div[data-name='IDCPV'] input[type=text]:eq(0)      ${cpv}
-	sleep   5s
+	#sleep   5s
 	#smarttender.Дочекатись розблокування інтерфейсу
-    Focus And Input     \#cpModalMode div[data-name='IDCLASSIFICATION'] input[type=text]     ${dkpp}
+    #Focus And Input     \#cpModalMode div[data-name='IDCLASSIFICATION'] input[type=text]     ${dkpp}
 
 Внести зміни в тендер
     [Arguments]    @{ARGUMENTS}
 	Підготуватися до редагування     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
 	Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
-	Wait Until Element Contains      cpModalMode     Корректировка. Тендеры    20
+	Wait Until Element Contains      cpModalMode     Объявление    20
 	sleep   2s
 	Run Keyword If      '${ARGUMENTS[2]}' == 'description'     Змінити опис тендера      ${ARGUMENTS[3]} 
 	sleep   2s
@@ -259,9 +260,8 @@ Login
 Відкрити аналіз тендера
     Sleep   3s
     ${title}=   Get Title
-	Log To Console     ${title}
     Return From KeyWord If     '${title}' == 'Закупівля №.'
-    Run KeyWord If     '${title}' != 'Торговий майданчик - Тендери'     smarttender.Пошук тендера по ідентифікатору     ${ARGUMENTS[0]}       ${TENDER['TENDER_UAID']}
+    Run KeyWord If     '${title}' != 'Торговий майданчик - Тендери'     smarttender.Пошук тендера по ідентифікатору     0       ${TENDER['TENDER_UAID']}
     ${href} =     Get Element Attribute      jquery=a.button.analysis-button@href
     Click Element     jquery=a.button.analysis-button
     sleep   20s
@@ -287,7 +287,7 @@ Login
 
 Отримати інформацію про description
     Відкрити аналіз тендера
-	${return_value}=     Execute Javascript    return (function() { return $("span.info_comm2").text() })()
+    ${return_value}=     Execute Javascript    return (function() { return $("span.info_comm2").text() })()
     [Return]    ${return_value}
 
 Отримати інформацію про minimalStep.amount
@@ -298,7 +298,6 @@ Login
 Отримати інформацію про value.amount
     Відкрити аналіз тендера
     ${return_value}=    Execute JavaScript    return (function() { return parseFloat($("span.info_budget").text().replace(",",".")) })()
-	Log To Console     ${return_value}
     [Return]    ${return_value}
 	
 Отримати інформацію про value.currency
@@ -386,7 +385,6 @@ Login
 Отримати інформацію про items[0].quantity
     Відкрити аналіз тендера
     ${return_value}=    Execute JavaScript    return (function() { return parseFloat($("span.info_count").text().replace(",",".")) })()
-	Log To Console     ${return_value}
     [Return]    ${return_value}
 
 Отримати інформацію про items[0].classification.id
@@ -470,7 +468,7 @@ Login
     [Return]    ${stripped}
 
 Отримати інформацію про questions[0].date
-    ${return_value}=		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1) h4:eq(1)").text() })()
+    ${return_value}=		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1) h4:eq(0)").text() })()
     ${ret}=    Get Substring    ${return_value}    -16
     Log            ${ret}
     ${ret}=    smarttender_service.convert_date    ${ret}
@@ -482,13 +480,18 @@ Login
     ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
     Select Frame    jquery=iframe:eq(0)
-    #${ret}=    Execute JavaScript    return (function() {var d = $("#FormLayout__2 table table tr:eq(1) table tr:eq(1) td:eq(0)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
-	${ret}= 		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(1) td:eq(0)").not("h4").text() })()
+    ${ret}=    Execute JavaScript    return (function() {var d = $("#FormLayout__2 table table tr:eq(1) table tr:eq(1) td:eq(0)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
+	#${ret}= 		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(1) td:eq(0)").not("h4").text() })()
     log    ${ret}
     ${stripped}=    smarttender_service.stripString    ${ret}
     log    ${stripped}
     [Return]    ${stripped}
-	
+
+Отримати інформацію про status
+	Відкрити аналіз тендера
+	${return_value}=    Execute JavaScript    return (function() {  return $("span.info_tender_status").text() })()
+	[Return]   ${return_value}
+
 Отримати інформацію про bids
 	Відкрити аналіз тендера
 	Click Element        jquery=div#pageControlFor_Detail li:eq(4)
@@ -595,7 +598,7 @@ Login
     smarttender.Пошук тендера по ідентифікатору     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     Click Element      jquery=a.button.proposal-button
     Select Frame     jquery=iframe:eq(0)
-    Wait Until Page Contains      Комерційна пропозиція по тендеру
+    Wait Until Page Contains      Комерційна пропозиція по аукціону
     sleep   2s
     Focus     jquery=#btCancellationOffers
     Click Element      jquery=#btCancellationOffers
@@ -619,7 +622,7 @@ Login
     Click Element     jquery=a.button.proposal-button
     sleep    5s
     Select Frame    jquery=iframe:eq(0)
-    Wait Until Page Contains      Комерційна пропозиція по тендеру     	
+    Wait Until Page Contains      Комерційна пропозиція по аукціону
     Focus      jquery=input[name*='fieldBidAmount'][autocomplete='off']
     sleep   3s
     Input text      jquery=input[name*='fieldBidAmount'][autocomplete='off']    ${ARGUMENTS[2]}
@@ -641,8 +644,9 @@ Login
     Click Element     jquery=a.button.proposal-button
     sleep    3s
     Select Frame     jquery=iframe:eq(0)
-    Wait Until Page Contains     Комерційна пропозиція по тендеру
+    Wait Until Page Contains     Комерційна пропозиція по аукціону
     Choose File     jquery=input[type=file]:eq(1)    ${ARGUMENTS[1]}
+	#Choose File     jquery=input[type=file]:eq(1)    C:\\\\robot_tests\\robot_tests\\tmprrnxi1.pdf
     sleep    3s
     Click Element    jquery=#btAccept
     Wait Until Keyword Succeeds    10 sec    2 sec    Current Frame Contains    Пропозицію прийнято
@@ -655,7 +659,8 @@ Focus And Input
     [Arguments]    ${selector}    ${value}    ${method}=SetText
     Click Element At Coordinates     jquery=${selector}    10    5
 	sleep     2s
-    Input text      jquery=${selector}      ${value}
+	${value}=       Convert To String     ${value}
+    Input text      jquery=${selector}    ${value}
 
 Input Ade
     [Arguments]     ${selector}     ${value}

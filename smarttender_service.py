@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -
-from munch import *
+﻿from munch import munchify as smarttender_munchify
 from iso8601 import parse_date
 from dateutil.parser import parse
 from dateutil.parser import parserinfo
@@ -43,19 +42,19 @@ def convert_date(s):
     return dt.strftime('%Y-%m-%dT%H:%M:%S.%f+03:00')
 
 def get_bid_response(value):
-    return munchify({'data': {'value': {'amount': value}}})
+    return smarttender_munchify({'data': {'value': {'amount': value}}})
 
 def get_lot_response(value):
-	return munchify({'data': {'value': {'amount': value}, 'id': 'bcac8d2ceb5f4227b841a2211f5cb646' }})
+	return smarttender_munchify({'data': {'value': {'amount': value}, 'id': 'bcac8d2ceb5f4227b841a2211f5cb646' }})
 	
 def get_claim_response(id, title, description):
-    return munchify({ 'data': { 'id' : int(id), 'title': title, 'description': description}, 'access': { 'token': '' } })
+    return smarttender_munchify({ 'data': { 'id' : int(id), 'title': title, 'description': description}, 'access': { 'token': '' } })
 	
 def get_bid_status(status):
-	return munchify({ 'data': { 'status': status }})
+	return smarttender_munchify({ 'data': { 'status': status }})
 	
 def get_question_data(id):
-    return munchify({ 'data': { 'id': id }})
+    return smarttender_munchify({ 'data': { 'id': id }})
 	
 def convert_unit_from_smarttender_format(unit):
     map = {
