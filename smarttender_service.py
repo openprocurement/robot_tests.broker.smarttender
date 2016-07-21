@@ -1,4 +1,4 @@
-﻿from munch import munchify as smarttender_munchify
+from munch import munchify as smarttender_munchify
 from iso8601 import parse_date
 from dateutil.parser import parse
 from dateutil.parser import parserinfo
@@ -39,10 +39,14 @@ def strip_string(s):
 
 def adapt_data(tender_data):
     tender_data.data.procuringEntity['name'] = u"Демо организатор (государственные торги)"
-    tender_data.data['items'][0].deliveryAddress.region = u"Київська обл."
-    tender_data.data['items'][0].deliveryLocation['latitude'] = "49.85"
-    tender_data.data['items'][0].deliveryLocation['longitude'] = "24.0167"
-    tender_data.data['items'][0].unit['name'] = u"кг"
+    region = tender_data.data['items'][0].deliveryAddress.region
+    if region == u"м. Київ":
+        tender_data.data['items'][0].deliveryAddress.region = u"Київська обл."
+    tender_data.data['items'][0].deliveryLocation['latitude'] = str(tender_data.data['items'][0].deliveryLocation['latitude'])
+    tender_data.data['items'][0].deliveryLocation['longitude'] = str(tender_data.data['items'][0].deliveryLocation['longitude'])
+    unitname = tender_data.data['items'][0].unit['name']
+    if unitname == u"кілограми":
+        tender_data.data['items'][0].unit['name'] = u"кг"
     return tender_data
 	
 def convert_date(s):
