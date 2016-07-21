@@ -18,9 +18,9 @@ ${locator.questions[0].answer}    ${EMPTY}
 
 *** Keywords ***
 
-Підготувати дані для оголошення тендера
-	[Arguments]      @{ARGUMENTS}
-    ${INITIAL_TENDER_DATA}=    Set Variable     ${ARGUMENTS[1]}
+Підготувати дані для оголошення тендера користувачем
+	[Arguments]   ${username}    ${tender_data}    ${role_name}
+    ${INITIAL_TENDER_DATA}=    Run Keyword If      '${role_name}' == 'viewer' or '${role_name}' == 'tender_owner'     adapt_data      ${tender_data}
     [Return]    ${INITIAL_TENDER_DATA}
 
 Підготувати клієнт для користувача
@@ -43,7 +43,7 @@ Login
 
 Створити тендер
     [Arguments]    @{ARGUMENTS}
-    ${tender_data}=    adapt_data    ${ARGUMENTS[1]}
+    ${tender_data}=    Set Variable    ${ARGUMENTS[1]}
     ${items}=    Get From Dictionary    ${tender_data.data}    items
     ${title}=    Get From Dictionary    ${tender_data.data}    title
     ${description}=    Get From Dictionary    ${tender_data.data}    description
@@ -271,7 +271,7 @@ Login
 
 Отримати інформацію про description
     Відкрити аналіз тендера
-    ${return_value}=     Execute Javascript    return (function() { return $("span.info_comm2").text() })()
+    ${return_value}=     Execute Javascript    return (function() { return $("span.info_info_comm2").text() })()
     [Return]    ${return_value}
 
 Отримати інформацію про minimalStep.amount
@@ -361,7 +361,7 @@ Login
 Отримати інформацію про items[0].unit.name
     Відкрити аналіз тендера
     ${return_value}=    Execute JavaScript  return (function() { return $("span.info_snedi:eq(0)").text() })()
-    ${return_value}=     convert_unit_from_smarttender_format    ${return_value}
+    #${return_value}=     convert_unit_from_smarttender_format    ${return_value}
     [Return]    ${return_value}
     
 Отримати інформацію про items[0].unit.code
@@ -443,17 +443,17 @@ Login
     ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
     Select Frame    jquery=iframe:eq(0)
-	${return_value}=		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1) h4:eq(1)").text() })()
+	${return_value}=		Execute JavaScript	return (function() { return $("span#htmlTable_target table tbody tr:eq(0) td:eq(1) h4:eq(1)").text() })()
 	[Return]		${return_value}
 
 Отримати інформацію про questions[0].description
-    ${ret}=    Execute JavaScript    return (function() {var d = $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
+    ${ret}=    Execute JavaScript    return (function() {var d = $("span#htmlTable_target table tbody tr:eq(0) td:eq(1)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
     ${stripped}=    smarttender_service.stripString    ${ret}
     log    ${stripped}
     [Return]    ${stripped}
 
 Отримати інформацію про questions[0].date
-    ${return_value}=		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1) h4:eq(0)").text() })()
+    ${return_value}=		Execute JavaScript	return (function() { return $("span#htmlTable_target table tbody tr:eq(0) td:eq(1) h4:eq(0)").text() })()
     ${ret}=    Get Substring    ${return_value}    -16
     Log            ${ret}
     ${ret}=    smarttender_service.convert_date    ${ret}
