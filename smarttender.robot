@@ -21,7 +21,6 @@ ${locator.questions[0].answer}    ${EMPTY}
 Підготувати дані для оголошення тендера
 	[Arguments]      @{ARGUMENTS}
     ${INITIAL_TENDER_DATA}=    Set Variable     ${ARGUMENTS[1]}
-    ${INITIAL_TENDER_DATA}=    Add_data_for_GUI_FrontEnds    ${INITIAL_TENDER_DATA}
     [Return]    ${INITIAL_TENDER_DATA}
 
 Підготувати клієнт для користувача
@@ -44,7 +43,7 @@ Login
 
 Створити тендер
     [Arguments]    @{ARGUMENTS}
-    ${tender_data}=    Add_data_for_GUI_FrontEnds    ${ARGUMENTS[1]}
+    ${tender_data}=    adapt_data    ${ARGUMENTS[1]}
     ${items}=    Get From Dictionary    ${tender_data.data}    items
     ${title}=    Get From Dictionary    ${tender_data.data}    title
     ${description}=    Get From Dictionary    ${tender_data.data}    description
@@ -176,7 +175,7 @@ Login
 	Click Element       jquery=div.dxpnlControl_DevEx a[title='Сохранить'] img
 	sleep     5s
 	${status}=     Run Keyword And Return Status       Page Should Contain    Загрузка документации
-	Click Image     jquery=a[title='OK'] img
+	Run Keyword If    ${status}    Click Image     jquery=a[title='OK'] img
 	[Return]      ${status}
 
 Додати документ
@@ -201,7 +200,7 @@ Login
     ${quantity}=     Get From Dictionary    ${ARGUMENTS[0]}     quantity
     ${cpv}=     Get From Dictionary    ${ARGUMENTS[0].classification}     id
     ${unit}=     Get From Dictionary    ${ARGUMENTS[0].unit}     name
-    ${unit}=     convert_unit_to_smarttender_format     ${unit}
+    #${unit}=     convert_unit_to_smarttender_format     ${unit}
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${items_description}
 	sleep   2s
 	#smarttender.Дочекатись розблокування інтерфейсу

@@ -37,6 +37,14 @@ def get_minutes_to_add(date_end):
 def strip_string(s):
     return s.strip()
 
+def adapt_data(tender_data):
+    tender_data.data.procuringEntity['name'] = u"Демо организатор (государственные торги)"
+    tender_data.data['items'][0].deliveryAddress.region = u"Київська обл."
+    tender_data.data['items'][0].deliveryLocation['latitude'] = "49.85"
+    tender_data.data['items'][0].deliveryLocation['longitude'] = "24.0167"
+    tender_data.data['items'][0].unit['name'] = u"кг"
+    return tender_data
+	
 def convert_date(s):
     dt = parse(s, parserinfo(True, False))
     return dt.strftime('%Y-%m-%dT%H:%M:%S.%f+03:00')
