@@ -1,4 +1,4 @@
-from munch import munchify as smarttender_munchify
+﻿from munch import munchify as smarttender_munchify
 from iso8601 import parse_date
 from dateutil.parser import parse
 from dateutil.parser import parserinfo

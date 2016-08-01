@@ -20,7 +20,7 @@ ${locator.questions[0].answer}    ${EMPTY}
 
 Підготувати дані для оголошення тендера користувачем
 	[Arguments]   ${username}    ${tender_data}    ${role_name}
-    ${INITIAL_TENDER_DATA}=    Run Keyword If      '${role_name}' == 'viewer' or '${role_name}' == 'tender_owner'     adapt_data      ${tender_data}
+    ${INITIAL_TENDER_DATA}=    Run Keyword If      '${role_name}' == 'viewer' or '${role_name}' == 'tender_owner' or '${role_name}' == 'provider' or '${role_name}' == 'provider1'    adapt_data      ${tender_data}
     [Return]    ${INITIAL_TENDER_DATA}
 
 Підготувати клієнт для користувача
@@ -54,8 +54,8 @@ Login
     ${longitude}    Get From Dictionary    ${items[0].deliveryLocation}    longitude
     ${postalCode}    Get From Dictionary    ${items[0].deliveryAddress}    postalCode
     ${locality}=    Get From Dictionary    ${items[0].deliveryAddress}    locality
-	${locality1}=     Execute JavaScript       return (function(){ return "${locality}".substr("${locality}".indexOf(".")+1).replace(" ", "") })()
-	${locality}=     Set Variable     ${locality1}
+	#${locality1}=     Execute JavaScript       return (function(){ return "${locality}".substr("${locality}".indexOf(".")+1).replace(" ", "") })()
+	#${locality}=     Set Variable     ${locality1}
     ${streetAddress}    Get From Dictionary    ${items[0].deliveryAddress}    streetAddress
     #${deliveryDate}    Get From Dictionary    ${items[0].deliveryDate}    endDate
     #${deliveryDate}    smarttender_service.convert_datetime_to_smarttender_format    ${deliveryDate}
@@ -87,22 +87,22 @@ Login
     Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
     Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
     #Focus And Input     \#cpModalMode table[data-name='DDATETO'] input     ${deliveryDate}     SetTextInternal
-    Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] table.dxeButtonEdit_DevEx input[type=text]
+    Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)
 	sleep    3s
 	#smarttender.Дочекатись розблокування інтерфейсу
-	Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] table.dxeButtonEdit_DevEx input[type=text]        ${locality}
+	Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)        ${locality}
 	sleep    2s
-	Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] table.dxeButtonEdit_DevEx input[type=text]         \\13
+	Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
 	sleep    3s
 	#smarttender.Дочекатись розблокування інтерфейсу
-    Click Element     jquery=div#CustomDropDownContainer table.dxeListBox_DevEx div.dxlbd table:eq(1) tr.dxeListBoxItemRow_DevEx:eq(0)
+    #Click Element     jquery=div#CustomDropDownContainer table.dxeListBox_DevEx div.dxlbd table:eq(1) tr.dxeListBoxItemRow_DevEx:eq(0)
 	sleep  2s
 	Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
 	Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
     Додати документ     ${documents}
-	sleep    2s
+	sleep    3s
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Добавить') img
-	sleep    2s
+	sleep    5s
     Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx span[title='Передать вперед (Alt+Right)'] img:eq(0)
 	sleep    2s
     Click Element     jquery=#cpModalMode #contextMenu li:eq(0)
