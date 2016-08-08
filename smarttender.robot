@@ -18,11 +18,10 @@ ${locator.questions[0].answer}    ${EMPTY}
 
 *** Keywords ***
 
-Підготувати дані для оголошення тендера
-	[Arguments]      @{ARGUMENTS}
-    ${INITIAL_TENDER_DATA}=    Set Variable     ${ARGUMENTS[1]}
-    ${INITIAL_TENDER_DATA}=    Add_data_for_GUI_FrontEnds    ${INITIAL_TENDER_DATA}
-    [Return]    ${INITIAL_TENDER_DATA}
+Підготувати дані для оголошення тендера користувачем
+	[Arguments]   ${username}    ${tender_data}    ${role_name}
+    ${tender_data}=    Run Keyword If      '${role_name}' == 'viewer' or '${role_name}' == 'tender_owner' or '${role_name}' == 'provider' or '${role_name}' == 'provider1'    adapt_data      ${tender_data}
+    [Return]    ${tender_data}
 
 Підготувати клієнт для користувача
     [Arguments]    @{ARGUMENTS}
@@ -44,7 +43,7 @@ Login
 
 Створити тендер
     [Arguments]    @{ARGUMENTS}
-    ${tender_data}=    Add_data_for_GUI_FrontEnds    ${ARGUMENTS[1]}
+    ${tender_data}=    Set Variable    ${ARGUMENTS[1]}
     ${items}=    Get From Dictionary    ${tender_data.data}    items
     ${title}=    Get From Dictionary    ${tender_data.data}    title
     ${description}=    Get From Dictionary    ${tender_data.data}    description
@@ -55,8 +54,8 @@ Login
     ${longitude}    Get From Dictionary    ${items[0].deliveryLocation}    longitude
     ${postalCode}    Get From Dictionary    ${items[0].deliveryAddress}    postalCode
     ${locality}=    Get From Dictionary    ${items[0].deliveryAddress}    locality
-	${locality1}=     Execute JavaScript       return (function(){ return "${locality}".substr("${locality}".indexOf(".")+1).replace(" ", "") })()
-	${locality}=     Set Variable     ${locality1}
+	#${locality1}=     Execute JavaScript       return (function(){ return "${locality}".substr("${locality}".indexOf(".")+1).replace(" ", "") })()
+	#${locality}=     Set Variable     ${locality1}
     ${streetAddress}    Get From Dictionary    ${items[0].deliveryAddress}    streetAddress
     #${deliveryDate}    Get From Dictionary    ${items[0].deliveryDate}    endDate
     #${deliveryDate}    smarttender_service.convert_datetime_to_smarttender_format    ${deliveryDate}
@@ -88,22 +87,22 @@ Login
     Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
     Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
     #Focus And Input     \#cpModalMode table[data-name='DDATETO'] input     ${deliveryDate}     SetTextInternal
-    Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] table.dxeButtonEdit_DevEx input[type=text]
+    Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)
 	sleep    3s
 	#smarttender.Дочекатись розблокування інтерфейсу
-	Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] table.dxeButtonEdit_DevEx input[type=text]        ${locality}
+	Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)        ${locality}
 	sleep    2s
-	Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] table.dxeButtonEdit_DevEx input[type=text]         \\13
+	Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
 	sleep    3s
 	#smarttender.Дочекатись розблокування інтерфейсу
-    Click Element     jquery=div#CustomDropDownContainer table.dxeListBox_DevEx div.dxlbd table:eq(1) tr.dxeListBoxItemRow_DevEx:eq(0)
+    #Click Element     jquery=div#CustomDropDownContainer table.dxeListBox_DevEx div.dxlbd table:eq(1) tr.dxeListBoxItemRow_DevEx:eq(0)
 	sleep  2s
 	Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
 	Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
     Додати документ     ${documents}
-	sleep    2s
+	sleep    3s
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Добавить') img
-	sleep    2s
+	sleep    5s
     Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx span[title='Передать вперед (Alt+Right)'] img:eq(0)
 	sleep    2s
     Click Element     jquery=#cpModalMode #contextMenu li:eq(0)
@@ -176,7 +175,7 @@ Login
 	Click Element       jquery=div.dxpnlControl_DevEx a[title='Сохранить'] img
 	sleep     5s
 	${status}=     Run Keyword And Return Status       Page Should Contain    Загрузка документации
-	Click Image     jquery=a[title='OK'] img
+	Run Keyword If    ${status}    Click Image     jquery=a[title='OK'] img
 	[Return]      ${status}
 
 Додати документ
@@ -201,7 +200,7 @@ Login
     ${quantity}=     Get From Dictionary    ${ARGUMENTS[0]}     quantity
     ${cpv}=     Get From Dictionary    ${ARGUMENTS[0].classification}     id
     ${unit}=     Get From Dictionary    ${ARGUMENTS[0].unit}     name
-    ${unit}=     convert_unit_to_smarttender_format     ${unit}
+    #${unit}=     convert_unit_to_smarttender_format     ${unit}
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${items_description}
 	sleep   2s
 	#smarttender.Дочекатись розблокування інтерфейсу
@@ -272,7 +271,7 @@ Login
 
 Отримати інформацію про description
     Відкрити аналіз тендера
-    ${return_value}=     Execute Javascript    return (function() { return $("span.info_comm2").text() })()
+    ${return_value}=     Execute Javascript    return (function() { return $("span.info_info_comm2").text() })()
     [Return]    ${return_value}
 
 Отримати інформацію про minimalStep.amount
@@ -362,7 +361,7 @@ Login
 Отримати інформацію про items[0].unit.name
     Відкрити аналіз тендера
     ${return_value}=    Execute JavaScript  return (function() { return $("span.info_snedi:eq(0)").text() })()
-    ${return_value}=     convert_unit_from_smarttender_format    ${return_value}
+    #${return_value}=     convert_unit_from_smarttender_format    ${return_value}
     [Return]    ${return_value}
     
 Отримати інформацію про items[0].unit.code
@@ -444,17 +443,17 @@ Login
     ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
     Select Frame    jquery=iframe:eq(0)
-	${return_value}=		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1) h4:eq(1)").text() })()
+	${return_value}=		Execute JavaScript	return (function() { return $("span#htmlTable_target table tbody tr:eq(0) td:eq(1) h4:eq(1)").text() })()
 	[Return]		${return_value}
 
 Отримати інформацію про questions[0].description
-    ${ret}=    Execute JavaScript    return (function() {var d = $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
+    ${ret}=    Execute JavaScript    return (function() {var d = $("span#htmlTable_target table tbody tr:eq(0) td:eq(1)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
     ${stripped}=    smarttender_service.stripString    ${ret}
     log    ${stripped}
     [Return]    ${stripped}
 
 Отримати інформацію про questions[0].date
-    ${return_value}=		Execute JavaScript	return (function() { return $("#FormLayout__2 table table tr:eq(1) table tr:eq(0) td:eq(1) h4:eq(0)").text() })()
+    ${return_value}=		Execute JavaScript	return (function() { return $("span#htmlTable_target table tbody tr:eq(0) td:eq(1) h4:eq(0)").text() })()
     ${ret}=    Get Substring    ${return_value}    -16
     Log            ${ret}
     ${ret}=    smarttender_service.convert_date    ${ret}
