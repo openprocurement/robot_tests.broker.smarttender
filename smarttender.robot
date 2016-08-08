@@ -20,8 +20,8 @@ ${locator.questions[0].answer}    ${EMPTY}
 
 Підготувати дані для оголошення тендера користувачем
 	[Arguments]   ${username}    ${tender_data}    ${role_name}
-    ${INITIAL_TENDER_DATA}=    Run Keyword If      '${role_name}' == 'viewer' or '${role_name}' == 'tender_owner' or '${role_name}' == 'provider' or '${role_name}' == 'provider1'    adapt_data      ${tender_data}
-    [Return]    ${INITIAL_TENDER_DATA}
+    ${tender_data}=    Run Keyword If      '${role_name}' == 'viewer' or '${role_name}' == 'tender_owner' or '${role_name}' == 'provider' or '${role_name}' == 'provider1'    adapt_data      ${tender_data}
+    [Return]    ${tender_data}
 
 Підготувати клієнт для користувача
     [Arguments]    @{ARGUMENTS}
