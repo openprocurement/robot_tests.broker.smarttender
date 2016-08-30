@@ -7,7 +7,6 @@ Library           op_robot_tests.tests_files.service_keywords
 
 *** Variables ***
 ${locator.auctionID}    jquery=span.info_tendernum
-${locator.title}    jquery=span.info_orderItem
 ${locator.procuringEntity.name}       jquery=span.info_organization
 ${locator.tenderPeriod.startDate}    jquery=span.info_d_sch
 ${locator.tenderPeriod.endDate}    jquery=span.info_d_srok
@@ -244,8 +243,8 @@ Login
 Відкрити аналіз тендера
     Sleep   2s
     ${title}=   Get Title
-    Return From KeyWord If     '${title}' != 'Торговий майданчик - Тендери'
-    Run KeyWord If     '${title}' != 'Торговий майданчик - Тендери'     smarttender.Пошук тендера по ідентифікатору     0       ${TENDER['TENDER_UAID']}
+    Return From KeyWord If     '${title}' != 'Комерційні торги та публічні закупівлі в системі ProZorro'
+    smarttender.Пошук тендера по ідентифікатору     0       ${TENDER['TENDER_UAID']}
     ${href} =     Get Element Attribute      jquery=a.button.analysis-button@href
     Click Element     jquery=a.button.analysis-button
     sleep   5s
@@ -263,10 +262,19 @@ Login
     Select Window     url=${href}
     sleep    3s
     Select Frame      jquery=iframe:eq(0)
+
+Отримати інформацію про status
+	Відкрити аналіз тендера
+    ${return_value}=    Execute Javascript    return (function() { return $("span.info_tender_status").text() })()
+	Log To Console    ${return_value} 
+    [Return]    ${return_value}
 	
 Отримати інформацію про title
+	#Відкрити аналіз тендера
+    #${return_value}=    Отримати текст із поля і показати на сторінці    title
     Відкрити аналіз тендера
-    ${return_value}=     Отримати текст із поля і показати на сторінці     title
+    ${return_value}=    Execute Javascript    return (function() { return $("span.info_orderItem").text() })()
+	Log To Console    ${return_value}
     [Return]    ${return_value}
 
 Отримати інформацію про description
@@ -318,16 +326,24 @@ Login
     Відкрити аналіз тендера
 	${startDate}=      Execute JavaScript    return (function() { return $("div.group-element-value:eq(2)").text() })()
 	${startDate}=     smarttender_service.stripString        ${startDate}
-    ${return_value}=    Execute JavaScript  return (function() { return "${startDate}".substring(2,"${startDate}".indexOf("по")-1) })()
+	Log To Console    ${startDate}
+    ${return_value}=    Execute JavaScript  return (function() { return "${startDate}".substring(2,"${startDate}".indexOf("по")-1).replace("з","") })()
+	${return_value}=     smarttender_service.stripString        ${return_value}
+	Log To Console    ${return_value}
     ${return_value}=    smarttender_service.convert_date    ${return_value}
+	Log To Console    ${return_value}
     [Return]    ${return_value}
 
 Отримати інформацію про tenderPeriod.endDate
     Відкрити аналіз тендера
 		${startDate}=      Execute JavaScript    return (function() { return $("div.group-element-value:eq(2)").text() })()
 	${startDate}=     smarttender_service.stripString        ${startDate}
+	Log To Console    ${startDate}
     ${return_value}=    Execute JavaScript  return (function() { return "${startDate}".substring("${startDate}".indexOf("по")+3) })()
+	Log To Console    ${return_value}
+	${return_value}=     smarttender_service.stripString        ${return_value}
     ${return_value}=    smarttender_service.convert_date    ${return_value}
+	Log To Console    ${return_value}
     [Return]    ${return_value}
 
 Отримати інформацію про enquiryPeriod.startDate
@@ -443,21 +459,21 @@ Login
     ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
     Select Frame    jquery=iframe:eq(0)
-	${return_value}=		Execute JavaScript	return (function() { return $("span#htmlTable_target table tbody tr:eq(0) td:eq(1) h4:eq(1)").text() })()
+	${return_value}=		Execute JavaScript	return (function() { return $("div.title-question").text().substring(0, $("div.title-question").text().indexOf("|")) })()
+	${return_value}=    smarttender_service.stripString    ${return_value}
 	[Return]		${return_value}
 
 Отримати інформацію про questions[0].description
-    ${ret}=    Execute JavaScript    return (function() {var d = $("span#htmlTable_target table tbody tr:eq(0) td:eq(1)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
+    ${ret}=    Execute JavaScript    return (function() { return $("div.q-content").text() })()
     ${stripped}=    smarttender_service.stripString    ${ret}
     log    ${stripped}
     [Return]    ${stripped}
 
 Отримати інформацію про questions[0].date
-    ${return_value}=		Execute JavaScript	return (function() { return $("span#htmlTable_target table tbody tr:eq(0) td:eq(1) h4:eq(0)").text() })()
-    ${ret}=    Get Substring    ${return_value}    -16
-    Log            ${ret}
-    ${ret}=    smarttender_service.convert_date    ${ret}
-    [Return]    ${ret}
+    ${return_value}=		Execute JavaScript	return (function() { return $("div.question-relation:eq(0)").text() })()
+    Log            ${return_value}
+    ${return_value}=    smarttender_service.convert_date    ${return_value}
+    [Return]    ${return_value}
 
 Отримати інформацію про questions[0].answer
     Click Element    jquery=a.button.questions-button
@@ -465,16 +481,16 @@ Login
     ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
     Select Frame    jquery=iframe:eq(0)
-    ${ret}=    Execute JavaScript    return (function() {var d = $("#FormLayout__2 table table tr:eq(1) table tr:eq(1) td:eq(0)").clone(); d.find("h4").each(function() {$(this).detach()}); return d.html()})()
+    ${ret}=    Execute JavaScript    return (function() { return $("div.answer div:eq(2)").text() })()
     log    ${ret}
     ${stripped}=    smarttender_service.stripString    ${ret}
     log    ${stripped}
     [Return]    ${stripped}
 
-Отримати інформацію про status
-	Відкрити аналіз тендера
-	${return_value}=    Execute JavaScript    return (function() {  return $("span.info_tender_status").text() })()
-	[Return]   ${return_value}
+#Отримати інформацію про status
+	#Відкрити аналіз тендера
+	#${return_value}=    Execute JavaScript    return (function() {  return $("span.info_tender_status").text() })()
+	#[Return]   ${return_value}
 
 Отримати інформацію про bids
 	Відкрити аналіз тендера
@@ -519,22 +535,25 @@ Login
     ...    ${ARGUMENTS[2]} = question_data
     ${title}=    Get From Dictionary    ${ARGUMENTS[2].data}    title
     ${description}=    Get From Dictionary    ${ARGUMENTS[2].data}    description
+	sleep    60s
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
     Click Element    jquery=a.button.questions-button
     sleep    2s
-    ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
+	 ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
+	sleep    5s
+	Select Frame    jquery=iframe:eq(0)
+	Click Element    jquery=div.question-input span.select2 span.selection span:eq(0) span:eq(2)
+	sleep    2s
+	Click Element    jquery=span.select2-results li:eq(0)
+	sleep    1s
+	Click Element    jquery=input#add-question
+	sleep   5s
     Select Frame    jquery=iframe:eq(0)
-    Click Element    SubmitButton__2
-    Unselect Frame
-    sleep    3s
-    Frame Should Contain    jquery=iframe:eq(1)    Поставити запитання
-    Select Frame    jquery=iframe:eq(1)
-    Input text    jquery=table#subject input    ${title}
-    Input text    jquery=table#question textarea    ${description}
+    Input text    jquery=input[name='subject']    ${title}
+    Input text    jquery=textarea[name='question']    ${description}
     Click Element    SubmitButton__1
     sleep    3s
-    Select Frame    jquery=iframe:eq(0)
     Wait Until Page Contains    Питання та відповіді    10s
 	${question_id}=    Execute JavaScript       return (function() {  return $("span.question_idcdb").text() })()
 	${question_data}=     smarttender_service.get_question_data      ${question_id}
