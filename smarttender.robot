@@ -18,8 +18,8 @@ ${locator.questions[0].answer}    ${EMPTY}
 *** Keywords ***
 
 Підготувати дані для оголошення тендера користувачем
-	[Arguments]   ${username}    ${tender_data}    ${role_name}
-    ${tender_data}=    Run Keyword If      '${role_name}' == 'viewer' or '${role_name}' == 'tender_owner' or '${role_name}' == 'provider' or '${role_name}' == 'provider1'    adapt_data      ${tender_data}
+	[Arguments]   ${username}    ${tender_data}
+    ${tender_data}=       adapt_data       ${tender_data}
     [Return]    ${tender_data}
 
 Підготувати клієнт для користувача
@@ -53,11 +53,7 @@ Login
     ${longitude}    Get From Dictionary    ${items[0].deliveryLocation}    longitude
     ${postalCode}    Get From Dictionary    ${items[0].deliveryAddress}    postalCode
     ${locality}=    Get From Dictionary    ${items[0].deliveryAddress}    locality
-	#${locality1}=     Execute JavaScript       return (function(){ return "${locality}".substr("${locality}".indexOf(".")+1).replace(" ", "") })()
-	#${locality}=     Set Variable     ${locality1}
     ${streetAddress}    Get From Dictionary    ${items[0].deliveryAddress}    streetAddress
-    #${deliveryDate}    Get From Dictionary    ${items[0].deliveryDate}    endDate
-    #${deliveryDate}    smarttender_service.convert_datetime_to_smarttender_format    ${deliveryDate}
     ${start_date}=    Get From Dictionary    ${tender_data.data.tenderPeriod}    startDate
     ${start_date}=    smarttender_service.convert_datetime_to_smarttender_format    ${start_date}
     ${end_date}=    Get From Dictionary    ${tender_data.data.tenderPeriod}    endDate
@@ -85,16 +81,12 @@ Login
 	
     Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
     Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
-    #Focus And Input     \#cpModalMode table[data-name='DDATETO'] input     ${deliveryDate}     SetTextInternal
     Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)
 	sleep    3s
-	#smarttender.Дочекатись розблокування інтерфейсу
 	Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)        ${locality}
 	sleep    2s
 	Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
 	sleep    3s
-	#smarttender.Дочекатись розблокування інтерфейсу
-    #Click Element     jquery=div#CustomDropDownContainer table.dxeListBox_DevEx div.dxlbd table:eq(1) tr.dxeListBoxItemRow_DevEx:eq(0)
 	sleep  2s
 	Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
 	Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
@@ -105,7 +97,6 @@ Login
     Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx span[title='Передать вперед (Alt+Right)'] img:eq(0)
 	sleep    2s
     Click Element     jquery=#cpModalMode #contextMenu li:eq(0)
-    #smarttender.Дочекатись розблокування інтерфейсу
 	sleep    10s
     ${return_value}     Get Text     jquery=#MainSted2PageControl_TENDER .dxtc-content > div:visible table.dxgvControl_DevEx table.dxgvTable_DevEx.dxgvRBB .dxgvSelectedRow_DevEx td:eq(3)
     [Return]     ${return_value}
@@ -144,23 +135,16 @@ Login
 	sleep    10s
     Go To    ${USERS.users['${USER}'].homepage}
 	Click Element    LoginAnchor
-	#smarttender.Дочекатись розблокування інтерфейсу
     Sleep        5s
 	Wait Until Page Contains    Рабочий стол    20s
     Click Element    jquery=.listviewDataItem:eq(9)
-	#smarttender.Дочекатись розблокування інтерфейсу
     sleep    2s
-    #Click Element    jquery=#cpModalMode .dxWeb_edtCheckBoxChecked_DevEx:eq(0)
-	#smarttender.Дочекатись розблокування інтерфейсу
     sleep    1s
     Click Image      jquery=#cpModalMode .dxrControl_DevEx .dxr-buttonItem:eq(0) img
-	#smarttender.Дочекатись розблокування інтерфейсу
     sleep    3s 
     Focus    jquery=.dxtc-content:eq(0) .dxgvFilterRow_DevEx:eq(0) td.dxgv:eq(3) input[type=text]
     sleep   1s
-	#smarttender.Дочекатись розблокування інтерфейсу
     Input Text      jquery=.dxtc-content:eq(0) .dxgvFilterRow_DevEx:eq(0) td.dxgv:eq(3) input[type=text]    ${TENDER_ID}
-	#smarttender.Дочекатись розблокування інтерфейсу
     sleep   1s
     Press Key       jquery=.dxtc-content:eq(0) .dxgvFilterRow_DevEx:eq(0) td.dxgv:eq(3) input[type=text]        \\13
     sleep    3s
@@ -180,7 +164,6 @@ Login
 Додати документ
 	[Arguments]     ${document}
 	Log    ${document}
-	#${document}=     Set Variable    C:\\\\Git\\robot_tests\\123.txt
 	Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Документы')
     sleep   2s
     Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
@@ -199,23 +182,19 @@ Login
     ${quantity}=     Get From Dictionary    ${ARGUMENTS[0]}     quantity
     ${cpv}=     Get From Dictionary    ${ARGUMENTS[0].classification}     id
     ${unit}=     Get From Dictionary    ${ARGUMENTS[0].unit}     name
-    #${unit}=     convert_unit_to_smarttender_format     ${unit}
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${items_description}
 	sleep   2s
-	#smarttender.Дочекатись розблокування інтерфейсу
     Focus And Input      \#cpModalMode table[data-name='QUANTITY'] input      ${quantity}
 	sleep   2s
-	#smarttender.Дочекатись розблокування інтерфейсу
     Input Ade      \#cpModalMode div[data-name='EDI'] input[type=text]:eq(0)       ${unit}
 	sleep   2s
-	#smarttender.Дочекатись розблокування інтерфейсу
     Focus And Input      \#cpModalMode div[data-name='IDCPV'] input[type=text]:eq(0)      ${cpv}
 
 Внести зміни в тендер
     [Arguments]    @{ARGUMENTS}
 	Підготуватися до редагування     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
 	Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
-	Wait Until Element Contains      cpModalMode     Объявление    20
+	Wait Until Element Contains      jquery=#cpModalMode     Объявление    20
 	sleep   1s
 	Run Keyword If      '${ARGUMENTS[2]}' == 'description'     Змінити опис тендера      ${ARGUMENTS[3]} 
 	sleep   1s
@@ -266,15 +245,11 @@ Login
 Отримати інформацію про status
 	Відкрити аналіз тендера
     ${return_value}=    Execute Javascript    return (function() { return $("span.info_tender_status").text() })()
-	Log To Console    ${return_value} 
     [Return]    ${return_value}
 	
 Отримати інформацію про title
-	#Відкрити аналіз тендера
-    #${return_value}=    Отримати текст із поля і показати на сторінці    title
     Відкрити аналіз тендера
     ${return_value}=    Execute Javascript    return (function() { return $("span.info_orderItem").text() })()
-	Log To Console    ${return_value}
     [Return]    ${return_value}
 
 Отримати інформацію про description
@@ -326,24 +301,18 @@ Login
     Відкрити аналіз тендера
 	${startDate}=      Execute JavaScript    return (function() { return $("div.group-element-value:eq(2)").text() })()
 	${startDate}=     smarttender_service.stripString        ${startDate}
-	Log To Console    ${startDate}
     ${return_value}=    Execute JavaScript  return (function() { return "${startDate}".substring(2,"${startDate}".indexOf("по")-1).replace("з","") })()
 	${return_value}=     smarttender_service.stripString        ${return_value}
-	Log To Console    ${return_value}
     ${return_value}=    smarttender_service.convert_date    ${return_value}
-	Log To Console    ${return_value}
     [Return]    ${return_value}
 
 Отримати інформацію про tenderPeriod.endDate
     Відкрити аналіз тендера
-		${startDate}=      Execute JavaScript    return (function() { return $("div.group-element-value:eq(2)").text() })()
+	${startDate}=      Execute JavaScript    return (function() { return $("div.group-element-value:eq(2)").text() })()
 	${startDate}=     smarttender_service.stripString        ${startDate}
-	Log To Console    ${startDate}
     ${return_value}=    Execute JavaScript  return (function() { return "${startDate}".substring("${startDate}".indexOf("по")+3) })()
-	Log To Console    ${return_value}
 	${return_value}=     smarttender_service.stripString        ${return_value}
     ${return_value}=    smarttender_service.convert_date    ${return_value}
-	Log To Console    ${return_value}
     [Return]    ${return_value}
 
 Отримати інформацію про enquiryPeriod.startDate
@@ -377,7 +346,6 @@ Login
 Отримати інформацію про items[0].unit.name
     Відкрити аналіз тендера
     ${return_value}=    Execute JavaScript  return (function() { return $("span.info_snedi:eq(0)").text() })()
-    #${return_value}=     convert_unit_from_smarttender_format    ${return_value}
     [Return]    ${return_value}
     
 Отримати інформацію про items[0].unit.code
@@ -485,12 +453,8 @@ Login
     log    ${ret}
     ${stripped}=    smarttender_service.stripString    ${ret}
     log    ${stripped}
+	smarttender.Пошук тендера по ідентифікатору     0       ${TENDER['TENDER_UAID']}
     [Return]    ${stripped}
-
-#Отримати інформацію про status
-	#Відкрити аналіз тендера
-	#${return_value}=    Execute JavaScript    return (function() {  return $("span.info_tender_status").text() })()
-	#[Return]   ${return_value}
 
 Отримати інформацію про bids
 	Відкрити аналіз тендера
@@ -535,27 +499,16 @@ Login
     ...    ${ARGUMENTS[2]} = question_data
     ${title}=    Get From Dictionary    ${ARGUMENTS[2].data}    title
     ${description}=    Get From Dictionary    ${ARGUMENTS[2].data}    description
-	sleep    60s
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
     Click Element    jquery=a.button.questions-button
     sleep    2s
 	 ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
 	sleep    5s
-	Select Frame    jquery=iframe:eq(0)
-	Click Element    jquery=div.question-input span.select2 span.selection span:eq(0) span:eq(2)
-	sleep    2s
-	Click Element    jquery=span.select2-results li:eq(0)
-	sleep    1s
-	Click Element    jquery=input#add-question
-	sleep   5s
-    Select Frame    jquery=iframe:eq(0)
-    Input text    jquery=input[name='subject']    ${title}
-    Input text    jquery=textarea[name='question']    ${description}
-    Click Element    SubmitButton__1
+	Execute JavaScript     return (function() { var questionsIframe = $("iframe:eq(0)").get(0).contentWindow; questionsIframe.$('#question-relation').select2().val(0).trigger('change'); questionsIframe.$('input#add-question').trigger('click'); setTimeout(function() { var questionSubmitIframe = questionsIframe.$("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); questionSubmitIframe.$('div#SubmitButton__1').click(); }, 5000);})()
     sleep    3s
-    Wait Until Page Contains    Питання та відповіді    10s
-	${question_id}=    Execute JavaScript       return (function() {  return $("span.question_idcdb").text() })()
+	Page Should Not Contain      Період обговорення закінчено
+	${question_id}=    Execute JavaScript       return (function() {return $("span.question_idcdb").text() })()
 	${question_data}=     smarttender_service.get_question_data      ${question_id}
 	[Return]        ${question_data}
 
@@ -675,5 +628,3 @@ Input Ade
 	
 Дочекатись розблокування інтерфейсу
 	Sleep    2s
-    #Wait For Condition      return isUIEnalbed()    15s
-	#Sleep    2s
