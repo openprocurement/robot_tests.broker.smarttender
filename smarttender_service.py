@@ -39,6 +39,7 @@ def strip_string(s):
 
 def adapt_data(tender_data):
     tender_data.data.procuringEntity['name'] = u"Демо организатор (государственные торги)"
+    tender_data.data.procuringEntity['identifier']['id'] = u"111111111111111"
     region = tender_data.data['items'][0].deliveryAddress.region
     if region == u"м. Київ":
         tender_data.data['items'][0].deliveryAddress.region = u"Київська обл."

@@ -243,7 +243,13 @@ Login
     Select Frame      jquery=iframe:eq(0)
 
 Отримати інформацію про status
-	Відкрити аналіз тендера
+	smarttender.Пошук тендера по ідентифікатору     0       ${TENDER['TENDER_UAID']}
+    ${href} =     Get Element Attribute      jquery=a.button.analysis-button@href
+    Click Element     jquery=a.button.analysis-button
+    sleep   5s
+    Select Window     url=${href}
+    sleep    3s
+    Select Frame      jquery=iframe:eq(0)
     ${return_value}=    Execute Javascript    return (function() { return $("span.info_tender_status").text() })()
     [Return]    ${return_value}
 	
@@ -505,9 +511,11 @@ Login
 	 ${href} =    Get Element Attribute    jquery=a.button.questions-button@href
     Select Window    url=${href}
 	sleep    5s
-	Execute JavaScript     return (function() { var questionsIframe = $("iframe:eq(0)").get(0).contentWindow; questionsIframe.$('#question-relation').select2().val(0).trigger('change'); questionsIframe.$('input#add-question').trigger('click'); setTimeout(function() { var questionSubmitIframe = questionsIframe.$("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); questionSubmitIframe.$('div#SubmitButton__1').click(); }, 5000);})()
-    sleep    3s
-	Page Should Not Contain      Період обговорення закінчено
+	Execute JavaScript     return (function() { var questionsIframe = $("iframe:eq(0)").get(0).contentWindow; questionsIframe.$('#question-relation').select2().val(0).trigger('change'); questionsIframe.$('input#add-question').trigger('click'); ;})()
+    sleep    5s
+	${status}=       Execute Javascript       return (function() { var questionsIframe = $("iframe:eq(0)").get(0).contentWindow; var questionSubmitIframe = questionsIframe.$("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
+	Log     ${status}
+	Should Not Be Equal      ${status}     Період обговорення закінчено
 	${question_id}=    Execute JavaScript       return (function() {return $("span.question_idcdb").text() })()
 	${question_data}=     smarttender_service.get_question_data      ${question_id}
 	[Return]        ${question_data}
