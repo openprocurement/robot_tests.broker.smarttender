@@ -112,7 +112,6 @@ Login
 Змінити процедуру
 	Click Element    jquery=table[data-name='KDM2']
 	sleep   3s
-	#Click Element    jquery=table.dxeListBox_DevEx:eq(14) tr.dxeListBoxItemRow_DevEx:eq(2) td.dxeListBoxItem_DevEx:eq(0)
 	Click Element    jquery=div#CustomDropDownContainer div.dxpcDropDown_DevEx table:eq(2) tr:eq(1) td:eq(0)
 	
 Пошук тендера по ідентифікатору
@@ -136,9 +135,8 @@ Login
     Capture Page Screenshot
 	${href} =     Get Element Attribute      jquery=a.button.analysis-button@href
     Click Element     jquery=a.button.analysis-button
-    sleep   5s
+    sleep    5s
     Select Window     url=${href}
-    sleep    3s
     Select Frame      jquery=iframe:eq(0)
 	
 Оновити сторінку з тендером
@@ -272,10 +270,6 @@ Login
     Select Window     url=${href}
     sleep    3s
     Select Frame      jquery=iframe:eq(0)
-
-Отримати інформацію із документа
-	[Arguments]  ${username}  ${tender_uaid}  ${doc_id}  ${field}
-	[Return]   1
 	
 Отримати посилання на аукціон для глядача
     [Arguments]    @{ARGUMENTS}
@@ -491,8 +485,6 @@ Input Ade
 	[Arguments]    @{ARGUMENTS}
 	Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підписати договір
     ${documents}=    create_fake_doc
-	#Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
-	sleep   10s
 	Підготуватися до редагування    ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     sleep    1s
 	Click Element	 jquery=#MainSted2TabPageHeaderLabelActive_1

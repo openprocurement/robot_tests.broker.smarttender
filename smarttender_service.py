@@ -12,9 +12,6 @@ TZ = timezone(os.environ['TZ'] if 'TZ' in os.environ else 'Europe/Kiev')
 def get_now():
     return datetime.now(TZ)
 
-def get_filename_from_path(path):
-    return basename(path)
-    
 def convert_datetime_to_smarttender_format(isodate):
     iso_dt = parse_date(isodate)
     date_string = iso_dt.strftime("%d.%m.%Y %H:%M")
