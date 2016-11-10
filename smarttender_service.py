@@ -140,9 +140,25 @@ def auction_field_info(field):
         "items[0].unit.name": "span[data-itemid]:eq(0) span.info_snedi",
         "items[0].unit.code": "span[data-itemid]:eq(0) span.info_edi",
         "items[0].quantity": "span[data-itemid]:eq(0) span.info_count",
+        "cancellations[0].reason": "span.info_cancellation_reason",
+        "cancellations[0].status": "span.info_cancellation_status"
     }
     return map[field]
-    
+
+def document_fields_info(field):
+    map = {
+        "description": "span.info_cancellation_attachment_description",
+        "title": "span.info_cancellation_attachment_name"
+    }
+    return map[field]
+
+def string_contains_cancellation(value):
+    if "cancellations" in value:
+        ret = "true"
+    else:
+        ret = "false"
+    return ret
+
 def convert_result(field, value):
     if field == "value.amount" or field == "minimalStep.amount":
         ret = float(value)
