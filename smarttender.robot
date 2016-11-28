@@ -255,7 +255,7 @@ Input Ade
 
 Внести зміни в тендер
     [Arguments]    @{ARGUMENTS}
-    Pass Execution If    '${role}'=='provider' or '${role}'=='provider'    Данний користувач не може вносити зміни в аукціон
+    Pass Execution If    '${role}'=='provider' or '${role}'=='viewer'    Данний користувач не може вносити зміни в аукціон
     Підготуватися до редагування     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
