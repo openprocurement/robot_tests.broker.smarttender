@@ -1,11 +1,11 @@
-*** Settings ***
-Library           Selenium2Screenshots
+*** Settings *** 
 Library           String
 Library           DateTime
 Library           smarttender_service.py
 Library           op_robot_tests.tests_files.service_keywords
 
 *** Variables ***
+${number_of_tabs}     ${1}
 ${locator.auctionID}    jquery=span.info_tendernum
 ${locator.procuringEntity.name}       jquery=span.info_organization
 ${locator.tenderPeriod.startDate}    jquery=span.info_d_sch
@@ -38,12 +38,17 @@ Login
     Click Element    jquery=#sm_content .log-in a.button
     sleep    5s
 
+Перезапустити браузер
+    [Arguments]    @{ARGUMENTS}
+    Run Keyword    reset_number_of_tabs
+    Close All Browsers
+    smarttender.Підготувати клієнт для користувача     @{ARGUMENTS}
+    [Return]
+
 Оновити сторінку з тендером
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
-    Close All Browsers
-    smarttender.Підготувати клієнт для користувача     @{ARGUMENTS}
     Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
@@ -73,17 +78,22 @@ Login
     Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
     Wait Until Page Contains     True    30s
     sleep    10s
+    ${number_of_tabs}=     get_number_of_tabs
+    Run Keyword If    ${number_of_tabs} > ${8}    smarttender.Перезапустити браузер    @{ARGUMENTS}
+    Run Keyword    add_to_number_of_tabs    ${2}
     Go To    http://test.smarttender.biz/test-tenders?allcat=1
     Wait Until Page Contains    Торговий майданчик    10s
-    sleep    1s
-    Input Text    MainContent_MainContent_MainContent_ctl13_FilterLayout_FilterTextBox_I    ${ARGUMENTS[1]}
-    sleep    1s
-    ${timeout_on_wait}=    Set Variable    10
-    Click Element    MainContent_MainContent_MainContent_ctl13_FilterLayout_FilterLayout_E1
     sleep    2s
+    Input Text    jquery=input.dhxform_textarea[name='filter']    ${ARGUMENTS[1]}
+    sleep    2s
+    Press Key     jquery=input.dhxform_textarea[name='filter']       \\13
+    ${timeout_on_wait}=    Set Variable    10
+    sleep    3s
     Location Should Contain    f=${ARGUMENTS[1]}
+    Click Element    jquery=a[title='Prozorro. Продажі(new!)']
+    sleep    2s
     Click Element    jquery=table#tenders tr.head:eq(0)
-    sleep    1s
+    sleep    2s
     Capture Page Screenshot
     ${href} =     Get Element Attribute      jquery=a.button.analysis-button@href
     Click Element     jquery=a.button.analysis-button
@@ -98,6 +108,7 @@ Focus And Input
     sleep     1s
     ${value}=       Convert To String     ${value}
     Input text      jquery=${selector}    ${value}
+    sleep     3s
 
 Input Ade
     [Arguments]     ${selector}     ${value}
@@ -108,14 +119,22 @@ Input Ade
     Press Key     jquery=${selector}       \\09
     Sleep    1s
     
-Дочекатись розблокування інтерфейсу
-    Sleep    2s
 
 Отримати текст із поля і показати на сторінці
     [Arguments]    ${fieldname}
     sleep    2s
     ${return_value}=    Get Text    ${locator.${fieldname}}
     [Return]    ${return_value}
+
+Заповнити випадаючий список
+    [Arguments]    ${selector}    ${content}
+    Focus    ${selector}
+    Execute JavaScript    (function(){$("${selector}").val('');})()
+    sleep    3s
+    Input Text    ${selector}    ${content}
+    sleep    3s
+    Press Key    ${selector}    \\13
+    sleep    2s
 
 ####################################
 #          OPEN PROCEDURE          #
@@ -146,14 +165,15 @@ Input Ade
     ${auction_start}=    smarttender_service.convert_datetime_to_smarttender_format    ${auction_start}
     ${guarantee_amount}=    Get From Dictionary    ${tender_data.data.guarantee}    amount
     ${dgfID}=    Get From Dictionary     ${tender_data.data}        dgfID
-    
-    ${documents}=    create_fake_doc
+    ${dgfDecisionId}=    Get From Dictionary    ${tender_data.data}    dgfDecisionID
+    ${dgfDecisionDate}=    Get From Dictionary    ${tender_data.data}    dgfDecisionDate
+    ${dgfDecisionDate}=    smarttender_service.convert_datetime_to_smarttender_format    ${dgfDecisionDate}
+    ${tenderAttempts}=    Get From Dictionary    ${tender_data.data}    tenderAttempts
     Wait Until Page Contains    Робочий стіл    30
     Click Element    jquery=.listviewDataItem[data-itemkey='434']
     Wait Until Page Contains        Тестові аукціони на продаж
     Click Image    jquery=.dxrControl_DevEx a[title*='(F7)'] img:eq(0)
     Wait Until Element Contains    cpModalMode    Оголошення   20
-    
     Run Keyword If     '${mode}' == 'dgfOtherAssets'    Змінити процедуру
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
     Focus And Input     \#cpModalMode table[data-name='INITAMOUNT'] input      ${budget}
@@ -163,7 +183,22 @@ Input Ade
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
     Focus And Input     \#cpModalMode div[data-name='ORG_GPO_2'] input    ${procuringEntityName}
-    smarttender.Додати предмет в тендер    ${items[0]}
+    Focus And Input     \#cpModalMode div[data-name='ORG_GPO_2'] input    ${procuringEntityName}
+    Focus    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)
+    Execute JavaScript    (function(){$("#cpModalMode table[data-name='ATTEMPT'] input:eq(1)").val('');})()
+    sleep    3s
+    Input Text    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    ${tenderAttempts}
+    sleep    3s
+    Press Key    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    \\13
+    sleep    2s
+    Focus And Input     \#cpModalMode table[data-name='DGFDECISION_NUMBER'] input    ${dgfDecisionId}
+    Focus And Input     \#cpModalMode table[data-name='DGFDECISION_DATE'] input    ${dgfDecisionDate}
+
+    ${index}=    Set Variable    ${0}
+    :FOR    ${item}    in    @{items}
+    \    Run Keyword If    '${index}' != '0'    Створити новий предмет
+    \    smarttender.Додати предмет в тендер при створенні   ${item}
+    \    ${index}=    SetVariable    ${index + 1} 
     
     Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
     Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
@@ -181,10 +216,7 @@ Input Ade
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
     Wait Until Element Is Visible    jquery=[data-name='GUARANTEE_AMOUNT']
     Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${guarantee_amount}
-        
-    Додати документ     ${documents}
     sleep    3s
-    
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
     sleep    5s
     Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx a[title='Надіслати вперед (Alt+Right)'] img:eq(0)
@@ -194,6 +226,10 @@ Input Ade
     sleep    20s
     ${return_value}     Get Text     jquery=div[data-placeid='TENDER'] td:Contains('UA-'):eq(0)
     [Return]     ${return_value}
+
+Створити новий предмет
+    Click Element    jquery=#cpModalMode div.gridViewAndStatusContainer a[title='Додати'] 
+    sleep    1s 
 
 Змінити процедуру
     Click Element    jquery=table[data-name='KDM2']
@@ -206,8 +242,7 @@ Input Ade
     Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
     Wait Until Page Contains      Завантаження документації    20
     Додати документ за шляхом    ${ARGUMENTS[1]}
-    Click Element       jquery=div.dxpnlControl_DevEx a[title='Зберегти']
-    sleep     5s
+    [Teardown]    Закрити вікно редагування
 
 Додати документ
     [Arguments]     ${document}
@@ -237,7 +272,7 @@ Input Ade
     Click Image      jquery=#cpModalMode div.dxrControl_DevEx a:contains('ОК') img
     sleep    2s
     
-Додати предмет в тендер
+Додати предмет в тендер при створенні
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == item
     ${description}=    Get From Dictionary    ${ARGUMENTS[0]}     description
@@ -252,20 +287,43 @@ Input Ade
     Input Ade      \#cpModalMode div[data-name='EDI'] input[type=text]:eq(0)       ${unit}
     sleep   2s
     Focus And Input      \#cpModalMode div[data-name='IDCPV'] input[type=text]:eq(0)      ${cpv}
+    Press Key    jquery=#cpModalMode div[data-name='IDCPV'] input[type=text]:eq(0)    \\13
+    sleep    2s
 
+Додати предмет закупівлі
+    [Arguments]    ${user}    ${tenderId}    ${item}
+    ${description}=    Get From Dictionary    ${item}     description
+    ${quantity}=       Get From Dictionary    ${item}     quantity
+    ${cpv}=            Get From Dictionary    ${item.classification}     id
+    ${unit}=           Get From Dictionary    ${item.unit}     name
+    ${unit}=           smarttender_service.convert_unit_to_smarttender_format    ${unit}
+    smarttender.Підготуватися до редагування     ${user}    ${tenderId}
+    Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
+    Page Should Not Contain Element    jquery=#cpModalMode div.gridViewAndStatusContainer a[title='Додати']
+    [Teardown]      Закрити вікно редагування
+
+Видалити предмет закупівлі
+    [Arguments]    ${user}    ${tenderId}    ${itemId}
+    ${readyToEdit} =  Execute JavaScript  return(function(){return ((window.location.href).indexOf('webclient') !== -1).toString();})()
+    Run Keyword If     '${readyToEdit}' != 'true'    Підготуватися до редагування     ${user}    ${tenderId}
+    Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
+    Page Should Not Contain Element     jquery=#cpModalMode a[title='Удалить']
+    [Teardown]      Закрити вікно редагування
+    
 Внести зміни в тендер
     [Arguments]    @{ARGUMENTS}
     Pass Execution If    '${role}'=='provider' or '${role}'=='viewer'    Данний користувач не може вносити зміни в аукціон
-    Підготуватися до редагування     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
+    smarttender.Підготуватися до редагування     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
     sleep   1s
     ${selector}=    auction_screen_field_selector       ${ARGUMENTS[2]}
     Focus    jquery=${selector}
     Input Text    jquery=${selector}    ${ARGUMENTS[3]}
-    Run Keyword If      '${ARGUMENTS[2]}' == 'description'     Змінити опис тендера      ${ARGUMENTS[3]} 
     sleep   1s
-    [Teardown]      Закрити вікно редагування
+    [Teardown]    Закрити вікно редагування
 
 Закрити вікно редагування    
     Click Element       jquery=div.dxpnlControl_DevEx a[title='Зберегти'] img    
@@ -287,9 +345,11 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == fieldname
-    ${isCancellationField}=     string_contains_cancellation     '${ARGUMENTS[2]}'
+    ${isCancellationField}=     string_contains     ${ARGUMENTS[2]}    cancellation
+    ${isQuestionField}=     string_contains     ${ARGUMENTS[2]}    questions
     Run Keyword If    '${ARGUMENTS[2]}' == 'status' or '${isCancellationField}' == 'true'  smarttender.Оновити сторінку з тендером     @{ARGUMENTS}
     Run Keyword If     '${isCancellationField}' == 'true'   smarttender.Відкрити сторінку із данними скасування
+    Run Keyword If    '${isQuestionField}' == 'true'    smarttender.Відкрити сторінку із даними запитань
     ${selector}=     auction_field_info    ${ARGUMENTS[2]}
     ${ret}=          Execute JavaScript    return (function() { return $("${selector}").text() })()
     ${ret}=             convert_result        ${ARGUMENTS[2]}       ${ret}
@@ -301,6 +361,12 @@ Input Ade
     ...    ${ARGUMENTS[1]} == fieldname
     ${ret}=    smarttender.Отримати інформацію із тендера    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
     [Return]    ${ret}
+
+Отримати кількість предметів в тендері
+    [Arguments]    ${user}    ${tenderId}
+    smarttender.Пошук тендера по ідентифікатору     ${user}    ${tenderId}
+    ${numberOfItems}=     Get Matching Xpath Count     xpath=//div[@id='home']//div[@class='well']
+    [Return]    ${numberOfItems}
 
 Отримати інформацію із запитання
     [Arguments]    ${user}    ${tenderId}    ${objectId}    ${field}
@@ -314,7 +380,7 @@ Input Ade
     ${title}=   Get Title
     Return From KeyWord If     '${title}' != 'Комерційні торги та публічні закупівлі в системі ProZorro'
     smarttender.Пошук тендера по ідентифікатору     0       ${TENDER['TENDER_UAID']}
-    ${href} =     Get Element Attribute      jquery=a.button.analysis-button@href
+    ${href} =     Get Element Attribute    jquery=a.button.analysis-button@href
     Click Element     jquery=a.button.analysis-button
     sleep   5s
     Select Window     url=${href}
@@ -333,9 +399,9 @@ Input Ade
     Select Frame      jquery=iframe:eq(0)
 
 Отримати інформацію із документа
-    [Arguments]  ${username}  ${tender_uaid}  ${doc_id}  ${field}
+    [Arguments]    ${username}  ${tender_uaid}  ${doc_id}  ${field}
     Run Keyword     smarttender.Пошук тендера по ідентифікатору     ${username}     ${tender_uaid}
-	${isCancellation}=    Set Variable If     '${TEST NAME}' == 'Відображення опису документа до скасування лоту' or '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту' or '${TEST NAME}' == 'Відображення вмісту документа до скасування лоту'   True    False
+	${isCancellation}=    Set Variable If    '${TEST NAME}' == 'Відображення опису документа до скасування лоту' or '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту' or '${TEST NAME}' == 'Відображення вмісту документа до скасування лоту'   True    False
     Run Keyword If       ${isCancellation} == True     smarttender.Відкрити сторінку із данними скасування
     ${selector}=     document_fields_info     ${field}    ${doc_id}   ${isCancellation}
     ${result}=      Execute JavaScript    return (function() { return $("${selector}").text() })()
@@ -347,6 +413,12 @@ Input Ade
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
     smarttender.Оновити сторінку з тендером    @{ARGUMENTS}
+
+Отримати інформацію із документа по індексу
+    [Arguments]    ${user}  ${tenderId}  ${doc_index}  ${field}
+    ${result}=     Execute JavaScript    return(function(){ return $("#menu2 div.row.document:eq(${doc_index+1}) span.info_attachment_type:eq(0)").text();})()
+    ${resultDoctype}=    map_from_smarttender_document_type    ${result}
+    [Return]    ${resultDoctype}
 
 Задати запитання на тендер
     [Arguments]    @{ARGUMENTS}
@@ -401,19 +473,16 @@ Input Ade
     Press Key       jquery=div[data-placeid='TENDER'] table.hdr:eq(3) tbody tr:eq(1) td:eq(2) input:eq(0)        \\13
     sleep    1s
     Click Image    jquery=.dxrControl_DevEx a[title*='Змінити'] img:eq(0)
-    smarttender.Дочекатись розблокування інтерфейсу
+    sleep    2s
     Focus       jquery=#cpModalMode textarea:eq(0)
     Input Text    jquery=#cpModalMode textarea:eq(0)     ${answerText}
-    smarttender.Дочекатись розблокування інтерфейсу
-    sleep    1s
+    sleep    2s
     Click Element    jquery=#cpModalMode span.dxICheckBox_DevEx:eq(0)
-    smarttender.Дочекатись розблокування інтерфейсу
-    sleep    1s
+    sleep    2s
     Click Image    jquery=#cpModalMode .dxrControl_DevEx .dxr-buttonItem:eq(0) img
-    smarttender.Дочекатись розблокування інтерфейсу
-    sleep    1s
+    sleep    2s
     Click Element     jquery=#cpIMMessageBox .dxbButton_DevEx:eq(0)
-    smarttender.Дочекатись розблокування інтерфейсу
+    sleep    2s
     Wait Until Page Contains    Відповідь надіслана на сервер ЦБД        20s
 
 Подати цінову пропозицію
@@ -422,9 +491,6 @@ Input Ade
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} == ${test_bid_data}
     ${amount}=     Get From Dictionary    ${ARGUMENTS[2].data.value}      amount
-    Close All Browsers
-    smarttender.Підготувати клієнт для користувача      @{ARGUMENTS}
-    Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
     smarttender.Пройти кваліфікацію для подачі пропозиції       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     ${response}=    smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${amount}
     [Return]    ${response}
@@ -550,6 +616,8 @@ Input Ade
     smarttender.Завантажити документ в ставку     ${ARGUMENTS[0]}      ${ARGUMENTS[2]}     ${TENDER['TENDER_UAID']}
     
 Відкрити сторінку із даними запитань
+    ${alreadyOpened}=    Execute JavaScript    return(function(){ ((window.location.href).indexOf('discuss') !== -1).toString();})()
+    Return From Keyword If    '${alreadyOpened}' == 'true' 
     Click Element    jquery=a#question:eq(0)
     ${href}=    Get Element Attribute    jquery=a#question:eq(0)@href
     Select Window     url=${href}
@@ -586,6 +654,7 @@ Input Ade
     Press Key        jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)         \\13
     sleep    3s
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Зберегти') img
+    sleep    5s
 
 Додати Virtual Data Room
     [Arguments]    ${user}    ${tenderId}     ${link}
@@ -597,11 +666,70 @@ Input Ade
     sleep    2s
     Focus    jquery=div#pcModalMode_PWC-1 table[data-name='VDRLINK'] input:eq(0)
     Input Text    jquery=div#pcModalMode_PWC-1 table[data-name='VDRLINK'] input:eq(0)    ${link}
+    Press Key    jquery=div#pcModalMode_PWC-1 table[data-name='VDRLINK'] input:eq(0)    \\13
+    sleep    3s
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Зберегти') img
+    sleep    5s
+
+Додати публічний паспорт активу
+    [Arguments]    ${user}    ${tenderId}     ${link}
+    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити паспорт активу
+    Підготуватися до редагування    ${user}     ${tenderId}
+    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    Wait Until Page Contains    Завантаження документації
+    Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
+    sleep    2s
+    Focus    jquery=div#pcModalMode_PWC-1 table[data-name='PACLINK'] input:eq(0)
+    Input Text    jquery=div#pcModalMode_PWC-1 table[data-name='PACLINK'] input:eq(0)    ${link}
+    Press Key    jquery=div#pcModalMode_PWC-1 table[data-name='PACLINK'] input:eq(0)    \\13
+    sleep    3s
+    Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Зберегти') img
+    sleep    5s
+
+Додати офлайн документ
+    [Arguments]    ${user}    ${tenderId}     ${description}
+    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може додати офлайн документ
+    Підготуватися до редагування    ${user}     ${tenderId}
+    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    Wait Until Page Contains    Завантаження документації
+    Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
+    sleep    2s
+    Focus    jquery=div#pcModalMode_PWC-1 table[data-name='ACCESSDET'] textarea:eq(0)
+    Input Text    jquery=div#pcModalMode_PWC-1 table[data-name='ACCESSDET'] textarea:eq(0)    ${description}
+    Press Key    jquery=div#pcModalMode_PWC-1 table[data-name='ACCESSDET'] textarea:eq(0)    \\13
+    sleep    3s
+    Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Зберегти') img
+    sleep    5s
+
+Завантажити документ в тендер з типом
+    [Arguments]    ${user}    ${tenderId}    ${file_path}    ${doc_type}
+    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити документ в тендер
+    Підготуватися до редагування    ${user}    ${tenderId}
+    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    Wait Until Page Contains    Завантаження документації
+    sleep    2s
+    smarttender.Додати документ за шляхом    ${file_path}
+    ${documentTypeNormalized}=    map_to_smarttender_document_type    ${doc_type}
+    Click Element    jquery=label:contains('(файл завантаження)')
+    Wait Until Element Is Enabled       jquery=td.dhxcombo_input_container:eq(0)
+    sleep    3s
+    Focus    jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)
+    Input Text      jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)    ${documentTypeNormalized}
+    Press Key        jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)         \\13
+    sleep    3s
+    Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Зберегти') img
+    sleep    5s
 
 Завантажити фінансову ліцензію
     [Arguments]    ${user}    ${tenderId}    ${license_path}
     smarttender.Завантажити документ в ставку    ${user}    ${license_path}    ${tenderId}
+
+Отримати кількість документів в тендері
+    [Arguments]    ${user}    ${tenderId}
+    Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
+    ${documentNumber}=    Execute JavaScript    return (function(){return $("div#menu2 div.row.document").length-1;})()
+    ${documentNumber}=    Convert To Integer    ${documentNumber}
+    [Return]    ${documentNumber}
 
 ####################################
 #          CANCELLATION            #
@@ -617,9 +745,9 @@ Input Ade
     sleep    2s
     Focus    jquery=#cpModalMode table[data-name='reason'] input:eq(1)
     Execute JavaScript    (function(){$("#cpModalMode table[data-name='reason'] input:eq(1)").val('');})()
-	sleep    3s
+    sleep    3s
     Input Text    jquery=#cpModalMode table[data-name='reason'] input:eq(1)    ${reason}
-	sleep    3s
+    sleep    3s
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
     sleep    2s
     Click Element       jquery=div[title='Додати']
