@@ -1,5 +1,4 @@
-*** Settings ***
-Library           Selenium2Screenshots
+*** Settings *** 
 Library           String
 Library           DateTime
 Library           smarttender_service.py
@@ -120,8 +119,6 @@ Input Ade
     Press Key     jquery=${selector}       \\09
     Sleep    1s
     
-Дочекатись розблокування інтерфейсу
-    Sleep    2s
 
 Отримати текст із поля і показати на сторінці
     [Arguments]    ${fieldname}
@@ -133,9 +130,9 @@ Input Ade
     [Arguments]    ${selector}    ${content}
     Focus    ${selector}
     Execute JavaScript    (function(){$("${selector}").val('');})()
-	sleep    3s
+    sleep    3s
     Input Text    ${selector}    ${content}
-	sleep    3s
+    sleep    3s
     Press Key    ${selector}    \\13
     sleep    2s
 
@@ -189,9 +186,9 @@ Input Ade
     Focus And Input     \#cpModalMode div[data-name='ORG_GPO_2'] input    ${procuringEntityName}
     Focus    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)
     Execute JavaScript    (function(){$("#cpModalMode table[data-name='ATTEMPT'] input:eq(1)").val('');})()
-	sleep    3s
+    sleep    3s
     Input Text    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    ${tenderAttempts}
-	sleep    3s
+    sleep    3s
     Press Key    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    \\13
     sleep    2s
     Focus And Input     \#cpModalMode table[data-name='DGFDECISION_NUMBER'] input    ${dgfDecisionId}
@@ -348,9 +345,11 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == fieldname
-    ${isCancellationField}=     string_contains_cancellation     '${ARGUMENTS[2]}'
+    ${isCancellationField}=     string_contains     ${ARGUMENTS[2]}    cancellation
+    ${isQuestionField}=     string_contains     ${ARGUMENTS[2]}    questions
     Run Keyword If    '${ARGUMENTS[2]}' == 'status' or '${isCancellationField}' == 'true'  smarttender.Оновити сторінку з тендером     @{ARGUMENTS}
     Run Keyword If     '${isCancellationField}' == 'true'   smarttender.Відкрити сторінку із данними скасування
+    Run Keyword If    '${isQuestionField}' == 'true'    smarttender.Відкрити сторінку із даними запитань
     ${selector}=     auction_field_info    ${ARGUMENTS[2]}
     ${ret}=          Execute JavaScript    return (function() { return $("${selector}").text() })()
     ${ret}=             convert_result        ${ARGUMENTS[2]}       ${ret}
@@ -617,6 +616,8 @@ Input Ade
     smarttender.Завантажити документ в ставку     ${ARGUMENTS[0]}      ${ARGUMENTS[2]}     ${TENDER['TENDER_UAID']}
     
 Відкрити сторінку із даними запитань
+    ${alreadyOpened}=    Execute JavaScript    return(function(){ ((window.location.href).indexOf('discuss') !== -1).toString();})()
+    Return From Keyword If    '${alreadyOpened}' == 'true' 
     Click Element    jquery=a#question:eq(0)
     ${href}=    Get Element Attribute    jquery=a#question:eq(0)@href
     Select Window     url=${href}
@@ -672,7 +673,7 @@ Input Ade
 
 Додати публічний паспорт активу
     [Arguments]    ${user}    ${tenderId}     ${link}
-    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити ілюстрацію
+    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити паспорт активу
     Підготуватися до редагування    ${user}     ${tenderId}
     Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
     Wait Until Page Contains    Завантаження документації
@@ -687,7 +688,7 @@ Input Ade
 
 Додати офлайн документ
     [Arguments]    ${user}    ${tenderId}     ${description}
-    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити ілюстрацію
+    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може додати офлайн документ
     Підготуватися до редагування    ${user}     ${tenderId}
     Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
     Wait Until Page Contains    Завантаження документації
@@ -747,9 +748,9 @@ Input Ade
     sleep    2s
     Focus    jquery=#cpModalMode table[data-name='reason'] input:eq(1)
     Execute JavaScript    (function(){$("#cpModalMode table[data-name='reason'] input:eq(1)").val('');})()
-	sleep    3s
+    sleep    3s
     Input Text    jquery=#cpModalMode table[data-name='reason'] input:eq(1)    ${reason}
-	sleep    3s
+    sleep    3s
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
     sleep    2s
     Click Element       jquery=div[title='Додати']

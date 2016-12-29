@@ -80,10 +80,9 @@ def convert_date(s):
     dt = parse(s, parserinfo(True, False))
     return dt.strftime('%Y-%m-%dT%H:%M:%S.%f+02:00')
 
-
 def convert_date_offset_naive(s):
     dt = parse(s, parserinfo(True, False))
-    return dt.strftime('%Y-%m-%d')
+    return dt.strftime('%Y-%m-%d') 
 
 
 def get_bid_response(value):
@@ -104,7 +103,6 @@ def get_bid_status(status):
 
 def get_question_data(id):
     return smarttender_munchify({'data': {'id': id}})
-
 
 def convert_unit_to_smarttender_format(unit):
     map = {
@@ -162,10 +160,8 @@ def convert_cpv_from_smarttender_format(cpv):
 
 
 def auction_field_info(field):
-    # some dirty hack here. will be fixed, when we will recieve item number
-    # from parent test
-    if("items" in field):
-        item_id = re.search("\d", field).group(0)
+    if "items" in field:
+        item_id = re.search("\d",field).group(0)
         splitted = field.split(".")
         splitted.remove(splitted[0])
         result = string.join(splitted, '.')
@@ -179,6 +175,17 @@ def auction_field_info(field):
             "quantity": "span[data-itemid]:eq({0}) span.info_count",
         }
         return (map[result]).format(item_id)
+    elif "questions" in field:
+        question_id = re.search("\d",field).group(0)
+        splitted = field.split(".")
+        splitted.remove(splitted[0])
+        result = string.join(splitted, '.')
+        map = {
+            "description": "div.q-content",
+            "title": "div.title-question span.question-title-inner",
+            "answer": "div.answer div:eq(2)"
+        }
+        return ("div.question:Contains('{0}') ".format(question_id)) + map[result]
     else:
         map = {
             "dgfID": "span.info_dgfId",
@@ -209,7 +216,7 @@ def auction_field_info(field):
         return map[field]
 
 
-def document_fields_info(field, docId, is_cancellation_document):
+def document_fields_info(field,docId,is_cancellation_document):
     map = {
         "description": "span.info_attachment_description:eq(0)",
         "title": "span.info_attachment_title:eq(0)",
@@ -219,8 +226,7 @@ def document_fields_info(field, docId, is_cancellation_document):
     if str(is_cancellation_document) == "True":
         result = map[field]
     else:
-        result = ("div.row.document:contains('{0}') ".format(
-            docId)) + map[field]
+        result = ("div.row.document:contains('{0}') ".format(docId))+map[field]
     return result
 
 
@@ -235,11 +241,10 @@ def map_to_smarttender_document_type(doctype):
     }
     return map[doctype]
 
-
 def map_from_smarttender_document_type(doctype):
     map = {
-        u"Презентація": u"x_presentation",
-        u"Паспорт торгів": u"tenderNotice",
+        u"Презентація" : u"x_presentation",
+        u"Паспорт торгів" : u"tenderNotice",
         u"Договір NDA": u"x_nda",
         u"Технические спецификации": u"technicalSpecifications",
         u"Порядок ознайомлення з майном/активом у кімнаті даних": u"x_dgfAssetFamiliarization",
@@ -252,9 +257,8 @@ def map_from_smarttender_document_type(doctype):
     }
     return map[doctype]
 
-
-def string_contains_cancellation(value):
-    if "cancellations" in value:
+def string_contains(check_string,value):
+    if value in check_string:
         ret = "true"
     else:
         ret = "false"
@@ -298,12 +302,12 @@ def auction_screen_field_selector(field):
         "guarantee": "table[data-name='GUARANTEE_AMOUNT'] input",
         "dgfDecisionID": "table[data-name='DGFDECISION_NUMBER'] input",
         "dgfDecisionDate": "table[data-name='DGFDECISION_DATE'] input",
-        "tenderAttempts": "table[data-name='ATTEMPT'] input:eq(1)",
-        "title": "table[data-name='TITLE'] input",
-        "description": "table[data-name='DESCRIPT'] textarea",
-        "procuringEntity.identifier.legalName": "div[data-name='ORG_GPO_2'] input:eq(0)",
-        "tenderPeriod.startDate": "",
-        "guarantee.amount": "table[data-name='GUARANTEE_AMOUNT'] input",
+        "tenderAttempts":"table[data-name='ATTEMPT'] input:eq(1)",
+        "title":"table[data-name='TITLE'] input",
+        "description":"table[data-name='DESCRIPT'] textarea",
+        "procuringEntity.identifier.legalName":"div[data-name='ORG_GPO_2'] input:eq(0)",
+        "tenderPeriod.startDate":"",
+        "guarantee.amount":"table[data-name='GUARANTEE_AMOUNT'] input",
         "procuringEntity.address.postalCode": "table[data-name='POSTALCODE'] input",
         "procuringEntity.address.streetAddress": "table[data-name='STREETADDR'] input",
         "procuringEntity.address.region": "table[data-name='CITY_KOD''] input"
@@ -319,12 +323,10 @@ def question_field_info(field, id):
     }
     return ("div.question:Contains('{0}') ".format(id)) + map[field]
 
-
 def convert_bool_to_text(variable):
     return str(variable).lower()
 
-
-def download_file(url, download_path):
+def download_file(url,download_path):
     response = urllib2.urlopen(url)
     file_content = response.read()
     open(download_path, 'a').close()
@@ -332,12 +334,10 @@ def download_file(url, download_path):
     f.write(file_content)
     f.close()
 
-
 def unescape_link(link):
-    return str(link).replace("%20", " ")
+    return str(link).replace("%20"," ")
 
-
-def normalize_index(first, second):
+def normalize_index(first,second):
     if first == "-1":
         return "2"
     else:
