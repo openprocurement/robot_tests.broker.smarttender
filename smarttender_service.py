@@ -80,6 +80,7 @@ def convert_date(s):
     dt = parse(s, parserinfo(True, False))
     return dt.strftime('%Y-%m-%dT%H:%M:%S.%f+02:00')
 
+
 def convert_date_offset_naive(s):
     dt = parse(s, parserinfo(True, False))
     return dt.strftime('%Y-%m-%d') 
@@ -103,6 +104,7 @@ def get_bid_status(status):
 
 def get_question_data(id):
     return smarttender_munchify({'data': {'id': id}})
+
 
 def convert_unit_to_smarttender_format(unit):
     map = {
@@ -241,6 +243,7 @@ def map_to_smarttender_document_type(doctype):
     }
     return map[doctype]
 
+
 def map_from_smarttender_document_type(doctype):
     map = {
         u"Презентація" : u"x_presentation",
@@ -256,6 +259,7 @@ def map_from_smarttender_document_type(doctype):
         u"Публічний паспорт активу": u"x_dgfPublicAssetCertificate"
     }
     return map[doctype]
+
 
 def string_contains(check_string,value):
     if value in check_string:
@@ -323,8 +327,10 @@ def question_field_info(field, id):
     }
     return ("div.question:Contains('{0}') ".format(id)) + map[field]
 
+
 def convert_bool_to_text(variable):
     return str(variable).lower()
+
 
 def download_file(url,download_path):
     response = urllib2.urlopen(url)
@@ -334,8 +340,10 @@ def download_file(url,download_path):
     f.write(file_content)
     f.close()
 
+
 def unescape_link(link):
     return str(link).replace("%20"," ")
+
 
 def normalize_index(first,second):
     if first == "-1":

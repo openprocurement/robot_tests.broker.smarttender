@@ -710,9 +710,6 @@ Input Ade
     sleep    2s
     smarttender.Додати документ за шляхом    ${file_path}
     ${documentTypeNormalized}=    map_to_smarttender_document_type    ${doc_type}
-    #${docCount}=    Get Matching Xpath Count    xpath=//div[@data-name='TREEDOCUMENTS']//label
-    #${docCount}=    Convert To Integer    ${docCount}
-    #${neededElementEq}=    Set Variable    ${docCount - 1}
     Click Element    jquery=label:contains('(файл завантаження)')
     Wait Until Element Is Enabled       jquery=td.dhxcombo_input_container:eq(0)
     sleep    3s
