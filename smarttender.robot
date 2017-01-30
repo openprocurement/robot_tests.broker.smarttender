@@ -1,4 +1,4 @@
-*** Settings *** 
+﻿*** Settings *** 
 Library           String
 Library           DateTime
 Library           smarttender_service.py
@@ -884,8 +884,6 @@ Input Ade
 Завантажити протокол аукціону
     [Arguments]    ${user}    ${tenderId}    ${filePath}    ${index}
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
-    Click Element    jquery=ul.nav.nav-tabs.nav-justified li:contains('Результати аукціону')
-    sleep    4s
     ${href}=    Get Element Attribute    jquery=div#auctionResults div.row.well:eq(${index}) a.btn.btn-primary@href
     Go To      ${href}
     sleep    7s
