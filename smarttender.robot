@@ -775,7 +775,7 @@ Input Ade
     sleep    3s
     Select Window     url=${href}
     sleep     3s
-    Select Frame     jquery=iframe:eq(0)
+    Select Frame     jquery=iframe#iframe
     sleep    1s
     Click Element      jquery=#btCancellationOffers
     sleep    2s
