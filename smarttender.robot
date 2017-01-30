@@ -1,4 +1,4 @@
-*** Settings *** 
+﻿*** Settings *** 
 Library           String
 Library           DateTime
 Library           smarttender_service.py
@@ -416,7 +416,7 @@ Input Ade
 
 Отримати інформацію із документа по індексу
     [Arguments]    ${user}  ${tenderId}  ${doc_index}  ${field}
-    ${result}=     Execute JavaScript    return(function(){ return $("#menu2 div.row.document:eq(${doc_index+1}) span.info_attachment_type:eq(0)").text();})()
+    ${result}=     Execute JavaScript    return(function(){ return $("div.row.document:eq(${doc_index+1}) span.info_attachment_type:eq(0)").text();})()
     ${resultDoctype}=    map_from_smarttender_document_type    ${result}
     [Return]    ${resultDoctype}
 
@@ -566,8 +566,9 @@ Input Ade
     sleep    3s
     Select Window     url=${href}
     sleep    3s
-    Select Frame    jquery=iframe:eq(0)
+    Select Frame    jquery=iframe#iframe
     Wait Until Page Contains       Комерційна пропозиція по аукціону
+    sleep    2s
     ${value}=     Execute JavaScript     return (function() { var a = ${ARGUMENTS[2]}; return a.toString().replace('.',',') })()
     Focus      jquery=input[name*='fieldBidAmount'][autocomplete='off']
     sleep   2s
@@ -604,7 +605,7 @@ Input Ade
     sleep    3s
     Select Window     url=${href}
     sleep    3s
-    Select Frame     jquery=iframe:eq(0)
+    Select Frame     jquery=iframe#iframe
     Wait Until Page Contains     Комерційна пропозиція по аукціону
     Choose File     jquery=input[type=file]:eq(1)    ${ARGUMENTS[1]}
     sleep    2s
@@ -630,8 +631,6 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}     ${docId}
     Run Keyword     smarttender.Пошук тендера по ідентифікатору     ${user}     ${tenderId}
     ${selector}=     document_fields_info     content    ${docId}    False
-    Click Element    jquery=a[href='#menu2']:eq(0)
-    sleep   2s
     ${fileUrl}=     Get Element Attribute    jquery=div.row.document:contains('${docId}') a.info_attachment_link:eq(0)@href
     ${result}=      Execute JavaScript    return (function() { return $("${selector}").text() })()
     smarttender_service.download_file    ${fileUrl}    ${OUTPUT_DIR}${/}${result}
@@ -727,7 +726,7 @@ Input Ade
 Отримати кількість документів в тендері
     [Arguments]    ${user}    ${tenderId}
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
-    ${documentNumber}=    Execute JavaScript    return (function(){return $("div#menu2 div.row.document").length-1;})()
+    ${documentNumber}=    Execute JavaScript    return (function(){return $("div.row.document").length-1;})()
     ${documentNumber}=    Convert To Integer    ${documentNumber}
     [Return]    ${documentNumber}
 
@@ -885,9 +884,7 @@ Input Ade
 Завантажити протокол аукціону
     [Arguments]    ${user}    ${tenderId}    ${filePath}    ${index}
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
-    Click Element    jquery=ul.nav.nav-tabs.nav-justified li:contains('Результати аукціону')
-    sleep    4s
-    ${href}=    Get Element Attribute    jquery=div#menu1 div.row.well:eq(${index}) a.btn.btn-primary@href
+    ${href}=    Get Element Attribute    jquery=div#auctionResults div.row.well:eq(${index}) a.btn.btn-primary@href
     Go To      ${href}
     sleep    7s
     Click Element    jquery=a.attachment-button:eq(0)
@@ -971,4 +968,3 @@ Input Ade
     sleep      2s
     ${ContractState}=        Execute JavaScript        return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(6)").text();})()
     Should Be Equal     ${ContractState}     Підписаний
-
