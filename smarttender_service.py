@@ -83,7 +83,7 @@ def convert_date(s):
 
 def convert_date_offset_naive(s):
     dt = parse(s, parserinfo(True, False))
-    return dt.strftime('%Y-%m-%d') 
+    return dt.strftime('%Y-%m-%d')
 
 
 def get_bid_response(value):
@@ -188,6 +188,15 @@ def auction_field_info(field):
             "answer": "div.answer div:eq(2)"
         }
         return ("div.question:Contains('{0}') ".format(question_id)) + map[result]
+    elif "awards" in field:
+        award_id = re.search("\d",field).group(0)
+        splitted = field.split(".")
+        splitted.remove(splitted[0])
+        result = string.join(splitted, '.')
+        map = {
+            "status": "div#auctionResults div.row.well:eq({0}) span.info_award_status:eq(0)"
+        }
+        return map[result].format(award_id)
     else:
         map = {
             "dgfID": "span.info_dgfId",
