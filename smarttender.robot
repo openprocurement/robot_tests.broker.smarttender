@@ -967,7 +967,7 @@ Input Ade
     sleep    1s
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
     sleep     2s
-    Click Element    jquery=jquery=a[title='Прикріпити договір']:eq(0)
+    Click Element    jquery=a[title='Прикріпити договір']:eq(0)
     Wait Until Page Contains    Вкладення договірних документів
     sleep    2s
     Focus     jquery=td.dxic input[maxlength='30']
