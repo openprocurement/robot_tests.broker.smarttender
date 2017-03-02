@@ -1,4 +1,4 @@
-﻿﻿*** Settings ***
+﻿*** Settings ***
 Library           String
 Library           DateTime
 Library           smarttender_service.py
