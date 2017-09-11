@@ -490,11 +490,10 @@ Input Ade
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} == ${test_bid_data}
-    #${amount}=      Get From Dictionary    ${ARGUMENTS[2].data.value}      amount
     smarttender.Пройти кваліфікацію для подачі пропозиції       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     Log     ${mode}
     ${response}=  Run Keyword If    '${mode}' == 'dgfInsider'   
-    ...     smarttender.Прийняти участь в тендері dgfInsider  ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
+    ...     smarttender.Прийняти участь в тендері dgfInsider  ${ARGUMENTS[0]}     ${ARGUMENTS[1]}       ${ARGUMENTS[2]}
     ...    ELSE        
     ...     smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${amount}
     [Return]    ${response}
@@ -572,7 +571,8 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
-    ...    ${ARGUMENTS[2]} == ${value}
+    ...    ${ARGUMENTS[2]} ==  ${test_bid_data}
+    ${amount}=      Get From Dictionary    ${ARGUMENTS[2].data.value}      amount
     smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     sleep    2s
     ${href} =     Get Element Attribute      jquery=a#bid@href
@@ -582,20 +582,21 @@ Input Ade
     sleep    3s
     Wait Until Page Contains       Пропозиція по аукціону
     sleep    2s
-    ${value}=     Execute JavaScript     return (function() { var a = ${ARGUMENTS[2]}; return a.toString().replace('.',',') })()
+    ${value}=     Execute JavaScript     return (function() { var a = ${${amount}}; return a.toString().replace('.',',') })()
     Focus      jquery=div#lotAmount0 input
     sleep   2s
     Input text      jquery=div#lotAmount0 input    ${value}
     sleep    1s
     Click Element      jquery=button#submitBidPlease
     Wait Until Page Contains       Пропозицію прийнято      15s
-    ${response}=      smarttender_service.get_bid_response    ${ARGUMENTS[2]}
+    ${response}=      smarttender_service.get_bid_response    ${${amount}}
     [Return]    ${response}
 
 Прийняти участь в тендері dgfInsider
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
+    ...    ${ARGUMENTS[2]} == bid_info
     smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     sleep    2s
     ${href} =     Get Element Attribute      jquery=a#bid@href
@@ -609,8 +610,7 @@ Input Ade
     sleep    1s
     Click Element      jquery=button:contains('Так')
     Wait Until Page Contains       Пропозицію прийнято      30s
-    ${response}=      smarttender_service.get_bid_response    0
-    [Return]    ${response}
+    [Return]    ${ARGUMENTS[2]}
 
 Отримати інформацію із пропозиції
     [Arguments]    @{ARGUMENTS}
