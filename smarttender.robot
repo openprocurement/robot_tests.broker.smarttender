@@ -495,7 +495,7 @@ Input Ade
     ${response}=  Run Keyword If    '${mode}' == 'dgfInsider'   
     ...     smarttender.Прийняти участь в тендері dgfInsider  ${ARGUMENTS[0]}     ${ARGUMENTS[1]}       ${ARGUMENTS[2]}
     ...    ELSE        
-    ...     smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${amount}
+    ...     smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     [Return]    ${response}
 
 Пройти кваліфікацію для подачі пропозиції
@@ -528,19 +528,12 @@ Input Ade
     Wait Until Page Contains    Відправити
     ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
     Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#GUARAN    ${file_path}
-    sleep    1s
     Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#FIN    ${file_path}
-    sleep    1s
     Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#NOTDEP    ${file_path}
-    sleep    1s
     Click Element    jquery=input#regulationsAccept
-    sleep    1s
     Click Element    jquery=input#offerAccept
-    sleep    1s
     Click Element    jquery=input#instruction
-    sleep    1s
     Click Element    jquery=input#tariffAccept
-    sleep   1s
     Click Element    jquery=a.submit:eq(0)
     Unselect Frame
     sleep    5s
@@ -598,16 +591,15 @@ Input Ade
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} == bid_info
     smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    sleep    2s
+    Wait Until Page Contains Element        jquery=a#bid    5s
     ${href} =     Get Element Attribute      jquery=a#bid@href
     Click Element     jquery=a#bid
-    sleep    3s
+    sleep 3s
     Select Window     url=${href}
-    sleep    3s
-    Wait Until Page Contains       Пропозиція по аукціону
-    sleep    1s
+    Wait Until Page Contains       Пропозиція по аукціону   10s
+    Wait Until Page Contains Element        jquery=button#submitBidPlease    5s
     Click Element      jquery=button#submitBidPlease
-    sleep    1s
+    Wait Until Page Contains Element        jquery=button:contains('Так')    5s
     Click Element      jquery=button:contains('Так')
     Wait Until Page Contains       Пропозицію прийнято      30s
     [Return]    ${ARGUMENTS[2]}
@@ -629,17 +621,15 @@ Input Ade
     ...    ${ARGUMENTS[2]} == tenderid
     Pass Execution If     '${mode}' == 'dgfOtherAssets'     Для типа 'Продаж майна банків, що ліквідуються' документы не вкладываются
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[2]}
-    sleep    3s
+    Wait Until Page Contains Element        jquery=a#bid    5s
     ${href} =     Get Element Attribute      jquery=a#bid@href
     Click Element     jquery=a#bid
-    sleep    3s
     Select Window     url=${href}
-    sleep    3s
-    Wait Until Page Contains       Пропозиція
+    Wait Until Page Contains       Пропозиція   10s
+    Wait Until Page Contains Element        jquery=button:contains('Обрати файли')    5s
     Choose File     jquery=button:contains('Обрати файли')    ${ARGUMENTS[1]}
-    sleep    2s
     Click Element      jquery=button#submitBidPlease
-    sleep    1s
+    Wait Until Page Contains Element        jquery=button:contains('Так')    5s
     Click Element      jquery=button:contains('Так')
     Wait Until Page Contains       Пропозицію прийнято      30s
 
@@ -841,11 +831,11 @@ Input Ade
 Отримати посилання на аукціон для учасника
     [Arguments]    @{ARGUMENTS}
     smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-    sleep    3s
+    Wait Until Page Contains Element         jquery=a#to-auction  5s
     Click Element    jquery=a#to-auction
-    sleep    3s
+    Wait Until Page Contains Element        jquery=iframe#widgetIframe  5s
     Select Frame    jquery=iframe#widgetIframe
-    sleep    2s
+    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  5s
     ${return_value}=    Get Element Attribute     jquery=a.link-button:eq(0)@href
     [return]      ${return_value}
 
