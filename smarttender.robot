@@ -594,7 +594,6 @@ Input Ade
     Wait Until Page Contains Element        jquery=a#bid    5s
     ${href} =     Get Element Attribute      jquery=a#bid@href
     Click Element     jquery=a#bid
-    sleep 3s
     Select Window     url=${href}
     Wait Until Page Contains       Пропозиція по аукціону   10s
     Wait Until Page Contains Element        jquery=button#submitBidPlease    5s
