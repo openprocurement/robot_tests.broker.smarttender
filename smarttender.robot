@@ -3,6 +3,7 @@ Library           String
 Library           DateTime
 Library           smarttender_service.py
 Library           op_robot_tests.tests_files.service_keywords
+Library           Selenium2Library
 
 *** Variables ***
 ${number_of_tabs}     ${1}
@@ -14,6 +15,7 @@ ${locator.enquiryPeriod.endDate}    jquery=span.info_ddm
 ${locator.auctionPeriod.startDate}      jquery=span.info_dtauction
 ${locator.questions[0].description}    ${EMPTY}
 ${locator.questions[0].answer}    ${EMPTY}
+${browserAlias}  'our_browser'
 
 *** Keywords ***
 ####################################
@@ -24,7 +26,7 @@ ${locator.questions[0].answer}    ${EMPTY}
     [Arguments]    @{ARGUMENTS}
     [Documentation]      Відкрити браузер, створити об’єкт api wrapper, тощо
     ...    ${ARGUMENTS[0]} == username
-    Open Browser    ${USERS.users['${ARGUMENTS[0]}'].homepage}    ${USERS.users['${ARGUMENTS[0]}'].browser}    alias=${ARGUMENTS[0]}
+    Open Browser    ${USERS.users['${ARGUMENTS[0]}'].homepage}    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}
     Set Window Size    @{USERS.users['${ARGUMENTS[0]}'].size}
     Set Window Position    @{USERS.users['${ARGUMENTS[0]}'].position}
     Run Keyword If      '${ARGUMENTS[0]}' != 'SmartTender_Viewer'      Login      @{ARGUMENTS}
@@ -49,7 +51,7 @@ Login
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
-    Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
+    Switch Browser    ${browserAlias}
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
 Підготуватися до редагування
@@ -79,8 +81,6 @@ Login
     Wait Until Page Contains     True    30s
     sleep    10s
     ${number_of_tabs}=     get_number_of_tabs
-    Run Keyword If    ${number_of_tabs} > ${8}    smarttender.Перезапустити браузер    @{ARGUMENTS}
-    Run Keyword    add_to_number_of_tabs    ${2}
     Go To    http://test.smarttender.biz/test-tenders?allcat=1
     Wait Until Page Contains    Торговий майданчик    10s
     Click Element    jquery=a:contains('Аукціони на продаж активів банків'):eq(0)
@@ -97,7 +97,7 @@ Login
     Click Element     jquery=a.linkSubjTrading:eq(0)
     sleep   5s
     Select Window     url=${href}
-    sleep    3s
+    Wait Until Page Contains    Торговий майданчик    10s
     Select Frame      jquery=iframe:eq(0)
 
 Focus And Input
@@ -411,7 +411,7 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
-    Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
+    Switch Browser    ${ARGUMENTS[0]}
     smarttender.Оновити сторінку з тендером    @{ARGUMENTS}
 
 Отримати інформацію із документа по індексу
@@ -500,14 +500,15 @@ Input Ade
 
 Пройти кваліфікацію для подачі пропозиції
     [Arguments]    ${user}    ${tenderId}    ${bid}
+    Switch Browser  ${browserAlias}
     ${temp}=    Get Variable Value    ${bid['data'].qualified}
     ${shouldQualify}=    convert_bool_to_text    ${temp}
     Return From Keyword If     '${shouldQualify}' == 'false'
     Run Keyword     smarttender.Пошук тендера по ідентифікатору       ${user}    ${tenderId}
-    sleep     1s
+    Wait Until Page Contains Element  jquery=a#participate  10s
     ${lotId}=    Execute JavaScript    return(function(){return $("span.info_lotId").text()})()
     Click Element     jquery=a#participate
-    sleep    5s
+    Wait Until Page Contains Element  jquery=iframe#widgetIframe:eq(0)  10s
     Select Frame      jquery=iframe#widgetIframe:eq(0)
     Focus    jquery=input#firstName
     Input Text      jquery=input#firstName    Іван
@@ -594,6 +595,7 @@ Input Ade
     Wait Until Page Contains Element        jquery=a#bid    5s
     ${href} =     Get Element Attribute      jquery=a#bid@href
     Click Element     jquery=a#bid
+    sleep  5s
     Select Window     url=${href}
     Wait Until Page Contains       Пропозиція по аукціону   10s
     Wait Until Page Contains Element        jquery=button#submitBidPlease    5s
@@ -819,6 +821,7 @@ Input Ade
 
 Отримати посилання на аукціон для глядача
     [Arguments]    @{ARGUMENTS}
+    Switch Browser  ${browserAlias}
     smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
     ${href} =     Get Element Attribute      jquery=a#view-auction@href
     Click Element    jquery=a#view-auction
@@ -829,12 +832,13 @@ Input Ade
 
 Отримати посилання на аукціон для учасника
     [Arguments]    @{ARGUMENTS}
+    Switch Browser  ${browserAlias}
     smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-    Wait Until Page Contains Element         jquery=a#to-auction  5s
+    Wait Until Page Contains Element        jquery=a#to-auction  5s
     Click Element    jquery=a#to-auction
     Wait Until Page Contains Element        jquery=iframe#widgetIframe  5s
     Select Frame    jquery=iframe#widgetIframe
-    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  5s
+    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  10s
     ${return_value}=    Get Element Attribute     jquery=a.link-button:eq(0)@href
     [return]      ${return_value}
 
