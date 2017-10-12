@@ -3,6 +3,7 @@ Library           String
 Library           DateTime
 Library           smarttender_service.py
 Library           op_robot_tests.tests_files.service_keywords
+Library           Selenium2Library
 
 *** Variables ***
 ${number_of_tabs}     ${1}
