@@ -50,7 +50,7 @@ Login
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
-    Selenium2Library.Switch Browser    ${browserAlias}
+    Switch Browser    ${browserAlias}
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
 Підготуватися до редагування
@@ -80,9 +80,6 @@ Login
     Wait Until Page Contains     True    30s
     sleep    10s
     ${number_of_tabs}=     get_number_of_tabs
-    # TODO Close All Browsers is bad idea
-    #Run Keyword If    ${number_of_tabs} > ${8}    smarttender.Перезапустити браузер    @{ARGUMENTS}
-    #Run Keyword    add_to_number_of_tabs    ${2}
     Go To    http://test.smarttender.biz/test-tenders?allcat=1
     Wait Until Page Contains    Торговий майданчик    10s
     Click Element    jquery=a:contains('Аукціони на продаж активів банків'):eq(0)
@@ -413,7 +410,7 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
-    Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
+    Switch Browser    ${ARGUMENTS[0]}
     smarttender.Оновити сторінку з тендером    @{ARGUMENTS}
 
 Отримати інформацію із документа по індексу
