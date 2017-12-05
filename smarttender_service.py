@@ -78,7 +78,7 @@ def adapt_data(tender_data):
 
 def convert_date(s):
     dt = parse(s, parserinfo(True, False))
-    return dt.strftime('%Y-%m-%dT%H:%M:%S.%f+03:00')
+    return dt.strftime('%Y-%m-%dT%H:%M:%S+02:00')
 
 
 def convert_date_offset_naive(s):
@@ -175,6 +175,11 @@ def auction_field_info(field):
             "unit.name": "span[data-itemid]:eq({0}) span.info_snedi",
             "unit.code": "span[data-itemid]:eq({0}) span.info_edi",
             "quantity": "span[data-itemid]:eq({0}) span.info_count",
+            "additionalClassifications[0].scheme": "span[data-itemid]:eq({0}) .info_DKPP",
+            "additionalClassifications[0].id": "span[data-itemid]:eq({0}) .info_dkpp_code",
+            "additionalClassifications[0].description": "span[data-itemid]:eq({0}) .info_dkpp_name",
+            "contractPeriod.startDate": "span[data-itemid]:eq({0}) .info_contrfrom",
+            "contractPeriod.endDate": "span[data-itemid]:eq({0}) .info_contrto"
         }
         return (map[result]).format(item_id)
     elif "questions" in field:
@@ -222,7 +227,9 @@ def auction_field_info(field):
             "dgfDecisionID": "span.info_dgfDecisionId",
             "dgfDecisionDate": "span.info_dgfDecisionDate",
             "tenderAttempts": "span.info_tenderAttempts",
-            "procurementMethodType": "span.info_procurementMethodType"
+            "procurementMethodType": "span.info_procurementMethodType",
+            "minNumberOfQualifiedBids": ".info_minnumber_qualifiedbids"
+            "guarantee.amount":"table[data-name='GUARANTEE_AMOUNT'] input",
         }
         return map[field]
 
@@ -282,7 +289,7 @@ def convert_result(field, value):
     if field == "value.amount" or field == "minimalStep.amount":
         ret = float(value)
     elif "quantity" in field:
-        ret = int(value)
+        ret = float(value)
     elif field == "value.valueAddedTaxIncluded":
         ret = value == "True"
     elif field == "value.currency":
@@ -297,10 +304,16 @@ def convert_result(field, value):
         ret = convert_date(value)
     elif "tenderPeriod.startDate" in field:
         ret = convert_date(value)
+    elif "contractPeriod.startDate" in field:
+        ret = convert_date(value)
+    elif "contractPeriod.endDate" in field:
+        ret = convert_date(value)
     elif "tenderAttempts" in field:
         ret = int(value)
     elif "dgfDecisionDate" in field:
         ret = convert_date_offset_naive(value)
+    elif "minNumberOfQualifiedBids" in field:
+        ret = int(value)
     else:
         ret = value
     return ret
