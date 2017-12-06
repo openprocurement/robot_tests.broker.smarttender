@@ -237,7 +237,7 @@ def auction_field_info(field):
 def document_fields_info(field,docId,is_cancellation_document):
     map = {
         "description": "span.info_attachment_description:eq(0)",
-        "title": "span.info_attachment_title:eq(0)",
+        "title": ".fileLink:eq(0)",
         "content": "span.info_attachment_title:eq(0)",
         "type": "span.info_attachment_type:eq(0)"
     }
