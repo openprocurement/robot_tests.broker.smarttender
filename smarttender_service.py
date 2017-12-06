@@ -228,8 +228,8 @@ def auction_field_info(field):
             "dgfDecisionDate": "span.info_dgfDecisionDate",
             "tenderAttempts": "span.info_tenderAttempts",
             "procurementMethodType": "span.info_procurementMethodType",
-            "minNumberOfQualifiedBids": ".info_minnumber_qualifiedbids"
-            "guarantee.amount":"table[data-name='GUARANTEE_AMOUNT'] input",
+            "minNumberOfQualifiedBids": ".info_minnumber_qualifiedbids",
+            "guarantee.amount":".info_guarantee"
         }
         return map[field]
 
@@ -314,6 +314,8 @@ def convert_result(field, value):
         ret = convert_date_offset_naive(value)
     elif "minNumberOfQualifiedBids" in field:
         ret = int(value)
+    elif "guarantee.amount" in field:
+        ret = float(value)
     else:
         ret = value
     return ret

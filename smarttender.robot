@@ -59,6 +59,7 @@ Login
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
+    Switch Browser    ${browserAlias}
     ### Синхронизация
     Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
     Wait Until Page Contains     True    30s
@@ -101,7 +102,7 @@ Login
     ${href}=  Get Element Attribute  ${tender found}@href
     Go To  ${href}
     Select Frame      jquery=iframe:eq(0)
-    Pass Execution  Tadam
+    #Pass Execution  Tadam
 
 Focus And Input
     [Arguments]    ${selector}    ${value}    ${method}=SetText
@@ -404,9 +405,10 @@ Input Ade
     Return From KeyWord If     '${title}' != 'Комерційні торги та публічні закупівлі в системі ProZorro'
     smarttender.Пошук тендера по ідентифікатору     0       ${TENDER['TENDER_UAID']}
     ${href} =     Get Element Attribute    jquery=a.button.analysis-button@href
-    Click Element     jquery=a.button.analysis-button
-    sleep   5s
-    Select Window     url=${href}
+    go to  ${href}
+    #Click Element     jquery=a.button.analysis-button
+    #sleep   5s
+    #Select Window     url=${href}
     sleep    3s
     Select Frame      jquery=iframe:eq(0)
 
@@ -415,9 +417,10 @@ Input Ade
     sleep   3s
     smarttender.Пошук тендера по ідентифікатору     ${username}       ${TENDER['TENDER_UAID']}
     ${href} =     Get Element Attribute      jquery=a.compliant-button@href
-    Click Element     jquery=a.compliant-button
-    sleep   10s
-    Select Window     url=${href}
+    go to  ${href}
+    #Click Element     jquery=a.compliant-button
+    #sleep   10s
+    #Select Window     url=${href}
     sleep    3s
     Select Frame      jquery=iframe:eq(0)
 
@@ -434,7 +437,7 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
-    Switch Browser    ${ARGUMENTS[0]}
+    #Switch Browser    ${ARGUMENTS[0]}
     smarttender.Оновити сторінку з тендером    @{ARGUMENTS}
 
 Отримати інформацію із документа по індексу
@@ -448,12 +451,19 @@ Input Ade
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} = question_data
+    log to console  ${ARGUMENTS[0]}
+    log  ${ARGUMENTS[0]}
+    log to console  ${ARGUMENTS[1]}
+    log  ${ARGUMENTS[1]}
+    log to console  ${ARGUMENTS[2]}
+    log  ${ARGUMENTS[2]}
     ${title}=    Get From Dictionary    ${ARGUMENTS[2].data}    title
     ${description}=    Get From Dictionary    ${ARGUMENTS[2].data}    description
     Run Keyword And Ignore Error    smarttender.Відкрити сторінку із даними запитань
-    Execute JavaScript     return (function() { $('#question-relation').select2().val(0).trigger('change'); $('input#add-question').trigger('click');})()
+    Execute JavaScript  return (function() { $('#question-relation').select2().val(0).trigger('change'); $('input#add-question').trigger('click');})()
     sleep    5s
-    ${status}=       Execute Javascript       return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
+    debug
+    ${status}=  Execute Javascript  return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
     Log     ${status}
     Should Not Be Equal      ${status}     Період обговорення закінчено
     ${question_id}=    Execute JavaScript       return (function() {return $("span.question_idcdb").text() })()
@@ -523,7 +533,7 @@ Input Ade
 
 Пройти кваліфікацію для подачі пропозиції
     [Arguments]    ${user}    ${tenderId}    ${bid}
-    Switch Browser  ${browserAlias}
+    #Switch Browser  ${browserAlias}
     ${temp}=    Get Variable Value    ${bid['data'].qualified}
     ${shouldQualify}=    convert_bool_to_text    ${temp}
     Return From Keyword If     '${shouldQualify}' == 'false'
@@ -593,9 +603,10 @@ Input Ade
     smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     sleep    2s
     ${href} =     Get Element Attribute      jquery=a#bid@href
-    Click Element     jquery=a#bid
-    sleep    3s
-    Select Window     url=${href}
+    go to  ${href}
+    #Click Element     jquery=a#bid
+    #sleep    3s
+    #Select Window     url=${href}
     sleep    3s
     Wait Until Page Contains       Пропозиція по аукціону
     sleep    2s
@@ -617,9 +628,10 @@ Input Ade
     smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     Wait Until Page Contains Element        jquery=a#bid    5s
     ${href} =     Get Element Attribute      jquery=a#bid@href
-    Click Element     jquery=a#bid
-    sleep  5s
-    Select Window     url=${href}
+    go to  ${href}
+    #Click Element     jquery=a#bid
+    #sleep  5s
+    #Select Window     url=${href}
     Wait Until Page Contains       Пропозиція по аукціону   10s
     Wait Until Page Contains Element        jquery=button#submitBidPlease    5s
     Click Element      jquery=button#submitBidPlease
@@ -647,8 +659,9 @@ Input Ade
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[2]}
     Wait Until Page Contains Element        jquery=a#bid    5s
     ${href} =     Get Element Attribute      jquery=a#bid@href
-    Click Element     jquery=a#bid
-    Select Window     url=${href}
+    go to  ${href}
+    #Click Element     jquery=a#bid
+    #Select Window     url=${href}
     Wait Until Page Contains       Пропозиція   10s
     Wait Until Page Contains Element        jquery=button:contains('Обрати файли')    5s
     Choose File     jquery=button:contains('Обрати файли')    ${ARGUMENTS[1]}
@@ -664,7 +677,7 @@ Input Ade
 Відкрити сторінку із даними запитань
     ${alreadyOpened}=    Execute JavaScript    return(function(){ ((window.location.href).indexOf('discuss') !== -1).toString();})()
     Return From Keyword If  '${alreadyOpened}' == 'true'
-    Click Element    jquery=a#question:eq(0)
+    #Click Element    jquery=a#question:eq(0)
     ${href}=  Get Element Attribute  jquery=a#question:eq(0)@href
     Go to  ${href}
     sleep     3s
@@ -816,9 +829,10 @@ Input Ade
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     smarttender.Пошук тендера по ідентифікатору     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     ${href} =     Get Element Attribute      jquery=a:Contains('Подати пропозицію')@href
-    Click Element      jquery=a:Contains('Подати пропозицію')
-    sleep    3s
-    Select Window     url=${href}
+    go to  ${href}
+    #Click Element      jquery=a:Contains('Подати пропозицію')
+    #sleep    3s
+    #Select Window     url=${href}
     sleep     3s
     Select Frame     jquery=iframe#iframe
     sleep    1s
@@ -844,18 +858,18 @@ Input Ade
 
 Отримати посилання на аукціон для глядача
     [Arguments]    @{ARGUMENTS}
-    Switch Browser  ${browserAlias}
+    #Switch Browser  ${browserAlias}
     smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
     ${href} =     Get Element Attribute      jquery=a#view-auction@href
-    Click Element    jquery=a#view-auction
-    sleep   10s
-    Select Window     url=${href}
+    #go to    jquery=a#view-auction
+    #sleep   10s
+    #Select Window     url=${href}
     Log    ${href}
     [Return]      ${href}
 
 Отримати посилання на аукціон для учасника
     [Arguments]    @{ARGUMENTS}
-    Switch Browser  ${browserAlias}
+    #Switch Browser  ${browserAlias}
     smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
     Wait Until Page Contains Element        jquery=a#to-auction  5s
     Click Element    jquery=a#to-auction
@@ -963,9 +977,10 @@ Input Ade
     sleep    7s
     Click Element    jquery=a.attachment-button:eq(0)
     ${hrefQualification}=    Get Element Attribute    jquery=a.attachment-button:eq(0)@href
-    Select Window    url=${hrefQualification}
-    sleep    3s
-    Select Frame    jquery=iframe:eq(0)
+    go to  ${hrefQualification}
+    #Select Window    url=${hrefQualification}
+    #sleep    3s
+    #Select Frame    jquery=iframe:eq(0)
     sleep    10s
     Choose File    jquery=input[name='fieldUploaderTender_TextBox0_Input']:eq(0)    ${filePath}
     sleep    1s
