@@ -7,16 +7,16 @@ Library           op_robot_tests.tests_files.service_keywords
 Library           Selenium2Library
 
 *** Variables ***
-${number_of_tabs}     ${1}
-${locator.auctionID}    jquery=span.info_tendernum
-${locator.procuringEntity.name}       jquery=span.info_organization
-${locator.tenderPeriod.startDate}    jquery=span.info_d_sch
-${locator.tenderPeriod.endDate}    jquery=span.info_d_srok
-${locator.enquiryPeriod.endDate}    jquery=span.info_ddm
+${number_of_tabs}                       ${1}
+${locator.auctionID}                    jquery=span.info_tendernum
+${locator.procuringEntity.name}         jquery=span.info_organization
+${locator.tenderPeriod.startDate}       jquery=span.info_d_sch
+${locator.tenderPeriod.endDate}         jquery=span.info_d_srok
+${locator.enquiryPeriod.endDate}        jquery=span.info_ddm
 ${locator.auctionPeriod.startDate}      jquery=span.info_dtauction
-${locator.questions[0].description}    ${EMPTY}
-${locator.questions[0].answer}    ${EMPTY}
-${browserAlias}  'our_browser'
+${locator.questions[0].description}     ${EMPTY}
+${locator.questions[0].answer}          ${EMPTY}
+${browserAlias}                         'our_browser'
 
 ${synchronization}                      http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
 ${path to find tender}                  http://test.smarttender.biz/test-tenders/
@@ -59,12 +59,11 @@ Login
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
-    Switch Browser    ${browserAlias}
     ### Синхронизация
-    Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
-    Wait Until Page Contains     True    30s
+    Go To  http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
+    Wait Until Page Contains  True  30s
     ###
-    #Switch Browser    ${browserAlias}
+    Switch Browser  ${browserAlias}
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
 Підготуватися до редагування
@@ -99,10 +98,12 @@ Login
     Capture Page Screenshot
     ${a}=  run keyword and return status  wait until page contains element  ${tender found}
     run keyword if  '${a}'=='${False}'  smarttender.Пошук тендера по ідентифікатору  @{ARGUMENTS}
+    ...  ELSE  find tender continue
+
+find tender continue
     ${href}=  Get Element Attribute  ${tender found}@href
     Go To  ${href}
     Select Frame      jquery=iframe:eq(0)
-    #Pass Execution  Tadam
 
 Focus And Input
     [Arguments]    ${selector}    ${value}    ${method}=SetText
@@ -451,24 +452,25 @@ Input Ade
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} = question_data
-    log to console  ${ARGUMENTS[0]}
-    log  ${ARGUMENTS[0]}
-    log to console  ${ARGUMENTS[1]}
-    log  ${ARGUMENTS[1]}
-    log to console  ${ARGUMENTS[2]}
-    log  ${ARGUMENTS[2]}
     ${title}=    Get From Dictionary    ${ARGUMENTS[2].data}    title
     ${description}=    Get From Dictionary    ${ARGUMENTS[2].data}    description
     Run Keyword And Ignore Error    smarttender.Відкрити сторінку із даними запитань
     Execute JavaScript  return (function() { $('#question-relation').select2().val(0).trigger('change'); $('input#add-question').trigger('click');})()
     sleep    5s
-    debug
-    ${status}=  Execute Javascript  return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
+    Select Frame      jquery=iframe:eq(0)
+    input text  id=subject  ${title}
+    input text  id=question  ${description}
+    click element  xpath=//button
+    sleep  10
+    ${status}=  get text  xpath=//*[@class='ivu-alert-message']/span
+    #${status}=  Execute Javascript  return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
     Log     ${status}
-    Should Not Be Equal      ${status}     Період обговорення закінчено
-    ${question_id}=    Execute JavaScript       return (function() {return $("span.question_idcdb").text() })()
-    ${question_data}=     smarttender_service.get_question_data      ${question_id}
-    [Return]        ${question_data}
+    Should Not Be Equal  ${status}  Період обговорення закінчено
+    reload page
+    select frame      jquery=iframe:eq(0)
+    ${question_id}=  Execute JavaScript  return (function() {return $("span.question_idcdb").text() })()
+    ${question_data}=  smarttender_service.get_question_data  ${question_id}
+    [Return]  ${question_data}
 
 Задати запитання на предмет
     [Arguments]    @{ARGUMENTS}
@@ -485,9 +487,17 @@ Input Ade
     Press Key    jquery=.select2-search__field:eq(0)       \\13
     Click Element    jquery=input#add-question
     sleep    10s
-    ${status}=       Execute Javascript       return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
+    Select Frame      jquery=iframe:eq(0)
+    input text  id=subject  ${title}
+    input text  id=question  ${description}
+    click element  xpath=//button
+    sleep  10
+    ${status}=  get text  xpath=//*[@class='ivu-alert-message']/span
+    #${status}=       Execute Javascript       return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
     Log     ${status}
     Should Not Be Equal      ${status}     Період обговорення закінчено
+    reload page
+    select frame      jquery=iframe:eq(0)
     ${question_id}=    Execute JavaScript       return (function() {return $("span.question_idcdb").text() })()
     ${question_data}=     smarttender_service.get_question_data      ${question_id}
     [Return]        ${question_data}
@@ -541,34 +551,33 @@ Input Ade
     Wait Until Page Contains Element  jquery=a#participate  10s
     ${lotId}=    Execute JavaScript    return(function(){return $("span.info_lotId").text()})()
     Click Element     jquery=a#participate
-    Wait Until Page Contains Element  jquery=iframe#widgetIframe:eq(0)  10s
-    Select Frame      jquery=iframe#widgetIframe:eq(0)
-    Focus    jquery=input#firstName
-    Input Text      jquery=input#firstName    Іван
+    Wait Until Page Contains Element  jquery=iframe#widgetIframe:eq(1)  10s
+    Select Frame      jquery=iframe#widgetIframe:eq(1)
+    input text  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][1]//input  Іван
     sleep    1s
-    Focus    jquery=input#secondName
-    Input Text      jquery=input#secondName    Іванов
+    input text  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][2]//input  Іванов
     sleep    1s
-    Focus    jquery=input#patronymic
-    Input Text      jquery=input#patronymic    Іванович
+    input text  xpath=.//*[@class="ivu-form-item"][2]//input  Іванович
     sleep    1s
-    Focus    jquery=input#phone
-    Input Text      jquery=input#phone    +38011111111
+    input text  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][3]//input  +38011111111
     sleep    1s
-    Run Keyword And Ignore Error    smarttender.Заповнити поле значенням    jquery=input#licenseSeries    DI
-    Run Keyword And Ignore Error    smarttender.Заповнити поле значенням    jquery=input#licenseNumber    111111111
-    sleep    1s
-    Click Element    jquery=a.next
-    Wait Until Page Contains    Відправити
+    #Run Keyword And Ignore Error    smarttender.Заповнити поле значенням    jquery=input#licenseSeries    DI
+    #Run Keyword And Ignore Error    smarttender.Заповнити поле значенням    jquery=input#licenseNumber    111111111
+    #sleep    1s
+    #Click Element    jquery=a.next
+    #Wait Until Page Contains    Відправити
     ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
     Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#GUARAN    ${file_path}
     Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#FIN    ${file_path}
     Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#NOTDEP    ${file_path}
-    Click Element    jquery=input#regulationsAccept
-    Click Element    jquery=input#offerAccept
-    Click Element    jquery=input#instruction
-    Click Element    jquery=input#tariffAccept
-    Click Element    jquery=a.submit:eq(0)
+    Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    xpath=//input[@type="file"]    ${file_path}
+    click element  xpath=//*[@class="group-line"]//input
+    click element  xpath=//button[@class="ivu-btn ivu-btn-primary pull-right ivu-btn-large"]
+    #Click Element    jquery=input#regulationsAccept
+    #Click Element    jquery=input#offerAccept
+    #Click Element    jquery=input#instruction
+    #Click Element    jquery=input#tariffAccept
+    #Click Element    jquery=a.submit:eq(0)
     Unselect Frame
     sleep    5s
     Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_QA.ACCEPTAUCTIONBIDREQUEST&args={"IDLOT":"${lotId}","SUCCESS":"true"}&ticket=
@@ -588,21 +597,31 @@ Input Ade
 
 Змінити цінову пропозицію
     [Arguments]    @{ARGUMENTS}
-    [Documentation]    ${ARGUMENTS[0]} == username
-    ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
-    ...    ${ARGUMENTS[2]} ==  value.amount
-    ...    ${ARGUMENTS[3]} ==  50000
-    smarttender.Прийняти участь в тендері      ${ARGUMENTS[0]}    ${ARGUMENTS[1]}    ${ARGUMENTS[3]}
+    [Documentation]  ...
+    ${value}=  convert_bool_to_text  ${ARGUMENTS[3]}
+    ${href}=  Get Element Attribute  jquery=a#bid@href
+    go to  ${href}
+    Focus  jquery=div#lotAmount0 input
+    sleep  2s
+    Input text  jquery=div#lotAmount0 input  ${value}
+    Click Element  jquery=button#submitBidPlease
+    Wait Until Page Contains  Пропозицію прийнято  15s
+    ${response}=  smarttender_service.get_bid_response    ${value}
+    [Return]  ${response}
 
 Прийняти участь в тендері
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} ==  ${test_bid_data}
-    ${amount}=      Get From Dictionary    ${ARGUMENTS[2].data.value}      amount
-    smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    sleep    2s
-    ${href} =     Get Element Attribute      jquery=a#bid@href
+    log  ${ARGUMENTS[2]}
+    log to console  ${ARGUMENTS[2]}
+    log  ${ARGUMENTS[2].data.value}
+    log to console  ${ARGUMENTS[2].data.value}
+    ${amount}=  Get From Dictionary  ${ARGUMENTS[2].data.value}  amount
+    smarttender.Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
+    sleep  2s
+    ${href}=  Get Element Attribute  jquery=a#bid@href
     go to  ${href}
     #Click Element     jquery=a#bid
     #sleep    3s
