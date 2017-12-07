@@ -86,7 +86,6 @@ Login
     sleep    3s
 
 Пошук тендера по ідентифікатору
-<<<<<<< HEAD
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
@@ -105,27 +104,7 @@ find tender continue
     ${href}=  Get Element Attribute  ${tender found}@href
     Go To  ${href}
     Select Frame      jquery=iframe:eq(0)
-=======
-   [Arguments]    @{ARGUMENTS}
-   [Documentation]    ${ARGUMENTS[0]} == username
-   ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
-   Go To  ${path to find tender}
-   Wait Until Page Contains  Торговий майданчик  10s
-   #Click Element  xpath=//*[@id="MainMenuTenders"]//li[3]/a
-   Input Text  ${find tender field }  ${ARGUMENTS[1]}
-   Press Key  ${find tender field }  \\13
-   Location Should Contain  f=${ARGUMENTS[1]}
-   Capture Page Screenshot
-   ${a}=  run keyword and return status  wait until page contains element  ${tender found}
-   run keyword if  '${a}'=='${False}'  smarttender.Пошук тендера по ідентифікатору  @{ARGUMENTS}
-   ...  ELSE  find tender continue
 
-find tender continue
-   ${href}=  Get Element Attribute  ${tender found}@href
-   Go To  ${href}
-   Select Frame      jquery=iframe:eq(0)
-
->>>>>>> bbbdf4a2d25cf502ee05a67a2a44dfe35a739b56
 
 Focus And Input
     [Arguments]    ${selector}    ${value}    ${method}=SetText
@@ -479,7 +458,6 @@ Input Ade
     Run Keyword And Ignore Error    smarttender.Відкрити сторінку із даними запитань
     Execute JavaScript  return (function() { $('#question-relation').select2().val(0).trigger('change'); $('input#add-question').trigger('click');})()
     sleep    5s
-<<<<<<< HEAD
     Select Frame      jquery=iframe:eq(0)
     input text  id=subject  ${title}
     input text  id=question  ${description}
@@ -487,9 +465,6 @@ Input Ade
     sleep  10
     ${status}=  get text  xpath=//*[@class='ivu-alert-message']/span
     #${status}=  Execute Javascript  return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
-=======
-    ${status}=  Execute Javascript  return (function() { var questionSubmitIframe = $("iframe:eq(0)").get(0).contentWindow; questionSubmitIframe.$("input[name='subject']").val("${title}"); questionSubmitIframe.$("textarea[name='question']").text("${description}"); var submitButton = questionSubmitIframe.$('div#SubmitButton__1'); if (submitButton.css('display') != 'none') { submitButton.click(); }; var status = questionSubmitIframe.$('span.dxflGroupBoxCaption_DevEx').text(); return status; })()
->>>>>>> bbbdf4a2d25cf502ee05a67a2a44dfe35a739b56
     Log     ${status}
     Should Not Be Equal  ${status}  Період обговорення закінчено
     reload page
