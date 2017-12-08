@@ -846,15 +846,9 @@ Input Ade
     sleep    3s
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
     sleep    2s
-<<<<<<< HEAD
     click element  xpath=//div[@title="Додати"]
     sleep  5
     Choose File  id=fileUpload  ${file}
-=======
-    Click Element       jquery=div[title='Додати']
-    Wait Until Page Contains       Список файлів
-    Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${file}
->>>>>>> 3346eba7e21345fee870267e1a08eb6535148a0b
     sleep    2s
     Click Element    xpath=//*[@class="dxr-group mygroup"][1]
     sleep  10
@@ -1007,11 +1001,7 @@ Cancellation offer continue
     Click Element    jquery=#firstYes
     sleep    2s
     Click Element    jquery=#secondYes
-<<<<<<< HEAD
-    Sleep    5s
-=======
     Sleep    10s
->>>>>>> 3346eba7e21345fee870267e1a08eb6535148a0b
 
 Дискваліфікувати постачальника
     [Arguments]    ${user}    ${tenderId}    ${index}    ${description}
@@ -1022,7 +1012,6 @@ Cancellation offer continue
     ${normalizedIndex}=     normalize_index    ${index}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
     sleep    2s
-    debug
     #Click Element      jquery=a[title='Квалификация']
     sleep    5s
     #Focus    jquery=#cpModalMode textarea
