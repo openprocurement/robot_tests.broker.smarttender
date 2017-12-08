@@ -195,6 +195,7 @@ Input Ade
     Run Keyword If      ${valTax}     Click Element     jquery=table[data-name='WITHVAT'] span:eq(0)
     Focus And Input     \#cpModalMode table[data-name='MINSTEP'] input     ${step_rate}
     Focus And Input     \#cpModalMode table[data-name='TITLE'] input     ${title}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
     Focus And Input     \#cpModalMode div[data-name='ORG_GPO_2'] input    ${procuringEntityName}
@@ -952,7 +953,7 @@ Cancellation offer continue
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(2)
     Wait Until Page Contains    Вкладення до пропозиції
     sleep   6s
-    ${count}=     Execute JavaScript    return(function(){ var counter = 0;var documentSelector = $("#cpModalMode tr label:contains('Квалификации')").closest("tr");while (true) { documentSelector = documentSelector.next(); if(documentSelector.length == 0 || documentSelector[0].innerHTML.indexOf("label") === -1){ break;} counter = counter +1;} return counter;})()
+    ${count}=     Execute JavaScript    return(function(){ var counter = 0;var documentSelector = $("#cpModalMode tr label:contains('Кваліфікація')").closest("tr");while (true) { documentSelector = documentSelector.next(); if(documentSelector.length == 0 || documentSelector[0].innerHTML.indexOf("label") === -1){ break;} counter = counter +1;} return counter;})()
     [Return]    ${count}
 
 Підтвердити постачальника
@@ -965,7 +966,7 @@ Cancellation offer continue
     ${normalizedIndex}=     normalize_index    ${ARGUMENTS[2]}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
     sleep    2s
-    Click Element      jquery=a[title='Квалификация']
+    Click Element      jquery=a[title='Кваліфікація']
     sleep    5s
     Click Element    jquery=div.dxbButton_DevEx:contains('Підтвердити оплату')
     sleep    3s
@@ -1010,13 +1011,14 @@ Cancellation offer continue
     ${normalizedIndex}=     normalize_index    ${index}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
     sleep    2s
-    #Click Element      jquery=a[title='Квалификация']
+    click element  xpath=//a[@title="Кваліфікація"]
     sleep    5s
-    #Focus    jquery=#cpModalMode textarea
-    #Input Text    jquery=#cpModalMode textarea    ${description}
+    Focus    jquery=#cpModalMode textarea
+    Input Text    jquery=#cpModalMode textarea    ${description}
     Click Element    jquery=div.dxbButton_DevEx.dxbButtonSys.dxbTSys span:contains('Відхилити пропозицію')
     Wait Until Page Contains    Ви впевнені у своєму рішенні?
-    Click Element    jquery=#IMMessageBoxBtnYes
+    Click Element    id=IMMessageBoxBtnYes
+    #click element  id=IMMessageBoxBtnOK_CD
     sleep    10s
 
 Завантажити протокол аукціону
@@ -1058,15 +1060,17 @@ Cancellation offer continue
     ${normalizedIndex}=     normalize_index    ${index}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
     sleep    2s
-    Click Element      jquery=a[title='Квалификация']
+    Click Element      jquery=a[title='Кваліфікація']
     sleep    5s
-    Click Element    jquery=span:contains('Обзор')
-    Wait Until Page Contains    Список файлів
-    Choose File    jquery=#OpenFileUploadControl_TextBox0_Input:eq(0)     ${filePath}
+    Click Element    xpath=//span[text()='Перегляд...']
+    sleep  2
+    Choose File  xpath=//*[@type='file'][1]  ${filePath}
     sleep     3s
     Click Element    jquery=span:Contains('ОК'):eq(0)
     sleep     5s
     Click Element    jquery=div.dxbButton_DevEx:eq(2)
+    sleep  5
+    Click element  //span[text()="Зберегти"]
 
 ####################################
 #         CONTRACT SIGNING         #
