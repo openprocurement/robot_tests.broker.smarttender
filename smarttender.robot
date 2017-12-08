@@ -177,6 +177,7 @@ Input Ade
     ${auction_start}=    smarttender_service.convert_datetime_to_smarttender_format    ${auction_start}
     ${guarantee_amount}=    Get From Dictionary    ${tender_data.data.guarantee}    amount
     ${dgfID}=    Get From Dictionary     ${tender_data.data}        dgfID
+    ${minNumberOfQualifiedBids}=  Get From Dictionary    ${tender_data.data}  minNumberOfQualifiedBids
     #${dgfDecisionId}=    Get From Dictionary    ${tender_data.data}    dgfDecisionID
     #${dgfDecisionDate}=    Get From Dictionary    ${tender_data.data}    dgfDecisionDate
     #${dgfDecisionDate}=    smarttender_service.convert_datetime_to_smarttender_format    ${dgfDecisionDate}
@@ -207,6 +208,11 @@ Input Ade
     sleep    3s
     Press Key    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    \\13
     sleep    2s
+    run keyword if  "${minNumberOfQualifiedBids}" == '1'  run keywords
+    ...  click element  xpath=//*[@data-name="PARTCOUNT"]
+    ...  AND  sleep  2
+    ...  AND  click element  xpath=(//td[text()="1"])[last()]
+
     #Focus And Input     \#cpModalMode table[data-name='DGFDECISION_NUMBER'] input    ${dgfDecisionId}
     #Focus And Input     \#cpModalMode table[data-name='DGFDECISION_DATE'] input    ${dgfDecisionDate}
     ${index}=    Set Variable    ${0}
@@ -234,17 +240,16 @@ Input Ade
     sleep  2s
     Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
     Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
-
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
     Wait Until Element Is Visible    jquery=[data-name='GUARANTEE_AMOUNT']
     Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${guarantee_amount}
-    sleep    3s
+    sleep  3s
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
-    sleep    10s
-    click element  xpath=//*[@id="MainSted2Splitter"]//*[@class="dxr-item dxr-buttonItem dxh16"]
-    #Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx a[title='Надіслати вперед (Alt+Right)'] img:eq(0)
+    sleep  10s
+    sleep  5
+    click element  xpath=//*[@data-name="TBCASE____SHIFT-F12N"]
     Wait Until Page Contains    Оголосити аукціон?
-    Click Element    jquery=#IMMessageBox_PW-1 #IMMessageBoxBtnYes_CD
+    Click Element  id=IMMessageBoxBtnYes_CD
     Wait Until Element Is Not Visible    jquery=#LoadingPanel
     sleep    10s
     ${return_value}     Get Text     jquery=div[data-placeid='TENDER'] td:Contains('UA-'):eq(0)
@@ -842,18 +847,17 @@ Input Ade
     sleep    3s
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
     sleep    2s
-    debug
-    Click Element       jquery=div[title='Додати']
-    Wait Until Page Contains       Список файлів
-    Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${file}
+    click element  xpath=//div[@title="Додати"]
+    sleep  5
+    Choose File  id=fileUpload  ${file}
     sleep    2s
-    Click Element    jquery=span:Contains('ОК'):eq(0)
+    Click Element    xpath=//*[@class="dxr-group mygroup"][1]
     sleep  10
-    Click Element    jquery=label:Contains('Завантажений файл'):eq(0)
-    sleep    1s
-    Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
-    Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
-    Wait Until Page Contains    Протоколи скасування
+    #Click Element    jquery=label:Contains('Завантажений файл'):eq(0)
+    #sleep    1s
+    #Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
+    #Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
+    #Wait Until Page Contains    Протоколи скасування
     Click Element       jquery=a[title='OK']
     Wait Until Page Contains    аукціон буде
     Click Element    jquery=#IMMessageBoxBtnYes
@@ -870,7 +874,6 @@ Input Ade
     #sleep    3s
     #Select Window     url=${href}
     sleep     3s
-    debug
     wait until page contains element  ${cancellation offers button}
     Cancellation offer continue
 
@@ -990,15 +993,14 @@ Cancellation offer continue
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'tender_owner'   Доступно тільки для другого учасника
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
     Sleep    4s
-    debug
-    #Click Element    jquery=div#auctionResults div.row.well:eq(${index}) div.btn.withdraw:eq(0)
-    #Sleep    7s
-    #Select Frame    jquery=iframe#cancelPropositionFrame
-    #Sleep    2s
-    #Click Element    jquery=#firstYes
-    #sleep    2s
-    #Click Element    jquery=#secondYes
-    #Sleep    5s
+    Click Element    jquery=div#auctionResults div.row.well:eq(${index}) div.btn.withdraw:eq(0)
+    Sleep    7s
+    Select Frame    jquery=iframe#cancelPropositionFrame
+    Sleep    2s
+    Click Element    jquery=#firstYes
+    sleep    2s
+    Click Element    jquery=#secondYes
+    Sleep    5s
 
 Дискваліфікувати постачальника
     [Arguments]    ${user}    ${tenderId}    ${index}    ${description}
@@ -1009,7 +1011,7 @@ Cancellation offer continue
     ${normalizedIndex}=     normalize_index    ${index}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
     sleep    2s
-    Click Element      jquery=a[title='Квалификация']
+    #Click Element      jquery=a[title='Квалификация']
     sleep    5s
     #Focus    jquery=#cpModalMode textarea
     #Input Text    jquery=#cpModalMode textarea    ${description}
