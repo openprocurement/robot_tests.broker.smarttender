@@ -23,6 +23,11 @@ ${path to find tender}                  http://test.smarttender.biz/test-tenders
 ${find tender field}                    xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]
 ${tender found}                         xpath=//*[@id="tenders"]/tbody//a[@class="linkSubjTrading"]
 
+${block}                            xpath=.//*[@class='ivu-card ivu-card-bordered']
+${cancellation offers button}       ${block}[last()]//div[@class="ivu-poptip-rel"]/button
+${cancel. offers confirm button}    ${block}[last()]//div[@class="ivu-poptip-footer"]/button[2]
+${ok button}                        xpath=.//div[@class="ivu-modal-body"]/div[@class="ivu-modal-confirm"]//button
+
 
 *** Keywords ***
 ####################################
@@ -608,6 +613,7 @@ Input Ade
     Click Element  jquery=button#submitBidPlease
     Wait Until Page Contains  Пропозицію прийнято  15s
     ${response}=  smarttender_service.get_bid_response    ${value}
+    reload page
     [Return]  ${response}
 
 Прийняти участь в тендері
@@ -854,11 +860,23 @@ Input Ade
     #sleep    3s
     #Select Window     url=${href}
     sleep     3s
-    Select Frame     jquery=iframe#iframe
-    sleep    1s
-    Click Element      jquery=#btCancellationOffers
-    sleep    2s
-    Wait Until Keyword Succeeds    10 sec    2 sec    Current Frame Contains    Пропозиція анульована
+    debug
+    wait until page contains element  ${cancellation offers button}
+    Cancellation offer continue
+
+Cancellation offer continue
+    run keyword and ignore error  click element  ${cancellation offers button}
+    run keyword and ignore error  click element  ${cancel. offers confirm button}
+    ${passed}=  run keyword and return status  wait until page contains element  ${ok button}  15
+    Run keyword if  '${passed}'=='${False}'  Cancellation offer continue
+    run keyword and ignore error  click element   ${ok button}
+    ${passed}=  run keyword and return status  wait until page does not contain element   ${ok button}
+    Run keyword if  '${passed}'=='${False}'  Cancellation offer continue
+    #Select Frame     jquery=iframe#iframe
+    #sleep    1s
+    #Click Element      jquery=#btCancellationOffers
+    #sleep    2s
+    #Wait Until Keyword Succeeds    10 sec    2 sec    Current Frame Contains    Пропозиція анульована
 
 Відкрити сторінку із данними скасування
     Click Element       jquery=a#cancellation:eq(0)
@@ -962,14 +980,15 @@ Input Ade
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'tender_owner'   Доступно тільки для другого учасника
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
     Sleep    4s
-    Click Element    jquery=div#auctionResults div.row.well:eq(${index}) div.btn.withdraw:eq(0)
-    Sleep    7s
-    Select Frame    jquery=iframe#cancelPropositionFrame
-    Sleep    2s
-    Click Element    jquery=#firstYes
-    sleep    2s
-    Click Element    jquery=#secondYes
-    Sleep    5s
+    debug
+    #Click Element    jquery=div#auctionResults div.row.well:eq(${index}) div.btn.withdraw:eq(0)
+    #Sleep    7s
+    #Select Frame    jquery=iframe#cancelPropositionFrame
+    #Sleep    2s
+    #Click Element    jquery=#firstYes
+    #sleep    2s
+    #Click Element    jquery=#secondYes
+    #Sleep    5s
 
 Дискваліфікувати постачальника
     [Arguments]    ${user}    ${tenderId}    ${index}    ${description}
