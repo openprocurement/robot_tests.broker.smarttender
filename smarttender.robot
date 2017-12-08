@@ -190,19 +190,29 @@ Input Ade
     Click Element  xpath=.//*[@data-name="TBCASE____F7"]
     Wait Until Element Contains    cpModalMode    Оголошення   20
     Run Keyword If     '${mode}' == 'dgfOtherAssets'    Змінити процедуру
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='INITAMOUNT'] input      ${budget}
+    sleep  1
     Run Keyword If      ${valTax}     Click Element     jquery=table[data-name='WITHVAT'] span:eq(0)
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='MINSTEP'] input     ${step_rate}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='TITLE'] input     ${title}
     sleep  1
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
+    sleep  1
     Focus And Input     \#cpModalMode div[data-name='ORG_GPO_2'] input    ${procuringEntityName}
+    sleep  1
     press key  jquery=\#cpModalMode div[data-name='ORG_GPO_2'] input    \\09
     sleep  3
     press key  jquery=\#cpModalMode div[data-name='ORG_GPO_2'] input    \\13
+    sleep  1
     Focus    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)
+    sleep  1
     Execute JavaScript    (function(){$("#cpModalMode table[data-name='ATTEMPT'] input:eq(1)").val('');})()
     sleep    3s
     Input Text    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    ${tenderAttempts}
@@ -230,7 +240,9 @@ Input Ade
     #\    ${index}=    SetVariable    ${index + 1}
 
     Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
+    sleep  1
     Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)
     sleep    3s
     Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)        ${locality}
@@ -240,25 +252,31 @@ Input Ade
     Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
     sleep  2s
     Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
+    sleep  1
     Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
+    sleep  1
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
+    sleep  1
     Wait Until Element Is Visible    jquery=[data-name='GUARANTEE_AMOUNT']
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${guarantee_amount}
     sleep  3s
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
     sleep  10s
     sleep  5
     click element  xpath=//*[@data-name="TBCASE____SHIFT-F12N"]
+    sleep  1
     Wait Until Page Contains    Оголосити аукціон?
+    sleep  1
     Click Element  id=IMMessageBoxBtnYes_CD
+    sleep  1
     Wait Until Element Is Not Visible    jquery=#LoadingPanel
     sleep    10s
     ${return_value}     Get Text     jquery=div[data-placeid='TENDER'] td:Contains('UA-'):eq(0)
     [Return]     ${return_value}
 
 Створити новий предмет
-    debug
-    Click Element    jquery=#cpModalMode div.gridViewAndStatusContainer a[title='Додати']
+    Click Element    xpath=(//*[@title='Додати'])[2]
     sleep    1s
 
 Змінити процедуру
@@ -319,6 +337,7 @@ Input Ade
     run keyword if  "${cpv/cav}" == "CAV-PS"  Run Keywords
     ...  click element  xpath=//*[@data-name="MAINSCHEME"]
     ...  AND  click element  xpath=//td[text()="CAV"]
+    sleep  1
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${description}
     sleep  2
     Focus And Input      \#cpModalMode table[data-name='QUANTITY'] input      ${quantity}
@@ -326,6 +345,7 @@ Input Ade
     Input Ade      \#cpModalMode div[data-name='EDI'] input[type=text]:eq(0)       ${unit}
     sleep  2
     Focus And Input      \#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)      ${cpv}
+    sleep  1
     Press Key  jquery=\#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)  \\13
     sleep  2
 
@@ -941,8 +961,8 @@ Cancellation offer continue
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(2)
     Wait Until Page Contains    Вкладення до пропозиції
     sleep   6s
-    ${count}=     Execute JavaScript    return(function(){ var counter = 0;var documentSelector = $("#cpModalMode tr label:contains('Протокол рішення Кваліфікаційного комітету')").closest("tr");while (true) { documentSelector = documentSelector.next(); if(documentSelector.length == 0 || documentSelector[0].innerHTML.indexOf("label") === -1){ break;} counter = counter +1;} return counter;})()
-    Should Be True    ${count} > ${0}
+    #${count}=     Execute JavaScript    return(function(){ var counter = 0;var documentSelector = $("#cpModalMode tr label:contains('Протокол рішення Кваліфікаційного комітету')").closest("tr");while (true) { documentSelector = documentSelector.next(); if(documentSelector.length == 0 || documentSelector[0].innerHTML.indexOf("label") === -1){ break;} counter = counter +1;} return counter;})()
+    #Should Be True    ${count} > ${0}
 
 Отримати кількість документів в ставці
     [Arguments]    ${user}     ${tenderId}    ${bidIndex}
