@@ -1043,12 +1043,12 @@ Cancellation offer continue
 Завантажити протокол аукціону в авард
     [Arguments]    ${username}    ${tender_uaid}    ${filepath}    ${award_index}
     smarttender.Завантажити документ рішення кваліфікаційної комісії    ${username}    ${filepath}    ${tender_uaid}     ${award_index}
-    Sleep    3s    reason=None
-    Click Element    jquery=a[title='Зберегти']
-    Sleep    1s    reason=None
-    Wait Until Page Contains    Ви впевнені у своєму рішенні?
-    Click Element    jquery=#IMMessageBoxBtnYes
-    Sleep    10s
+    Sleep    2
+    Click Element    jquery=div.dxbButton_DevEx:eq(2)
+    sleep  5
+    Click element  xpath=//span[text()="Зберегти"]
+    sleep  2
+    click element  id=IMMessageBoxBtnYes_CD
 
 Завантажити документ рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${filePath}    ${tenderId}    ${index}
@@ -1068,9 +1068,6 @@ Cancellation offer continue
     sleep     3s
     Click Element    jquery=span:Contains('ОК'):eq(0)
     sleep     5s
-    Click Element    jquery=div.dxbButton_DevEx:eq(2)
-    sleep  5
-    Click element  //span[text()="Зберегти"]
 
 ####################################
 #         CONTRACT SIGNING         #
