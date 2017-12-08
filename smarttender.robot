@@ -849,13 +849,11 @@ Input Ade
     click element  xpath=//div[@title="Додати"]
     sleep  5
     Choose File  id=fileUpload  ${file}
-    sleep    2s
-    Click Element    xpath=//*[@class="dxr-group mygroup"][1]
     sleep  10
-    #Click Element    jquery=label:Contains('Завантажений файл'):eq(0)
-    #sleep    1s
-    #Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
-    #Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
+    Click Element    xpath=//*[@class="dxr-group mygroup"][1]
+    sleep    2s
+    Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
+    Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
     #Wait Until Page Contains    Протоколи скасування
     Click Element       jquery=a[title='OK']
     Wait Until Page Contains    аукціон буде
