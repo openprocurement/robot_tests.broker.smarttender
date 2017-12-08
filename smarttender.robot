@@ -74,8 +74,10 @@ Login
     Go To  ${USERS.users['${USER}'].homepage}
     Click Element  LoginAnchor
     Sleep  5s
-    Wait Until Page Contains  Робочий стіл  30
-    Click Element  jquery=.listviewDataItem[data-itemkey='434']
+    Run Keyword And Ignore Error  Wait Until Page Contains element  id=IMMessageBoxBtnNo_CD  30
+    Run Keyword And Ignore Error  click element  id=IMMessageBoxBtnNo_CD
+    Wait Until Page Contains element  xpath=//*[@data-itemkey='438']  10
+    Click Element  xpath=//*[@data-itemkey='438']
     Wait Until Page Contains  Тестові аукціони на продаж
     sleep  3s
     Focus  jquery=div[data-placeid='TENDER'] table.hdr tr:eq(2) td:eq(3) input:eq(0)
@@ -174,8 +176,9 @@ Input Ade
     #${dgfDecisionDate}=    Get From Dictionary    ${tender_data.data}    dgfDecisionDate
     #${dgfDecisionDate}=    smarttender_service.convert_datetime_to_smarttender_format    ${dgfDecisionDate}
     ${tenderAttempts}=    Get From Dictionary    ${tender_data.data}    tenderAttempts
-
-    Wait Until Page Contains element  xpath=//*[@data-itemkey='438']  30
+    Run Keyword And Ignore Error  Wait Until Page Contains element  id=IMMessageBoxBtnNo_CD  30
+    Run Keyword And Ignore Error  click element  id=IMMessageBoxBtnNo_CD
+    Wait Until Page Contains element  xpath=//*[@data-itemkey='438']  10
     Click Element  xpath=//*[@data-itemkey='438']
     Wait Until Page Contains element  xpath=.//*[@data-name="TBCASE____F7"]
     Click Element  xpath=.//*[@data-name="TBCASE____F7"]
@@ -232,16 +235,18 @@ Input Ade
     Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${guarantee_amount}
     sleep    3s
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
-    sleep    3s
-    Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx a[title='Надіслати вперед (Alt+Right)'] img:eq(0)
+    sleep    10s
+    click element  xpath=//*[@id="MainSted2Splitter"]//*[@class="dxr-item dxr-buttonItem dxh16"]
+    #Click Image     jquery=#MainSted2Splitter .dxrControl_DevEx a[title='Надіслати вперед (Alt+Right)'] img:eq(0)
     Wait Until Page Contains    Оголосити аукціон?
     Click Element    jquery=#IMMessageBox_PW-1 #IMMessageBoxBtnYes_CD
     Wait Until Element Is Not Visible    jquery=#LoadingPanel
-    sleep    20s
+    sleep    10s
     ${return_value}     Get Text     jquery=div[data-placeid='TENDER'] td:Contains('UA-'):eq(0)
     [Return]     ${return_value}
 
 Створити новий предмет
+    debug
     Click Element    jquery=#cpModalMode div.gridViewAndStatusContainer a[title='Додати']
     sleep    1s
 
@@ -293,21 +298,25 @@ Input Ade
     ${description}=    Get From Dictionary    ${ARGUMENTS[0]}     description
     ${quantity}=       Get From Dictionary    ${ARGUMENTS[0]}     quantity
     ${cpv}=            Get From Dictionary    ${ARGUMENTS[0].classification}     id
+    ${cpv/cav}=        Get From Dictionary    ${ARGUMENTS[0].classification}     scheme
     ${unit}=           Get From Dictionary    ${ARGUMENTS[0].unit}     name
     ${unit}=           smarttender_service.convert_unit_to_smarttender_format    ${unit}
+    log to console  ${cpv/cav}
+    run keyword if  "${cpv/cav}" == "CAV"  Run Keywords
+    ...  click element  xpath=//*[@data-name="MAINSCHEME"]
+    ...  AND  click element  xpath=//td[text()="CAV"]
+    run keyword if  "${cpv/cav}" == "CAV-PS"  Run Keywords
+    ...  click element  xpath=//*[@data-name="MAINSCHEME"]
+    ...  AND  click element  xpath=//td[text()="CAV"]
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${description}
-    sleep  1
+    sleep  2
     Focus And Input      \#cpModalMode table[data-name='QUANTITY'] input      ${quantity}
-    sleep  1
+    sleep  2
     Input Ade      \#cpModalMode div[data-name='EDI'] input[type=text]:eq(0)       ${unit}
-    sleep  1
-    click element  xpath=//*[@data-name="MAINSCHEME"]
-    sleep  1
-    click element  xpath=//td[text()="CAV"]
-    sleep  1
+    sleep  2
     Focus And Input      \#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)      ${cpv}
     Press Key  jquery=\#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)  \\13
-    sleep  1
+    sleep  2
 
 Додати предмет закупівлі
     [Arguments]    ${user}    ${tenderId}    ${item}
@@ -608,6 +617,7 @@ Input Ade
     Click Element  jquery=button#submitBidPlease
     Wait Until Page Contains  Пропозицію прийнято  15s
     ${response}=  smarttender_service.get_bid_response    ${value}
+    reload page
     [Return]  ${response}
 
 Прийняти участь в тендері
@@ -827,12 +837,13 @@ Input Ade
     sleep    3s
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
     sleep    2s
+    debug
     Click Element       jquery=div[title='Додати']
     Wait Until Page Contains       Список файлів
     Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${file}
     sleep    2s
     Click Element    jquery=span:Contains('ОК'):eq(0)
-    Wait Until Page Contains    Протоколи скасування
+    sleep  10
     Click Element    jquery=label:Contains('Завантажений файл'):eq(0)
     sleep    1s
     Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
