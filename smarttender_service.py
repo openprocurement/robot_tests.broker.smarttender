@@ -355,7 +355,6 @@ def question_field_info(field, id):
 def convert_bool_to_text(variable):
     return str(variable).lower()
 
-
 def download_file(url,download_path):
     response = urllib2.urlopen(url)
     file_content = response.read()
@@ -363,7 +362,6 @@ def download_file(url,download_path):
     f = open(download_path, 'w')
     f.write(file_content)
     f.close()
-
 
 def unescape_link(link):
     return str(link).replace("%20"," ")

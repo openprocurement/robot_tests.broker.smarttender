@@ -635,20 +635,19 @@ Input Ade
     log  ${ARGUMENTS[2].data.value}
     log to console  ${ARGUMENTS[2].data.value}
     ${amount}=  Get From Dictionary  ${ARGUMENTS[2].data.value}  amount
+    ${amount}=  convert to string  ${amount}
+    log to console  ${amount}
     smarttender.Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
     sleep  2s
     ${href}=  Get Element Attribute  jquery=a#bid@href
     go to  ${href}
-    #Click Element     jquery=a#bid
-    #sleep    3s
-    #Select Window     url=${href}
     sleep    3s
     Wait Until Page Contains       Пропозиція по аукціону
     sleep    2s
-    ${value}=     Execute JavaScript     return (function() { var a = ${${amount}}; return a.toString().replace('.',',') })()
+    #${value}=     Execute JavaScript     return (function() { var a = ${${amount}}; return a.toString().replace('.',',') })()
     Focus      jquery=div#lotAmount0 input
     sleep   2s
-    Input text      jquery=div#lotAmount0 input    ${value}
+    Input text      jquery=div#lotAmount0 input    ${amount}
     sleep    1s
     Click Element      jquery=button#submitBidPlease
     Wait Until Page Contains       Пропозицію прийнято      15s
@@ -712,7 +711,7 @@ Input Ade
 Відкрити сторінку із даними запитань
     ${alreadyOpened}=    Execute JavaScript    return(function(){ ((window.location.href).indexOf('discuss') !== -1).toString();})()
     Return From Keyword If  '${alreadyOpened}' == 'true'
-    #Click Element    jquery=a#question:eq(0)
+    sleep  3
     ${href}=  Get Element Attribute  jquery=a#question:eq(0)@href
     Go to  ${href}
     sleep     3s
@@ -842,7 +841,6 @@ Input Ade
     sleep    3s
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
     sleep    2s
-    debug
     Click Element       jquery=div[title='Додати']
     Wait Until Page Contains       Список файлів
     Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${file}
@@ -870,7 +868,6 @@ Input Ade
     #sleep    3s
     #Select Window     url=${href}
     sleep     3s
-    debug
     wait until page contains element  ${cancellation offers button}
     Cancellation offer continue
 
@@ -988,17 +985,18 @@ Cancellation offer continue
 Скасування рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${tenderId}    ${index}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'tender_owner'   Доступно тільки для другого учасника
+    Go To  http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
+    Wait Until Page Contains  True  30s
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
     Sleep    4s
-    debug
-    #Click Element    jquery=div#auctionResults div.row.well:eq(${index}) div.btn.withdraw:eq(0)
-    #Sleep    7s
-    #Select Frame    jquery=iframe#cancelPropositionFrame
-    #Sleep    2s
-    #Click Element    jquery=#firstYes
-    #sleep    2s
-    #Click Element    jquery=#secondYes
-    #Sleep    5s
+    Click Element    jquery=div#auctionResults div.row.well:eq(${index}) div.btn.withdraw:eq(0)
+    Sleep    7s
+    Select Frame    jquery=iframe#cancelPropositionFrame
+    Sleep    2s
+    Click Element    jquery=#firstYes
+    sleep    2s
+    Click Element    jquery=#secondYes
+    Sleep    10s
 
 Дискваліфікувати постачальника
     [Arguments]    ${user}    ${tenderId}    ${index}    ${description}
