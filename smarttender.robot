@@ -168,16 +168,11 @@ Input Ade
     ${budget}=    Get From Dictionary    ${tender_data.data.value}    amount
     ${step_rate}=    Get From Dictionary    ${tender_data.data.minimalStep}    amount
     ${valTax}=     Get From Dictionary    ${tender_data.data.value}      valueAddedTaxIncluded
-    ${latitude}    Get From Dictionary    ${items[0].deliveryLocation}    latitude
-    ${longitude}    Get From Dictionary    ${items[0].deliveryLocation}    longitude
-    ${postalCode}    Get From Dictionary    ${items[0].deliveryAddress}    postalCode
-    ${locality}=    Get From Dictionary    ${items[0].deliveryAddress}    locality
-    ${streetAddress}    Get From Dictionary    ${items[0].deliveryAddress}    streetAddress
-    ${auction_start}=    Get From Dictionary    ${tender_data.data.auctionPeriod}    startDate
-    ${auction_start}=    smarttender_service.convert_datetime_to_smarttender_format    ${auction_start}
     ${guarantee_amount}=    Get From Dictionary    ${tender_data.data.guarantee}    amount
     ${dgfID}=    Get From Dictionary     ${tender_data.data}        dgfID
     ${minNumberOfQualifiedBids}=  Get From Dictionary    ${tender_data.data}  minNumberOfQualifiedBids
+    ${auction_start}=    Get From Dictionary    ${tender_data.data.auctionPeriod}    startDate
+    ${auction_start}=    smarttender_service.convert_datetime_to_smarttender_format    ${auction_start}
     #${dgfDecisionId}=    Get From Dictionary    ${tender_data.data}    dgfDecisionID
     #${dgfDecisionDate}=    Get From Dictionary    ${tender_data.data}    dgfDecisionDate
     #${dgfDecisionDate}=    smarttender_service.convert_datetime_to_smarttender_format    ${dgfDecisionDate}
@@ -192,19 +187,13 @@ Input Ade
     Run Keyword If     '${mode}' == 'dgfOtherAssets'    Змінити процедуру
     sleep  1
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
-    sleep  1
     Focus And Input     \#cpModalMode table[data-name='INITAMOUNT'] input      ${budget}
     sleep  1
     Run Keyword If      ${valTax}     Click Element     jquery=table[data-name='WITHVAT'] span:eq(0)
-    sleep  1
     Focus And Input     \#cpModalMode table[data-name='MINSTEP'] input     ${step_rate}
-    sleep  1
     Focus And Input     \#cpModalMode table[data-name='TITLE'] input     ${title}
-    sleep  1
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}
-    sleep  1
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
-    sleep  1
     Focus And Input     \#cpModalMode div[data-name='ORG_GPO_2'] input    ${procuringEntityName}
     sleep  1
     press key  jquery=\#cpModalMode div[data-name='ORG_GPO_2'] input    \\09
@@ -214,11 +203,11 @@ Input Ade
     Focus    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)
     sleep  1
     Execute JavaScript    (function(){$("#cpModalMode table[data-name='ATTEMPT'] input:eq(1)").val('');})()
-    sleep    3s
+    sleep  1
     Input Text    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    ${tenderAttempts}
-    sleep    3s
+    sleep  1
     Press Key    jquery=#cpModalMode table[data-name='ATTEMPT'] input:eq(1)    \\13
-    sleep    2s
+    sleep  1
     run keyword if  "${minNumberOfQualifiedBids}" == '1'  run keywords
     ...  click element  xpath=//*[@data-name="PARTCOUNT"]
     ...  AND  sleep  2
@@ -239,31 +228,14 @@ Input Ade
     #\    smarttender.Додати предмет в тендер при створенні   ${item}
     #\    ${index}=    SetVariable    ${index + 1}
 
-    Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
-    sleep  1
-    Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
-    sleep  1
-    Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)
-    sleep    3s
-    Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)        ${locality}
-    sleep    2s
-    Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
-    sleep    3s
-    Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
-    sleep  2s
-    Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
-    sleep  1
-    Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
-    sleep  1
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
     sleep  1
     Wait Until Element Is Visible    jquery=[data-name='GUARANTEE_AMOUNT']
-    sleep  1
     Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${guarantee_amount}
-    sleep  3s
+    sleep  1
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
-    sleep  10s
-    sleep  5
+    sleep  2
+    sleep  2
     click element  xpath=//*[@data-name="TBCASE____SHIFT-F12N"]
     sleep  1
     Wait Until Page Contains    Оголосити аукціон?
@@ -276,6 +248,7 @@ Input Ade
     [Return]     ${return_value}
 
 Створити новий предмет
+    sleep  1
     Click Element    xpath=(//*[@title='Додати'])[2]
     sleep    1s
 
@@ -288,7 +261,7 @@ Input Ade
 Завантажити документ
     [Arguments]    @{ARGUMENTS}
     Підготуватися до редагування      ${ARGUMENTS[0]}     ${ARGUMENTS[2]}
-    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Page Contains      Завантаження документації    20
     Додати документ за шляхом    ${ARGUMENTS[1]}
     [Teardown]    Закрити вікно редагування
@@ -298,7 +271,8 @@ Input Ade
     Log    ${document[0]}
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep   2s
-    Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
+    debug
+    #Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
     sleep   2s
     Click Element     jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
     sleep   2s
@@ -312,7 +286,8 @@ Input Ade
     Log    ${document}
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep   2s
-    Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
+    debug
+    #Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
     sleep   2s
     Click Element     jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
     sleep   2s
@@ -330,6 +305,15 @@ Input Ade
     ${cpv/cav}=        Get From Dictionary    ${ARGUMENTS[0].classification}     scheme
     ${unit}=           Get From Dictionary    ${ARGUMENTS[0].unit}     name
     ${unit}=           smarttender_service.convert_unit_to_smarttender_format    ${unit}
+    ${postalCode}    Get From Dictionary    ${ARGUMENTS[0].deliveryAddress}    postalCode
+    ${locality}=    Get From Dictionary    ${ARGUMENTS[0].deliveryAddress}    locality
+    ${streetAddress}    Get From Dictionary    ${ARGUMENTS[0].deliveryAddress}    streetAddress
+    ${latitude}    Get From Dictionary    ${ARGUMENTS[0].deliveryLocation}    latitude
+    ${longitude}    Get From Dictionary    ${ARGUMENTS[0].deliveryLocation}    longitude
+    ${contractPeriodendDate}  Get From Dictionary  ${ARGUMENTS[0].contractPeriod}  endDate
+    ${contractPeriodendDate}  smarttender_service.convert_datetime_to_smarttender_form  ${contractPeriodendDate}
+    ${contractPeriodstartDate}  Get From Dictionary  ${ARGUMENTS[0].contractPeriod}  startDate
+    ${contractPeriodstartDate}  smarttender_service.convert_datetime_to_smarttender_form  ${contractPeriodstartDate}
     log to console  ${cpv/cav}
     run keyword if  "${cpv/cav}" == "CAV"  Run Keywords
     ...  click element  xpath=//*[@data-name="MAINSCHEME"]
@@ -339,15 +323,30 @@ Input Ade
     ...  AND  click element  xpath=//td[text()="CAV"]
     sleep  1
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${description}
-    sleep  2
     Focus And Input      \#cpModalMode table[data-name='QUANTITY'] input      ${quantity}
-    sleep  2
     Input Ade      \#cpModalMode div[data-name='EDI'] input[type=text]:eq(0)       ${unit}
-    sleep  2
+    sleep  1
+    Input text  xpath=//*[@data-name="CONTRFROM"]//input  ${contractPeriodendDate}
+    sleep  1
+    click element  xpath=//*[@data-name="CONTRTO"]
+    sleep  1
+    Input text  xpath=//*[@data-name="CONTRTO"]//input  ${contractPeriodendDate}
     Focus And Input      \#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)      ${cpv}
     sleep  1
     Press Key  jquery=\#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)  \\13
-    sleep  2
+    Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
+    Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
+    sleep  1
+    Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)
+    sleep    1s
+    Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)        ${locality}
+    sleep    1s
+    Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
+    sleep    1s
+    Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
+    sleep  1
+    Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
+    Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
 
 Додати предмет закупівлі
     [Arguments]    ${user}    ${tenderId}    ${item}
@@ -357,7 +356,7 @@ Input Ade
     ${unit}=           Get From Dictionary    ${item.unit}     name
     ${unit}=           smarttender_service.convert_unit_to_smarttender_format    ${unit}
     smarttender.Підготуватися до редагування     ${user}    ${tenderId}
-    Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
     Page Should Not Contain Element    jquery=#cpModalMode div.gridViewAndStatusContainer a[title='Додати']
     [Teardown]      Закрити вікно редагування
@@ -366,7 +365,7 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}    ${itemId}
     ${readyToEdit} =  Execute JavaScript  return(function(){return ((window.location.href).indexOf('webclient') !== -1).toString();})()
     Run Keyword If     '${readyToEdit}' != 'true'    Підготуватися до редагування     ${user}    ${tenderId}
-    Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
     Page Should Not Contain Element     jquery=#cpModalMode a[title='Удалить']
     [Teardown]      Закрити вікно редагування
@@ -375,13 +374,15 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     Pass Execution If    '${role}'=='provider' or '${role}'=='viewer'    Данний користувач не може вносити зміни в аукціон
     smarttender.Підготуватися до редагування     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    Click Image     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
     sleep   1s
     ${selector}=    auction_screen_field_selector       ${ARGUMENTS[2]}
     Focus    jquery=${selector}
+    ${ARGUMENTS[3]}=  convert to string  ${ARGUMENTS[3]}
     Input Text    jquery=${selector}    ${ARGUMENTS[3]}
     sleep   1s
+    Press Key  jquery=${selector}  \\13
     [Teardown]    Закрити вікно редагування
 
 Закрити вікно редагування
@@ -469,7 +470,7 @@ Input Ade
 Отримати інформацію із документа
     [Arguments]    ${username}  ${tender_uaid}  ${doc_id}  ${field}
     Run Keyword     smarttender.Пошук тендера по ідентифікатору     ${username}     ${tender_uaid}
-	${isCancellation}=    Set Variable If    '${TEST NAME}' == 'Відображення опису документа до скасування лоту' or '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту' or '${TEST NAME}' == 'Відображення вмісту документа до скасування лоту'   True    False
+    ${isCancellation}=    Set Variable If    '${TEST NAME}' == 'Відображення опису документа до скасування лоту' or '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту' or '${TEST NAME}' == 'Відображення вмісту документа до скасування лоту'   True    False
     Run Keyword If       ${isCancellation} == True     smarttender.Відкрити сторінку із данними скасування
     ${selector}=     document_fields_info     ${field}    ${doc_id}   ${isCancellation}
     ${result}=      Execute JavaScript    return (function() { return $("${selector}").text() })()
@@ -759,7 +760,7 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити ілюстрацію
     Підготуватися до редагування    ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Page Contains    Завантаження документації
     sleep    2s
     Додати документ за шляхом    ${ARGUMENTS[2]}
@@ -777,7 +778,7 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}     ${link}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити ілюстрацію
     Підготуватися до редагування    ${user}     ${tenderId}
-    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Page Contains    Завантаження документації
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep    2s
@@ -792,7 +793,7 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}     ${link}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити паспорт активу
     Підготуватися до редагування    ${user}     ${tenderId}
-    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Page Contains    Завантаження документації
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep    2s
@@ -807,7 +808,7 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}     ${description}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може додати офлайн документ
     Підготуватися до редагування    ${user}     ${tenderId}
-    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Page Contains    Завантаження документації
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep    2s
@@ -822,7 +823,7 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}    ${file_path}    ${doc_type}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити документ в тендер
     Підготуватися до редагування    ${user}    ${tenderId}
-    Click Element     jquery=.dxrControl_DevEx a[title*='(F4)'] img:eq(0)
+    click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Page Contains    Завантаження документації
     sleep    2s
     smarttender.Додати документ за шляхом    ${file_path}

@@ -38,6 +38,11 @@ def convert_datetime_to_smarttender_format(isodate):
     date_string = iso_dt.strftime("%d.%m.%Y %H:%M")
     return date_string
 
+def convert_datetime_to_smarttender_form(isodate):
+    iso_dt = parse_date(isodate)
+    date_string = iso_dt.strftime("%d.%m.%Y")
+    return date_string
+
 
 def convert_date_to_smarttender_format(isodate):
     iso_dt = parse_date(isodate)
@@ -324,7 +329,7 @@ def convert_result(field, value):
 def auction_screen_field_selector(field):
     map = {
         "value.amount": "table[data-name='INITAMOUNT'] input",
-        "minimalstep.amount": "table[data-name='MINSTEP'] input",
+        "minimalStep.amount": "table[data-name='MINSTEP'] input",
         "auctionPeriod.startDate": "table[data-name='DTAUCTION'] input",
         "eligibilityCriteria": "",
         "guarantee": "table[data-name='GUARANTEE_AMOUNT'] input",
