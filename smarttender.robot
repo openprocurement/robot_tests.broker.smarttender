@@ -27,6 +27,7 @@ ${block}                            xpath=.//*[@class='ivu-card ivu-card-bordere
 ${cancellation offers button}       ${block}[last()]//div[@class="ivu-poptip-rel"]/button
 ${cancel. offers confirm button}    ${block}[last()]//div[@class="ivu-poptip-footer"]/button[2]
 ${ok button}                        xpath=.//div[@class="ivu-modal-body"]/div[@class="ivu-modal-confirm"]//button
+${owner F4}                         xpath=//*[@data-name="TBCASE____F4"]
 
 
 *** Keywords ***
@@ -265,11 +266,18 @@ Input Ade
 
 Завантажити документ
     [Arguments]    @{ARGUMENTS}
-    Підготуватися до редагування      ${ARGUMENTS[0]}     ${ARGUMENTS[2]}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
-    Wait Until Page Contains      Завантаження документації    20
-    Додати документ за шляхом    ${ARGUMENTS[1]}
-    [Teardown]    Закрити вікно редагування
+    [Documentation]  ${ARGUMENTS[0]}  role
+    ...  ${ARGUMENTS[1]}  path to file
+    ...  ${ARGUMENTS[2]}  tenderID
+    Підготуватися до редагування  ${ARGUMENTS[0]}  ${ARGUMENTS[2]}
+    click element  ${owner F4}
+    Wait Until Page Contains  Завантаження документації  20
+    Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
+    sleep  3
+    Click Element  jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
+    Choose File  xpath=//*[@type='file'][1]  ${ARGUMENTS[1]}
+    Click Element    jquery=span:Contains('ОК'):eq(0)
+    [Teardown]  Закрити вікно редагування
 
 Додати документ
     [Arguments]     ${document}
@@ -279,18 +287,6 @@ Input Ade
     Click Element     jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
     sleep   2s
     Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${document[0]}
-    sleep    2s
-    Click Image      jquery=#cpModalMode div.dxrControl_DevEx a:contains('ОК') img
-    sleep    2s
-
-Додати документ за шляхом
-    [Arguments]     ${document}
-    Log    ${document}
-    Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
-    sleep   2s
-    Click Element     jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
-    sleep   2s
-    Choose File  xpath=//*[@type='file'][1]    ${ARGUMENTS[1]}
     sleep    2s
     Click Image      jquery=#cpModalMode div.dxrControl_DevEx a:contains('ОК') img
     sleep    2s
@@ -357,7 +353,7 @@ Input Ade
     ${unit}=           Get From Dictionary    ${item.unit}     name
     ${unit}=           smarttender_service.convert_unit_to_smarttender_format    ${unit}
     smarttender.Підготуватися до редагування     ${user}    ${tenderId}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
+    click element  ${owner F4}
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
     Page Should Not Contain Element    jquery=#cpModalMode div.gridViewAndStatusContainer a[title='Додати']
     [Teardown]      Закрити вікно редагування
@@ -366,43 +362,49 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}    ${itemId}
     ${readyToEdit} =  Execute JavaScript  return(function(){return ((window.location.href).indexOf('webclient') !== -1).toString();})()
     Run Keyword If     '${readyToEdit}' != 'true'    Підготуватися до редагування     ${user}    ${tenderId}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
+    click element  ${owner F4}
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
     Page Should Not Contain Element     jquery=#cpModalMode a[title='Удалить']
     [Teardown]      Закрити вікно редагування
 
 Внести зміни в тендер
     [Arguments]    @{ARGUMENTS}
-    Pass Execution If    '${role}'=='provider' or '${role}'=='viewer'    Данний користувач не може вносити зміни в аукціон
-    smarttender.Підготуватися до редагування     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
-    Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
-    sleep   1s
+    Pass Execution If  '${role}'=='provider' or '${role}'=='viewer'  Данний користувач не може вносити зміни в аукціон
+    smarttender.Підготуватися до редагування  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
+    click element  ${owner F4}
+    Wait Until Element Contains  jquery=#cpModalMode  Коригування  20
     log to console  ${ARGUMENTS[3]}
     ${a}=  convert to string  ${ARGUMENTS[3]}
-    run keyword if  '${ARGUMENTS[2]}' == 'guarantee.amount'  run keywords
-    ...  Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
-    ...  AND  Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${a}
-    ...  AND  pass execution
-    ${selector}=    auction_screen_field_selector       ${ARGUMENTS[2]}
-    Focus    jquery=${selector}
-    Input Text    jquery=${selector}    ${a}
-    sleep  1
-    run keyword if  '${ARGUMENTS[2]}' == 'value.amount'  run keywords
-    ...  Press Key  jquery=${selector}  \\13
-    ...  AND  Focus And Input     \#cpModalMode table[data-name='MINSTEP'] input     ${step_rate}
-    click element  xpath=//*[@data-name="CONTRTO"]
-    sleep  1
-    [Teardown]    Закрити вікно редагування
+    ${selector}=  auction_screen_field_selector       ${ARGUMENTS[2]}
+    run keyword if
+    ...  '${ARGUMENTS[2]}' == 'guarantee.amount'  run keywords
+    ...     Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
+    ...     AND  sleep  3
+    ...     AND  Focus And Input  \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input  ${a}
+    ...     AND  Press Key  jquery=\#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input  \\13
+    ...  ELSE IF  '${ARGUMENTS[2]}' == 'value.amount'  run keywords
+    ...     Input Text  jquery=${selector}  ${a}
+    ...     AND  Press Key  jquery=${selector}  \\13
+    ...     AND  Focus And Input  \#cpModalMode table[data-name='MINSTEP'] input  ${step_rate}
+    ...  ELSE IF  '${ARGUMENTS[2]}' == 'minimalStep.amount'  run keywords
+    ...     Input Text  jquery=${selector}  ${a}
+    ...     AND  click element  xpath=//*[@data-name="CONTRTO"]
+    ...  ELSE  run keywors
+    ...     AND  Input Text  jquery=${selector}  ${a}
+    [Teardown]  Закрити вікно редагування
 
 Закрити вікно редагування
+    sleep  3
     Click Element       jquery=div.dxpnlControl_DevEx a[title='Зберегти'] img
     Run Keyword And Ignore Error      Закрити вікно з помилкою
-    sleep    2s
+    sleep  2
 
 Закрити вікно з помилкою
-    Wait Until Page Contains    PROZORRO
-    Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
+    sleep  1
+    Run Keyword And Ignore Error  Wait Until Page Contains    PROZORRO
+    sleep  1
+    Run Keyword And Ignore Error  Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
+    sleep  1
     [Return]
 
 Змінити опис тендера
@@ -768,27 +770,38 @@ Input Ade
 
 Завантажити ілюстрацію
     [Arguments]    @{ARGUMENTS}
+    [Documentation]  ${ARGUMENTS[0]}  role
+    ...  ${ARGUMENTS[1]}  tenderID
+    ...  ${ARGUMENTS[2]}  path to file
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити ілюстрацію
     Підготуватися до редагування    ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
-    Wait Until Page Contains    Завантаження документації
-    sleep    2s
-    Додати документ за шляхом    ${ARGUMENTS[2]}
-    Click Element    jquery=label:Contains('illustration')
+    click element  ${owner F4}
+    Wait Until Page Contains    Завантаження документації  10
+    Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
+    sleep  3
+    Click Element  jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
+    Choose File  xpath=//*[@type='file'][1]  ${ARGUMENTS[2]}
+    Click Element    jquery=span:Contains('ОК'):eq(0)
     Wait Until Element Is Enabled       jquery=td.dhxcombo_input_container:eq(0)
-    sleep    3s
-    Focus    jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)
-    Input Text      jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)    Ілюстрація
-    Press Key        jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)         \\13
-    sleep    3s
-    Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Зберегти') img
-    sleep    5s
+    sleep  3
+    debug
+    [Teardown]  Закрити вікно редагування
+    #Додати документ за шляхом    ${ARGUMENTS[2]}
+    #Click Element    jquery=label:Contains('illustration')
+    #Wait Until Element Is Enabled       jquery=td.dhxcombo_input_container:eq(0)
+    #sleep    3s
+    #Focus    jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)
+    #Input Text      jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)    Ілюстрація
+    #Press Key        jquery=div[data-name='DOCUMENT_TYPE'] td.dhxcombo_input_container input:eq(0)         \\13
+    #sleep    3s
+    #Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Зберегти') img
+    #sleep    5s
 
 Додати Virtual Data Room
     [Arguments]    ${user}    ${tenderId}     ${link}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити ілюстрацію
     Підготуватися до редагування    ${user}     ${tenderId}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
+    click element  ${owner F4}
     Wait Until Page Contains    Завантаження документації
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep    2s
@@ -803,7 +816,7 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}     ${link}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити паспорт активу
     Підготуватися до редагування    ${user}     ${tenderId}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
+    click element  ${owner F4}
     Wait Until Page Contains    Завантаження документації
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep    2s
@@ -818,7 +831,7 @@ Input Ade
     [Arguments]    ${user}    ${tenderId}     ${description}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може додати офлайн документ
     Підготуватися до редагування    ${user}     ${tenderId}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
+    click element  ${owner F4}
     Wait Until Page Contains    Завантаження документації
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep    2s
@@ -831,9 +844,10 @@ Input Ade
 
 Завантажити документ в тендер з типом
     [Arguments]    ${user}    ${tenderId}    ${file_path}    ${doc_type}
+    debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може завантажити документ в тендер
     Підготуватися до редагування    ${user}    ${tenderId}
-    click element  xpath=//*[@data-name="TBCASE____F4"]
+    click element  ${owner F4}
     Wait Until Page Contains    Завантаження документації
     sleep    2s
     smarttender.Додати документ за шляхом    ${file_path}
