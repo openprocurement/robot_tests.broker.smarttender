@@ -961,7 +961,8 @@ Cancellation offer continue
     ${normalizedIndex}=     normalize_index    ${bidIndex}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(2)
     Wait Until Page Contains    Вкладення до пропозиції
-    sleep   6s
+    sleep   3s
+    click element  xpath=//*[@data-name="OkButton"]
     #${count}=     Execute JavaScript    return(function(){ var counter = 0;var documentSelector = $("#cpModalMode tr label:contains('Протокол рішення Кваліфікаційного комітету')").closest("tr");while (true) { documentSelector = documentSelector.next(); if(documentSelector.length == 0 || documentSelector[0].innerHTML.indexOf("label") === -1){ break;} counter = counter +1;} return counter;})()
     #Should Be True    ${count} > ${0}
 
@@ -1034,12 +1035,14 @@ Cancellation offer continue
     sleep    2s
     click element  xpath=//a[@title="Кваліфікація"]
     sleep    5s
+    Click Element    jquery=div.dxbButton_DevEx.dxbButtonSys.dxbTSys span:contains('Відхилити пропозицію')
+    sleep  3
+    click element  id=IMMessageBoxBtnNo_CD
     Focus    jquery=#cpModalMode textarea
     Input Text    jquery=#cpModalMode textarea    ${description}
-    Click Element    jquery=div.dxbButton_DevEx.dxbButtonSys.dxbTSys span:contains('Відхилити пропозицію')
-    Wait Until Page Contains    Ви впевнені у своєму рішенні?
-    Click Element    id=IMMessageBoxBtnYes
-    #click element  id=IMMessageBoxBtnOK_CD
+    click element  xpath=//span[text()="Зберегти"]
+    sleep  1
+    click element  id=IMMessageBoxBtnYes_CD
     sleep    10s
 
 Завантажити протокол аукціону
