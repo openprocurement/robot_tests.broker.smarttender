@@ -889,7 +889,6 @@ Input Ade
     sleep  1
     Click Element    xpath=//*[@class="dxr-group mygroup"][1]
     sleep  1
-    debug
     Click Element  jquery=a[title='OK']
     Wait Until Page Contains    аукціон буде
     Click Element    jquery=#IMMessageBoxBtnYes
