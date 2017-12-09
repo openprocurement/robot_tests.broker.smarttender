@@ -167,6 +167,8 @@ Input Ade
     ${description}=    Get From Dictionary    ${tender_data.data}    description
     ${budget}=    Get From Dictionary    ${tender_data.data.value}    amount
     ${step_rate}=    Get From Dictionary    ${tender_data.data.minimalStep}    amount
+    log to console  ${step_rate}
+    set global variable  ${step_rate}
     ${valTax}=     Get From Dictionary    ${tender_data.data.value}      valueAddedTaxIncluded
     ${guarantee_amount}=    Get From Dictionary    ${tender_data.data.guarantee}    amount
     ${dgfID}=    Get From Dictionary     ${tender_data.data}        dgfID
@@ -236,6 +238,8 @@ Input Ade
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
     sleep  2
     sleep  2
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    sleep  1
     click element  xpath=//*[@data-name="TBCASE____SHIFT-F12N"]
     sleep  1
     Wait Until Page Contains    Оголосити аукціон?
@@ -271,9 +275,6 @@ Input Ade
     Log    ${document[0]}
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep   2s
-    debug
-    #Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
-    sleep   2s
     Click Element     jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
     sleep   2s
     Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${document[0]}
@@ -286,12 +287,9 @@ Input Ade
     Log    ${document}
     Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep   2s
-    debug
-    #Click Element     jquery=#cpModalMode .dxtlControl_DevEx label:eq(0)
-    sleep   2s
     Click Element     jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
     sleep   2s
-    Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${document}
+    Choose File  xpath=//*[@type='file'][1]    ${ARGUMENTS[1]}
     sleep    2s
     Click Image      jquery=#cpModalMode div.dxrControl_DevEx a:contains('ОК') img
     sleep    2s
@@ -317,9 +315,11 @@ Input Ade
     log to console  ${cpv/cav}
     run keyword if  "${cpv/cav}" == "CAV"  Run Keywords
     ...  click element  xpath=//*[@data-name="MAINSCHEME"]
+    ...  AND  sleep  1
     ...  AND  click element  xpath=//td[text()="CAV"]
     run keyword if  "${cpv/cav}" == "CAV-PS"  Run Keywords
     ...  click element  xpath=//*[@data-name="MAINSCHEME"]
+    ...  AND  sleep  1
     ...  AND  click element  xpath=//td[text()="CAV"]
     sleep  1
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${description}
@@ -377,12 +377,21 @@ Input Ade
     click element  xpath=//*[@data-name="TBCASE____F4"]
     Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
     sleep   1s
+    log to console  ${ARGUMENTS[3]}
+    ${a}=  convert to string  ${ARGUMENTS[3]}
+    run keyword if  '${ARGUMENTS[2]}' == 'guarantee.amount'  run keywords
+    ...  Click Element     jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
+    ...  AND  Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${a}
+    ...  AND  pass execution
     ${selector}=    auction_screen_field_selector       ${ARGUMENTS[2]}
     Focus    jquery=${selector}
-    ${ARGUMENTS[3]}=  convert to string  ${ARGUMENTS[3]}
-    Input Text    jquery=${selector}    ${ARGUMENTS[3]}
-    sleep   1s
-    Press Key  jquery=${selector}  \\13
+    Input Text    jquery=${selector}    ${a}
+    sleep  1
+    run keyword if  '${ARGUMENTS[2]}' == 'value.amount'  run keywords
+    ...  Press Key  jquery=${selector}  \\13
+    ...  AND  Focus And Input     \#cpModalMode table[data-name='MINSTEP'] input     ${step_rate}
+    click element  xpath=//*[@data-name="CONTRTO"]
+    sleep  1
     [Teardown]    Закрити вікно редагування
 
 Закрити вікно редагування
