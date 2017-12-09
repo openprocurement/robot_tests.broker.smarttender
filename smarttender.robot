@@ -1034,12 +1034,14 @@ Cancellation offer continue
     sleep    2s
     click element  xpath=//a[@title="Кваліфікація"]
     sleep    5s
-    debug
-    #Focus    jquery=#cpModalMode textarea
-    #Input Text    jquery=#cpModalMode textarea    ${description}
-    #Click Element    jquery=div.dxbButton_DevEx.dxbButtonSys.dxbTSys span:contains('Відхилити пропозицію')
-    #Wait Until Page Contains    Ви впевнені у своєму рішенні?
-    #Click Element    id=IMMessageBoxBtnYes
+    Click Element    jquery=div.dxbButton_DevEx.dxbButtonSys.dxbTSys span:contains('Відхилити пропозицію')
+    sleep  3
+    click element  id=IMMessageBoxBtnNo_CD
+    Focus    jquery=#cpModalMode textarea
+    Input Text    jquery=#cpModalMode textarea    ${description}
+    click element  xpath=//span[text()="Зберегти"]
+    sleep  1
+    click element  id=IMMessageBoxBtnYes_CD
     sleep    10s
 
 Завантажити протокол аукціону
