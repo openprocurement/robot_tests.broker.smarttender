@@ -238,6 +238,7 @@ Input Ade
     sleep  2
     click element  xpath=//*[@data-name="TBCASE____SHIFT-F12N"]
     sleep  1
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel
     Wait Until Page Contains    Оголосити аукціон?
     sleep  1
     Click Element  id=IMMessageBoxBtnYes_CD
@@ -317,9 +318,11 @@ Input Ade
     log to console  ${cpv/cav}
     run keyword if  "${cpv/cav}" == "CAV"  Run Keywords
     ...  click element  xpath=//*[@data-name="MAINSCHEME"]
+    ...  AND  sleep  1
     ...  AND  click element  xpath=//td[text()="CAV"]
     run keyword if  "${cpv/cav}" == "CAV-PS"  Run Keywords
     ...  click element  xpath=//*[@data-name="MAINSCHEME"]
+    ...  AND  sleep  1
     ...  AND  click element  xpath=//td[text()="CAV"]
     sleep  1
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${description}
@@ -860,24 +863,27 @@ Input Ade
     Підготуватися до редагування    ${user}     ${tenderId}
     Click Element       jquery=a[data-name='F2_________GPCANCEL']
     Wait Until Page Contains    Протоколи скасування
-    sleep    2s
+    sleep  1
     Focus    jquery=#cpModalMode table[data-name='reason'] input:eq(1)
     Execute JavaScript    (function(){$("#cpModalMode table[data-name='reason'] input:eq(1)").val('');})()
-    sleep    3s
+    sleep  1
     Input Text    jquery=#cpModalMode table[data-name='reason'] input:eq(1)    ${reason}
-    sleep    3s
+    sleep  1
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
-    sleep    2s
-    click element  xpath=//div[@title="Додати"]
-    sleep  5
-    Choose File  id=fileUpload  ${file}
-    sleep  10
-    Click Element    xpath=//*[@class="dxr-group mygroup"][1]
-    sleep    2s
+    sleep  1
     Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
+    sleep  1
     Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
-    #Wait Until Page Contains    Протоколи скасування
-    Click Element       jquery=a[title='OK']
+    sleep  1
+    Press Key  jquery=table[data-name='DocumentDescription'] input:eq(0)  \\13
+    click element  xpath=//div[@title="Додати"]
+    sleep  1
+    Choose File  id=fileUpload  ${file}
+    sleep  1
+    Click Element    xpath=//*[@class="dxr-group mygroup"][1]
+    sleep  1
+    debug
+    Click Element  jquery=a[title='OK']
     Wait Until Page Contains    аукціон буде
     Click Element    jquery=#IMMessageBoxBtnYes
     sleep   3s
