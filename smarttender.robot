@@ -852,12 +852,6 @@ Input Ade
     Input Text    jquery=#cpModalMode table[data-name='reason'] input:eq(1)    ${reason}
     sleep  1
     Press Key        jquery=#cpModalMode table[data-name='reason'] input:eq(1)         \\13
-    sleep  1
-    Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
-    sleep  1
-    Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
-    sleep  1
-    Press Key  jquery=table[data-name='DocumentDescription'] input:eq(0)  \\13
     click element  xpath=//div[@title="Додати"]
     sleep  1
     Choose File  id=fileUpload  ${file}
@@ -867,6 +861,13 @@ Input Ade
     click element  xpath=.//*[@data-type="TreeView"]//tbody/tr[2]
     sleep  1
     click element  xpath=.//*[@data-type="TreeView"]//tbody/tr[2]
+    sleep  1
+    Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
+    sleep  1
+    Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
+    sleep  1
+    Press Key  jquery=table[data-name='DocumentDescription'] input:eq(0)  \\13
+    sleep  1
     Click Element  jquery=a[title='OK']
     Wait Until Page Contains    аукціон буде
     Click Element    jquery=#IMMessageBoxBtnYes
