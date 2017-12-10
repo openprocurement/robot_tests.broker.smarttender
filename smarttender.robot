@@ -187,7 +187,7 @@ Input Ade
     Wait Until Page Contains element  xpath=.//*[@data-name="TBCASE____F7"]
     Click Element  xpath=.//*[@data-name="TBCASE____F7"]
     Wait Until Element Contains    cpModalMode    Оголошення   20
-    Run Keyword If     '${mode}' == 'dgfOtherAssets'    Змінити процедуру
+    Run Keyword If     '${mode}' != 'dgfOtherAssets'    Змінити процедуру
     sleep  1
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
     Focus And Input     \#cpModalMode table[data-name='INITAMOUNT'] input      ${budget}
@@ -903,6 +903,7 @@ Input Ade
     sleep  1
     Click Element    xpath=//*[@class="dxr-group mygroup"][1]
     sleep  1
+    debug
     Click Element  jquery=a[title='OK']
     Wait Until Page Contains    аукціон буде
     Click Element    jquery=#IMMessageBoxBtnYes
