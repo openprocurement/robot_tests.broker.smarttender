@@ -41,8 +41,6 @@ ${ok add file}                      jquery=span:Contains('ОК'):eq(0)
     [Documentation]      Відкрити браузер, створити об’єкт api wrapper, тощо
     ...    ${ARGUMENTS[0]} == username
     Open Browser    ${USERS.users['${ARGUMENTS[0]}'].homepage}    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}
-    Set Window Size    @{USERS.users['${ARGUMENTS[0]}'].size}
-    Set Window Position    @{USERS.users['${ARGUMENTS[0]}'].position}
     Run Keyword If      '${ARGUMENTS[0]}' != 'SmartTender_Viewer'      Login      @{ARGUMENTS}
 
 Login
@@ -172,22 +170,32 @@ Input Ade
     ${auction_start}=    smarttender_service.convert_datetime_to_smarttender_format    ${auction_start}
     ${tenderAttempts}=    Get From Dictionary    ${tender_data.data}    tenderAttempts
     Run Keyword And Ignore Error  Wait Until Page Contains element  id=IMMessageBoxBtnNo_CD  30
+    sleep  1
     Run Keyword And Ignore Error  click element  id=IMMessageBoxBtnNo_CD
     Wait Until Page Contains element  xpath=//*[@data-itemkey='438']  10
+    sleep  1
     Click Element  xpath=//*[@data-itemkey='438']
     Wait Until Page Contains element  xpath=.//*[@data-name="TBCASE____F7"]
+    sleep  1
     Click Element  xpath=.//*[@data-name="TBCASE____F7"]
     Wait Until Element Contains    cpModalMode    Оголошення   20
+    sleep  1
     Run Keyword If     '${mode}' != 'dgfOtherAssets'    Змінити процедуру
     sleep  1
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='INITAMOUNT'] input      ${budget}
     sleep  1
     Run Keyword If      ${valTax}     Click Element     jquery=table[data-name='WITHVAT'] span:eq(0)
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='MINSTEP'] input     ${step_rate}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='TITLE'] input     ${title}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
+    sleep  1
     Focus And Input     \#cpModalMode div[data-name='ORG_GPO_2'] input    ${procuringEntityName}
     sleep  1
     press key  jquery=\#cpModalMode div[data-name='ORG_GPO_2'] input    \\09
@@ -295,6 +303,7 @@ Input Ade
     ${contractPeriodstartDate}  smarttender_service.convert_datetime_to_smarttender_form  ${contractPeriodstartDate}
     Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
     log to console  ${cpv/cav}
+    sleep  1
     click element  xpath=//*[@data-name="MAINSCHEME"]
     sleep  1
     run keyword if  "${cpv/cav}" == "CAV"  click element  xpath=//td[text()="CAV"]
@@ -302,7 +311,9 @@ Input Ade
     ...  ELSE IF  "${cpv/cav}" == "CPV"  click element  xpath=//td[text()="CPV"]
     sleep  1
     Input Ade    \#cpModalMode div[data-name='KMAT'] input[type=text]:eq(0)      ${description}
+    sleep  1
     Focus And Input      \#cpModalMode table[data-name='QUANTITY'] input      ${quantity}
+    sleep  1
     Input Ade      \#cpModalMode div[data-name='EDI'] input[type=text]:eq(0)       ${unit}
     sleep  1
     Input text  xpath=//*[@data-name="CONTRFROM"]//input  ${contractPeriodendDate}
@@ -310,10 +321,13 @@ Input Ade
     click element  xpath=//*[@data-name="CONTRTO"]
     sleep  1
     Input text  xpath=//*[@data-name="CONTRTO"]//input  ${contractPeriodendDate}
+    sleep  1
     Focus And Input      \#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)      ${cpv}
     sleep  1
     Press Key  jquery=\#cpModalMode div[data-name='MAINCLASSIFICATION'] input[type=text]:eq(0)  \\13
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='POSTALCODE'] input     ${postalCode}
+    sleep  1
     Focus And Input     \#cpModalMode table[data-name='STREETADDR'] input     ${streetAddress}
     sleep  1
     Click Element     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)
@@ -325,7 +339,9 @@ Input Ade
     Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
     sleep  1
     Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
+    sleep  1
     Focus And Input      \#cpModalMode table[data-name='LONGITUDE'] input     ${longitude}
+    sleep  1
 
 Додати предмет закупівлі
     [Arguments]    ${user}    ${tenderId}    ${item}
