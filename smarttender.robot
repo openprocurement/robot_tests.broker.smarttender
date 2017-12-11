@@ -335,8 +335,6 @@ Input Ade
     Input Text     jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)        ${locality}
     sleep    1s
     Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
-    sleep    1s
-    Press Key        jquery=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:eq(0)         \\13
     sleep  1
     Focus And Input      \#cpModalMode table[data-name='LATITUDE'] input     ${latitude}
     sleep  1
@@ -1088,6 +1086,10 @@ Cancellation offer continue
 
 Завантажити угоду до тендера
     [Arguments]    @{ARGUMENTS}
+    [DOCUMENTATION]  ${ARGUMENTS[0]}  role
+    ...  ${ARGUMENTS[1]}  tenderID
+    ...  ${ARGUMENTS[2]}  contract_number
+    ...  ${ARGUMENTS[3]}  file path
     Run Keyword    smarttender.Підготуватися до редагування      ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
     sleep    1s
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -1100,26 +1102,22 @@ Cancellation offer continue
     Focus     jquery=td.dxic input[maxlength='30']
     Input Text    jquery=td.dxic input[maxlength='30']    11111111111111
     sleep    1s
-    ${file_path}  ${file_title}  ${file_content}=  create_fake_doc
-    ${argCount}=    Get Length    ${ARGUMENTS}
-    ${doc}=    Set Variable If
-    ...        '${argCount}' == '4'    ${ARGUMENTS[3]}
-    ...        ${file_path}
-    Click Element    jquery=.dxbButton_DevEx span:Contains('Обзор...'):eq(0)
-    Wait Until Page Contains    Список файлів
-    Choose File    jquery=#OpenFileUploadControl_TextBox0_Input:eq(0)     ${doc}
-    sleep     3s
+    click element  xpath=//span[text()="Перегляд..."]
+    sleep  1
+    Choose File  xpath=//*[@type='file'][1]  ${ARGUMENTS[3]}
+    sleep  1
     Click Element    ${ok add file}
-    sleep     3s
+    sleep  1
     Click Element    jquery=a[title='OK']:eq(0)
-    sleep     13s
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    sleep  1
 
 Підтвердити підписання контракту
     [Arguments]    @{ARGUMENTS}
-    Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підписати договір
-    Run Keyword    smarttender.Завантажити угоду до тендера    @{ARGUMENTS}
+    [DOCUMENTATION]  ${ARGUMENTS[0]}  role
+    ...  ${ARGUMENTS[1]}  tenderID
+    ...  ${ARGUMENTS[2]}  contract_number
     smarttender.Підготуватися до редагування    ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep    1s
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
     sleep     2s
@@ -1129,5 +1127,5 @@ Cancellation offer continue
     sleep    10s
     Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
     sleep      2s
-    ${ContractState}=        Execute JavaScript        return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(6)").text();})()
-    Should Be Equal     ${ContractState}     Підписаний
+    ${ContractState}=   Execute JavaScript  return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(6)").text();})()
+    Should Be Equal  ${ContractState}  Підписаний
