@@ -1129,5 +1129,3 @@ Cancellation offer continue
     sleep    10s
     Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
     sleep      2s
-    ${ContractState}=   Execute JavaScript  return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(6)").text();})()
-    Should Be Equal  ${ContractState}  Підписаний
