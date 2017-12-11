@@ -476,11 +476,14 @@ Input Ade
 
 Отримати інформацію із документа
     [Arguments]    ${username}  ${tender_uaid}  ${doc_id}  ${field}
+    log  ${field}
+    log  ${doc_id}
     Run Keyword     smarttender.Пошук тендера по ідентифікатору     ${username}     ${tender_uaid}
     ${isCancellation}=    Set Variable If    '${TEST NAME}' == 'Відображення опису документа до скасування лоту' or '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту' or '${TEST NAME}' == 'Відображення вмісту документа до скасування лоту'   True    False
     Run Keyword If       ${isCancellation} == True     smarttender.Відкрити сторінку із данними скасування
     ${selector}=     document_fields_info     ${field}    ${doc_id}   ${isCancellation}
     ${result}=      Execute JavaScript    return (function() { return $("${selector}").text() })()
+
     [Return]    ${result}
 
 Перейти до запитань
