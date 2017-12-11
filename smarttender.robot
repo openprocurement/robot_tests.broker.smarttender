@@ -23,12 +23,12 @@ ${path to find tender}                  http://test.smarttender.biz/test-tenders
 ${find tender field}                    xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]
 ${tender found}                         xpath=//*[@id="tenders"]/tbody//a[@class="linkSubjTrading"]
 
-${block}                            xpath=.//*[@class='ivu-card ivu-card-bordered']
-${cancellation offers button}       ${block}[last()]//div[@class="ivu-poptip-rel"]/button
-${cancel. offers confirm button}    ${block}[last()]//div[@class="ivu-poptip-footer"]/button[2]
-${ok button}                        xpath=.//div[@class="ivu-modal-body"]/div[@class="ivu-modal-confirm"]//button
-${owner F4}                         xpath=//*[@data-name="TBCASE____F4"]
-${ok add file}                      jquery=span:Contains('ОК'):eq(0)
+${block}                                xpath=.//*[@class='ivu-card ivu-card-bordered']
+${cancellation offers button}           ${block}[last()]//div[@class="ivu-poptip-rel"]/button
+${cancel. offers confirm button}        ${block}[last()]//div[@class="ivu-poptip-footer"]/button[2]
+${ok button}                            xpath=.//div[@class="ivu-modal-body"]/div[@class="ivu-modal-confirm"]//button
+${owner F4}                             xpath=//*[@data-name="TBCASE____F4"]
+${ok add file}                          jquery=span:Contains('ОК'):eq(0)
 
 
 *** Keywords ***
