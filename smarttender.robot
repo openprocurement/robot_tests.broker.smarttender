@@ -483,7 +483,6 @@ Input Ade
     Run Keyword If       ${isCancellation} == True     smarttender.Відкрити сторінку із данними скасування
     ${selector}=     document_fields_info     ${field}    ${doc_id}   ${isCancellation}
     ${result}=      Execute JavaScript    return (function() { return $("${selector}").text() })()
-
     [Return]    ${result}
 
 Перейти до запитань
