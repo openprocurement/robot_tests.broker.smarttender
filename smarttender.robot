@@ -479,7 +479,10 @@ Input Ade
     Run Keyword     smarttender.Пошук тендера по ідентифікатору     ${username}     ${tender_uaid}
     ${isCancellation}=    Set Variable If    '${TEST NAME}' == 'Відображення опису документа до скасування лоту' or '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту' or '${TEST NAME}' == 'Відображення вмісту документа до скасування лоту'   True    False
     Run Keyword If       ${isCancellation} == True     smarttender.Відкрити сторінку із данними скасування
-    ${selector}=     document_fields_info     ${field}    ${doc_id}   ${isCancellation}
+    ${selector}=  run keyword if  '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту'
+    ...     document_fields_info     title1    ${doc_id}   ${isCancellation}
+    ...  ELSE
+    ...     document_fields_info     ${field}    ${doc_id}   ${isCancellation}
     ${result}=      Execute JavaScript    return (function() { return $("${selector}").text() })()
     [Return]    ${result}
 
@@ -941,7 +944,7 @@ Cancellation offer continue
     Click Element    jquery=a#to-auction
     Wait Until Page Contains Element        jquery=iframe#widgetIframe  5s
     Select Frame    jquery=iframe#widgetIframe
-    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  10s
+    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  20s
     ${return_value}=    Get Element Attribute     jquery=a.link-button:eq(0)@href
     [return]      ${return_value}
 
