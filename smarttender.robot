@@ -598,6 +598,8 @@ Input Ade
     Click Element     jquery=a#participate
     Wait Until Page Contains Element  jquery=iframe#widgetIframe:eq(1)  10s
     Select Frame      jquery=iframe#widgetIframe:eq(1)
+    debug
+    Wait Until Page Contains Element  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][1]//input  10
     input text  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][1]//input  Іван
     sleep    1s
     input text  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][2]//input  Іванов
