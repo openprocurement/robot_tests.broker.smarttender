@@ -660,6 +660,7 @@ Input Ade
     log to console  ${amount}
     smarttender.Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
     sleep  2s
+    Wait Until Page Contains Element        jquery=a#bid    5s
     ${href}=  Get Element Attribute  jquery=a#bid@href
     go to  ${href}
     sleep    3s
@@ -670,7 +671,7 @@ Input Ade
     Input text      jquery=div#lotAmount0 input    ${amount}
     sleep    1s
     Click Element      jquery=button#submitBidPlease
-    Wait Until Page Contains       Пропозицію прийнято      15s
+    Wait Until Page Contains       Пропозицію прийнято      60s
     ${response}=      smarttender_service.get_bid_response    ${${amount}}
     [Return]    ${response}
 
