@@ -370,7 +370,7 @@ Input Ade
     ...     Input Text  jquery=${selector}  ${converted_Arg3}
     ...     AND  click element  xpath=//*[@data-name="CONTRTO"]
     ...  ELSE  run keywors
-    ...     AND  Input Text  jquery=${selector}  ${converted_Arg3}
+    ...     Input Text  jquery=${selector}  ${converted_Arg3}
     [Teardown]  Закрити вікно редагування
 
 Закрити вікно редагування
