@@ -98,8 +98,8 @@ Login
     Press Key  ${find tender field }  \\13
     Location Should Contain  f=${ARGUMENTS[1]}
     Capture Page Screenshot
-    ${a}=  run keyword and return status  wait until page contains element  ${tender found}
-    run keyword if  '${a}'=='${False}'  smarttender.Пошук тендера по ідентифікатору  @{ARGUMENTS}
+    ${condition}=  run keyword and return status  wait until page contains element  ${tender found}
+    run keyword if  '${condition}'=='${False}'  smarttender.Пошук тендера по ідентифікатору  @{ARGUMENTS}
     ...  ELSE  find tender continue
 
 find tender continue
