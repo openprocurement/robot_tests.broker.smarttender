@@ -38,6 +38,11 @@ def convert_datetime_to_smarttender_format(isodate):
     date_string = iso_dt.strftime("%d.%m.%Y %H:%M")
     return date_string
 
+def convert_datetime_to_smarttender_form(isodate):
+    iso_dt = parse_date(isodate)
+    date_string = iso_dt.strftime("%d.%m.%Y")
+    return date_string
+
 
 def convert_date_to_smarttender_format(isodate):
     iso_dt = parse_date(isodate)
@@ -78,7 +83,7 @@ def adapt_data(tender_data):
 
 def convert_date(s):
     dt = parse(s, parserinfo(True, False))
-    return dt.strftime('%Y-%m-%dT%H:%M:%S.%f+03:00')
+    return dt.strftime('%Y-%m-%dT%H:%M:%S+02:00')
 
 
 def convert_date_offset_naive(s):
@@ -175,6 +180,11 @@ def auction_field_info(field):
             "unit.name": "span[data-itemid]:eq({0}) span.info_snedi",
             "unit.code": "span[data-itemid]:eq({0}) span.info_edi",
             "quantity": "span[data-itemid]:eq({0}) span.info_count",
+            "additionalClassifications[0].scheme": "span[data-itemid]:eq({0}) .info_DKPP",
+            "additionalClassifications[0].id": "span[data-itemid]:eq({0}) .info_dkpp_code",
+            "additionalClassifications[0].description": "span[data-itemid]:eq({0}) .info_dkpp_name",
+            "contractPeriod.startDate": "span[data-itemid]:eq({0}) .info_contrfrom",
+            "contractPeriod.endDate": "span[data-itemid]:eq({0}) .info_contrto"
         }
         return (map[result]).format(item_id)
     elif "questions" in field:
@@ -222,7 +232,9 @@ def auction_field_info(field):
             "dgfDecisionID": "span.info_dgfDecisionId",
             "dgfDecisionDate": "span.info_dgfDecisionDate",
             "tenderAttempts": "span.info_tenderAttempts",
-            "procurementMethodType": "span.info_procurementMethodType"
+            "procurementMethodType": "span.info_procurementMethodType",
+            "minNumberOfQualifiedBids": ".info_minnumber_qualifiedbids",
+            "guarantee.amount":".info_guarantee"
         }
         return map[field]
 
@@ -231,6 +243,7 @@ def document_fields_info(field,docId,is_cancellation_document):
     map = {
         "description": "span.info_attachment_description:eq(0)",
         "title": "span.info_attachment_title:eq(0)",
+        "title1": ".fileLink:eq(0)",
         "content": "span.info_attachment_title:eq(0)",
         "type": "span.info_attachment_type:eq(0)"
     }
@@ -282,7 +295,7 @@ def convert_result(field, value):
     if field == "value.amount" or field == "minimalStep.amount":
         ret = float(value)
     elif "quantity" in field:
-        ret = int(value)
+        ret = float(value)
     elif field == "value.valueAddedTaxIncluded":
         ret = value == "True"
     elif field == "value.currency":
@@ -297,10 +310,18 @@ def convert_result(field, value):
         ret = convert_date(value)
     elif "tenderPeriod.startDate" in field:
         ret = convert_date(value)
+    elif "contractPeriod.startDate" in field:
+        ret = convert_date(value)
+    elif "contractPeriod.endDate" in field:
+        ret = convert_date(value)
     elif "tenderAttempts" in field:
         ret = int(value)
     elif "dgfDecisionDate" in field:
         ret = convert_date_offset_naive(value)
+    elif "minNumberOfQualifiedBids" in field:
+        ret = int(value)
+    elif "guarantee.amount" in field:
+        ret = float(value)
     else:
         ret = value
     return ret
@@ -309,7 +330,7 @@ def convert_result(field, value):
 def auction_screen_field_selector(field):
     map = {
         "value.amount": "table[data-name='INITAMOUNT'] input",
-        "minimalstep.amount": "table[data-name='MINSTEP'] input",
+        "minimalStep.amount": "table[data-name='MINSTEP'] input",
         "auctionPeriod.startDate": "table[data-name='DTAUCTION'] input",
         "eligibilityCriteria": "",
         "guarantee": "table[data-name='GUARANTEE_AMOUNT'] input",
@@ -340,7 +361,6 @@ def question_field_info(field, id):
 def convert_bool_to_text(variable):
     return str(variable).lower()
 
-
 def download_file(url,download_path):
     response = urllib2.urlopen(url)
     file_content = response.read()
@@ -348,7 +368,6 @@ def download_file(url,download_path):
     f = open(download_path, 'w')
     f.write(file_content)
     f.close()
-
 
 def unescape_link(link):
     return str(link).replace("%20"," ")
