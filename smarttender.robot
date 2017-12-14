@@ -354,23 +354,23 @@ Input Ade
     click element  ${owner F4}
     Wait Until Element Contains  jquery=#cpModalMode  Коригування  20
     log to console  ${ARGUMENTS[3]}
-    ${a}=  convert to string  ${ARGUMENTS[3]}
+    ${converted_Arg3}=  convert to string  ${ARGUMENTS[3]}
     ${selector}=  auction_screen_field_selector       ${ARGUMENTS[2]}
     run keyword if
     ...  '${ARGUMENTS[2]}' == 'guarantee.amount'  run keywords
     ...     Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Гарантійний внесок')
     ...     AND  sleep  3
-    ...     AND  Focus And Input  \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input  ${a}
+    ...     AND  Focus And Input  \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input  ${converted_Arg3}
     ...     AND  Press Key  jquery=\#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input  \\13
     ...  ELSE IF  '${ARGUMENTS[2]}' == 'value.amount'  run keywords
-    ...     Input Text  jquery=${selector}  ${a}
+    ...     Input Text  jquery=${selector}  ${converted_Arg3}
     ...     AND  Press Key  jquery=${selector}  \\13
     ...     AND  Focus And Input  \#cpModalMode table[data-name='MINSTEP'] input  ${step_rate}
     ...  ELSE IF  '${ARGUMENTS[2]}' == 'minimalStep.amount'  run keywords
-    ...     Input Text  jquery=${selector}  ${a}
+    ...     Input Text  jquery=${selector}  ${converted_Arg3}
     ...     AND  click element  xpath=//*[@data-name="CONTRTO"]
     ...  ELSE  run keywors
-    ...     AND  Input Text  jquery=${selector}  ${a}
+    ...     AND  Input Text  jquery=${selector}  ${converted_Arg3}
     [Teardown]  Закрити вікно редагування
 
 Закрити вікно редагування
