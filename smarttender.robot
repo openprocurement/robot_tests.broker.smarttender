@@ -385,6 +385,10 @@ Input Ade
     sleep  1
     Run Keyword And Ignore Error  Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
     sleep  1
+    Run Keyword And Ignore Error  Wait Until Page Contains    xpath=//*[@id="cpModalMode"]//*[text()='Записать']
+    sleep  1
+    Run Keyword And Ignore Error  Click Element    xpath=//*[@id="cpModalMode"]//*[text()='Записать']
+    sleep  1
     [Return]
 
 Змінити опис тендера
