@@ -221,16 +221,16 @@ Input Ade
     Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${guarantee_amount}
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
     sleep  2
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     sleep  1
     click element  xpath=//*[@data-name="TBCASE____SHIFT-F12N"]
     sleep  1
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     Wait Until Page Contains    Оголосити аукціон?
     sleep  1
     Click Element  id=IMMessageBoxBtnYes_CD
     sleep  1
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     sleep    10s
     ${return_value}     Get Text     jquery=div[data-placeid='TENDER'] td:Contains('UA-'):eq(0)
     [Return]     ${return_value}
@@ -293,7 +293,7 @@ Input Ade
     ${contractPeriodendDate}  smarttender_service.convert_datetime_to_smarttender_form  ${contractPeriodendDate}
     ${contractPeriodstartDate}  Get From Dictionary  ${ARGUMENTS[0].contractPeriod}  startDate
     ${contractPeriodstartDate}  smarttender_service.convert_datetime_to_smarttender_form  ${contractPeriodstartDate}
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     log to console  ${cpv/cav}
     sleep  1
     click element  xpath=//*[@data-name="MAINSCHEME"]
@@ -625,7 +625,7 @@ Input Ade
     sleep  2s
     Input text  jquery=div#lotAmount0 input  ${value}
     Click Element  jquery=button#submitBidPlease
-    Wait Until Page Contains  Пропозицію прийнято  15s
+    Wait Until Page Contains  Пропозицію прийнято  60s
     ${response}=  smarttender_service.get_bid_response    ${value}
     reload page
     [Return]  ${response}
@@ -673,7 +673,7 @@ Input Ade
     Click Element      jquery=button#submitBidPlease
     Wait Until Page Contains Element        jquery=button:contains('Так')    5s
     Click Element      jquery=button:contains('Так')
-    Wait Until Page Contains       Пропозицію прийнято      30s
+    Wait Until Page Contains       Пропозицію прийнято      60s
     [Return]    ${ARGUMENTS[2]}
 
 Отримати інформацію із пропозиції
@@ -702,7 +702,7 @@ Input Ade
     Click Element      jquery=button#submitBidPlease
     Wait Until Page Contains Element        jquery=button:contains('Так')    5s
     Click Element      jquery=button:contains('Так')
-    Wait Until Page Contains       Пропозицію прийнято      30s
+    Wait Until Page Contains       Пропозицію прийнято      60s
 
 Змінити документ в ставці
     [Arguments]    @{ARGUMENTS}
@@ -1097,7 +1097,7 @@ Cancellation offer continue
     Click Element    ${ok add file}
     sleep  1
     Click Element    jquery=a[title='OK']:eq(0)
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     sleep  1
 
 Підтвердити підписання контракту
