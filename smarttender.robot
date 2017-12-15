@@ -549,6 +549,8 @@ Input Ade
     sleep    1s
     Press Key       jquery=div[data-placeid='TENDER'] table.hdr:eq(3) tbody tr:eq(1) td:eq(2) input:eq(0)        \\13
     sleep    1s
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
+    sleep  1
     Click Image    jquery=.dxrControl_DevEx a[title*='Змінити'] img:eq(0)
     sleep    2s
     Focus       jquery=#cpModalMode textarea:eq(0)
@@ -629,7 +631,7 @@ Input Ade
     sleep  2s
     Input text  jquery=div#lotAmount0 input  ${value}
     Click Element  jquery=button#submitBidPlease
-    Wait Until Page Contains  Пропозицію прийнято  60s
+    run keyword and ignore error  Wait Until Page Contains  Пропозицію прийнято  60s
     ${response}=  smarttender_service.get_bid_response    ${value}
     reload page
     [Return]  ${response}
