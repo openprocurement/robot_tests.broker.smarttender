@@ -93,7 +93,7 @@ Login
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     Go To  ${path to find tender}
-    Wait Until Page Contains  Торговий майданчик  10s
+    Wait Until Page Contains  Торговий майданчик  60s
     Input Text  ${find tender field }  ${ARGUMENTS[1]}
     Press Key  ${find tender field }  \\13
     Location Should Contain  f=${ARGUMENTS[1]}
@@ -171,7 +171,7 @@ Input Ade
     ${auction_start}=    Get From Dictionary    ${tender_data.data.auctionPeriod}    startDate
     ${auction_start}=    smarttender_service.convert_datetime_to_smarttender_format    ${auction_start}
     ${tenderAttempts}=    Get From Dictionary    ${tender_data.data}    tenderAttempts
-    Run Keyword And Ignore Error  Wait Until Page Contains element  id=IMMessageBoxBtnNo_CD  30
+    Run Keyword And Ignore Error  Wait Until Page Contains element  id=IMMessageBoxBtnNo_CD  60
     sleep  1
     Run Keyword And Ignore Error  click element  id=IMMessageBoxBtnNo_CD
     Wait Until Page Contains element  xpath=//*[@data-itemkey='438']  10
@@ -180,7 +180,7 @@ Input Ade
     Wait Until Page Contains element  xpath=.//*[@data-name="TBCASE____F7"]
     sleep  1
     Click Element  xpath=.//*[@data-name="TBCASE____F7"]
-    Wait Until Element Contains    cpModalMode    Оголошення   20
+    Wait Until Element Contains    cpModalMode    Оголошення   60
     sleep  1
     Run Keyword If     '${mode}' != 'dgfOtherAssets'    Змінити процедуру
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
@@ -221,16 +221,16 @@ Input Ade
     Focus And Input     \#cpModalMode table[data-name='GUARANTEE_AMOUNT'] input     ${guarantee_amount}
     Click Image     jquery=#cpModalMode div.dxrControl_DevEx a:contains('Додати') img
     sleep  2
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     sleep  1
     click element  xpath=//*[@data-name="TBCASE____SHIFT-F12N"]
     sleep  1
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     Wait Until Page Contains    Оголосити аукціон?
     sleep  1
     Click Element  id=IMMessageBoxBtnYes_CD
     sleep  1
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     sleep    10s
     ${return_value}     Get Text     jquery=div[data-placeid='TENDER'] td:Contains('UA-'):eq(0)
     [Return]     ${return_value}
@@ -255,7 +255,7 @@ Input Ade
     Підготуватися до редагування  ${ARGUMENTS[0]}  ${ARGUMENTS[2]}
     sleep  3
     click element  ${owner F4}
-    Wait Until Page Contains  Завантаження документації  20
+    Wait Until Page Contains  Завантаження документації  60
     Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep  3
     Click Element  jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
@@ -293,7 +293,7 @@ Input Ade
     ${contractPeriodendDate}  smarttender_service.convert_datetime_to_smarttender_form  ${contractPeriodendDate}
     ${contractPeriodstartDate}  Get From Dictionary  ${ARGUMENTS[0].contractPeriod}  startDate
     ${contractPeriodstartDate}  smarttender_service.convert_datetime_to_smarttender_form  ${contractPeriodstartDate}
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     log to console  ${cpv/cav}
     sleep  1
     click element  xpath=//*[@data-name="MAINSCHEME"]
@@ -332,7 +332,7 @@ Input Ade
     smarttender.Підготуватися до редагування     ${user}    ${tenderId}
     sleep  3
     click element  ${owner F4}
-    Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
+    Wait Until Element Contains      jquery=#cpModalMode     Коригування    60
     Page Should Not Contain Element    jquery=#cpModalMode div.gridViewAndStatusContainer a[title='Додати']
     [Teardown]      Закрити вікно редагування
 
@@ -342,7 +342,7 @@ Input Ade
     Run Keyword If     '${readyToEdit}' != 'true'    Підготуватися до редагування     ${user}    ${tenderId}
     sleep  3
     click element  ${owner F4}
-    Wait Until Element Contains      jquery=#cpModalMode     Коригування    20
+    Wait Until Element Contains      jquery=#cpModalMode     Коригування    60
     Page Should Not Contain Element     jquery=#cpModalMode a[title='Удалить']
     [Teardown]      Закрити вікно редагування
 
@@ -352,7 +352,7 @@ Input Ade
     smarttender.Підготуватися до редагування  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
     sleep  3
     click element  ${owner F4}
-    Wait Until Element Contains  jquery=#cpModalMode  Коригування  20
+    Wait Until Element Contains  jquery=#cpModalMode  Коригування  60
     log to console  ${ARGUMENTS[3]}
     ${converted_Arg3}=  convert to string  ${ARGUMENTS[3]}
     ${selector}=  auction_screen_field_selector       ${ARGUMENTS[2]}
@@ -384,6 +384,10 @@ Input Ade
     Run Keyword And Ignore Error  Wait Until Page Contains    PROZORRO
     sleep  1
     Run Keyword And Ignore Error  Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
+    sleep  1
+    Run Keyword And Ignore Error  Wait Until Page Contains    xpath=//*[@id="cpModalMode"]//*[text()='Записать']
+    sleep  1
+    Run Keyword And Ignore Error  Click Element    xpath=//*[@id="cpModalMode"]//*[text()='Записать']
     sleep  1
     [Return]
 
@@ -545,6 +549,8 @@ Input Ade
     sleep    1s
     Press Key       jquery=div[data-placeid='TENDER'] table.hdr:eq(3) tbody tr:eq(1) td:eq(2) input:eq(0)        \\13
     sleep    1s
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
+    sleep  1
     Click Image    jquery=.dxrControl_DevEx a[title*='Змінити'] img:eq(0)
     sleep    2s
     Focus       jquery=#cpModalMode textarea:eq(0)
@@ -556,7 +562,7 @@ Input Ade
     sleep    2s
     Click Element     jquery=#cpIMMessageBox .dxbButton_DevEx:eq(0)
     sleep    2s
-    Wait Until Page Contains    Відповідь надіслана на сервер ЦБД        20s
+    Wait Until Page Contains    Відповідь надіслана на сервер ЦБД        60s
 
 Подати цінову пропозицію
     [Arguments]    @{ARGUMENTS}
@@ -580,9 +586,9 @@ Input Ade
     Wait Until Page Contains Element  jquery=a#participate  10s
     ${lotId}=    Execute JavaScript    return(function(){return $("span.info_lotId").text()})()
     Click Element     jquery=a#participate
-    Wait Until Page Contains Element  jquery=iframe#widgetIframe:eq(1)  10s
+    Wait Until Page Contains Element  jquery=iframe#widgetIframe:eq(1)  60s
     Select Frame      jquery=iframe#widgetIframe:eq(1)
-    Wait Until Page Contains Element  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][1]//input  10
+    Wait Until Page Contains Element  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][1]//input  60
     input text  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][1]//input  Іван
     sleep    1s
     input text  xpath=.//*[@class="ivu-form-item ivu-form-item-required"][2]//input  Іванов
@@ -625,7 +631,7 @@ Input Ade
     sleep  2s
     Input text  jquery=div#lotAmount0 input  ${value}
     Click Element  jquery=button#submitBidPlease
-    Wait Until Page Contains  Пропозицію прийнято  15s
+    run keyword and ignore error  Wait Until Page Contains  Пропозицію прийнято  60s
     ${response}=  smarttender_service.get_bid_response    ${value}
     reload page
     [Return]  ${response}
@@ -644,7 +650,7 @@ Input Ade
     log to console  ${amount}
     smarttender.Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
     sleep  2s
-    Wait Until Page Contains Element        jquery=a#bid    5s
+    Wait Until Page Contains Element        jquery=a#bid    60s
     ${href}=  Get Element Attribute  jquery=a#bid@href
     go to  ${href}
     sleep    3s
@@ -665,15 +671,15 @@ Input Ade
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} == bid_info
     smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    Wait Until Page Contains Element        jquery=a#bid    5s
+    Wait Until Page Contains Element        jquery=a#bid    60s
     ${href} =     Get Element Attribute      jquery=a#bid@href
     go to  ${href}
-    Wait Until Page Contains       Пропозиція по аукціону   10s
-    Wait Until Page Contains Element        jquery=button#submitBidPlease    5s
+    Wait Until Page Contains       Пропозиція по аукціону   60s
+    Wait Until Page Contains Element        jquery=button#submitBidPlease    60s
     Click Element      jquery=button#submitBidPlease
-    Wait Until Page Contains Element        jquery=button:contains('Так')    5s
+    Wait Until Page Contains Element        jquery=button:contains('Так')    60s
     Click Element      jquery=button:contains('Так')
-    Wait Until Page Contains       Пропозицію прийнято      30s
+    Wait Until Page Contains       Пропозицію прийнято      60s
     [Return]    ${ARGUMENTS[2]}
 
 Отримати інформацію із пропозиції
@@ -693,16 +699,16 @@ Input Ade
     ...    ${ARGUMENTS[2]} == tenderid
     Pass Execution If     '${mode}' == 'dgfOtherAssets'     Для типа 'Продаж майна банків, що ліквідуються' документы не вкладываются
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[2]}
-    Wait Until Page Contains Element        jquery=a#bid    5s
+    Wait Until Page Contains Element        jquery=a#bid    60s
     ${href} =     Get Element Attribute      jquery=a#bid@href
     go to  ${href}
     Wait Until Page Contains       Пропозиція   10s
-    Wait Until Page Contains Element        jquery=button:contains('Обрати файли')    5s
+    Wait Until Page Contains Element        jquery=button:contains('Обрати файли')    60s
     Choose File     jquery=button:contains('Обрати файли')    ${ARGUMENTS[1]}
     Click Element      jquery=button#submitBidPlease
-    Wait Until Page Contains Element        jquery=button:contains('Так')    5s
+    Wait Until Page Contains Element        jquery=button:contains('Так')    60s
     Click Element      jquery=button:contains('Так')
-    Wait Until Page Contains       Пропозицію прийнято      30s
+    Wait Until Page Contains       Пропозицію прийнято      60s
 
 Змінити документ в ставці
     [Arguments]    @{ARGUMENTS}
@@ -738,7 +744,7 @@ Input Ade
     Підготуватися до редагування    ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     sleep  3
     click element  ${owner F4}
-    Wait Until Page Contains    Завантаження документації  10
+    Wait Until Page Contains    Завантаження документації  60
     Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep  3
     Click Element  jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
@@ -793,7 +799,7 @@ Input Ade
     Підготуватися до редагування    ${user}     ${tenderId}
     sleep  3
     click element  ${owner F4}
-    Wait Until Page Contains    Завантаження документації  10
+    Wait Until Page Contains    Завантаження документації  60
     Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep  3
     input text  xpath=(//*[@data-type="EditBox"])[last()]//textarea  ${description}
@@ -806,7 +812,7 @@ Input Ade
     Підготуватися до редагування    ${user}    ${tenderId}
     sleep  3
     click element  ${owner F4}
-    Wait Until Page Contains    Завантаження документації  10
+    Wait Until Page Contains    Завантаження документації  60
     Click Element  jquery=#cpModalMode li.dxtc-tab:contains('Завантаження документації')
     sleep  3
     Click Element  jquery=#cpModalMode div[data-name='BTADDATTACHMENT']
@@ -889,7 +895,7 @@ Input Ade
 Cancellation offer continue
     run keyword and ignore error  click element  ${cancellation offers button}
     run keyword and ignore error  click element  ${cancel. offers confirm button}
-    ${passed}=  run keyword and return status  wait until page contains element  ${ok button}  15
+    ${passed}=  run keyword and return status  wait until page contains element  ${ok button}  60
     Run keyword if  '${passed}'=='${False}'  Cancellation offer continue
     run keyword and ignore error  click element   ${ok button}
     ${passed}=  run keyword and return status  wait until page does not contain element   ${ok button}
@@ -921,11 +927,11 @@ Cancellation offer continue
 Отримати посилання на аукціон для учасника
     [Arguments]    @{ARGUMENTS}
     smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-    Wait Until Page Contains Element        jquery=a#to-auction  5s
+    Wait Until Page Contains Element        jquery=a#to-auction  60s
     Click Element    jquery=a#to-auction
-    Wait Until Page Contains Element        jquery=iframe#widgetIframe  5s
+    Wait Until Page Contains Element        jquery=iframe#widgetIframe  60s
     Select Frame    jquery=iframe#widgetIframe
-    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  20s
+    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  60s
     ${return_value}=    Get Element Attribute     jquery=a.link-button:eq(0)@href
     [return]      ${return_value}
 
@@ -940,7 +946,7 @@ Cancellation offer continue
     sleep     1s
     ${normalizedIndex}=     normalize_index    ${bidIndex}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(2)
-    Wait Until Page Contains    Вкладення до пропозиції
+    Wait Until Page Contains    Вкладення до пропозиції  60s
     sleep   3s
     click element  xpath=//*[@data-name="OkButton"]
 
@@ -951,7 +957,7 @@ Cancellation offer continue
     sleep     1s
     ${normalizedIndex}=     normalize_index    ${bidIndex}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(2)
-    Wait Until Page Contains    Вкладення до пропозиції
+    Wait Until Page Contains    Вкладення до пропозиції  60s
     sleep   6s
     ${count}=     Execute JavaScript    return(function(){ var counter = 0;var documentSelector = $("#cpModalMode tr label:contains('Кваліфікація')").closest("tr");while (true) { documentSelector = documentSelector.next(); if(documentSelector.length == 0 || documentSelector[0].innerHTML.indexOf("label") === -1){ break;} counter = counter +1;} return counter;})()
     [Return]    ${count}
@@ -982,7 +988,7 @@ Cancellation offer continue
     sleep     1s
     ${normalizedIndex}=     normalize_index    ${bid_index}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(2)
-    Wait Until Page Contains    Вкладення до пропозиції
+    Wait Until Page Contains    Вкладення до пропозиції  60s
     ${selectedType}=     Execute JavaScript    return(function(){ var startElement = $("#cpModalMode tr label:contains('Квалификации')"); var documentSelector = $(startElement).closest("tr").next(); if(${document_index} > 0){ for (i=0;i<=${document_index};i++) {documentSelector = $(documentSelector).next();}}if($(documentSelector).length == 0) {return "";} return "auctionProtocol";})()
     [Return]    ${selectedType}
 
@@ -1097,7 +1103,7 @@ Cancellation offer continue
     Click Element    ${ok add file}
     sleep  1
     Click Element    jquery=a[title='OK']:eq(0)
-    Wait Until Element Is Not Visible    jquery=#LoadingPanel  30
+    Wait Until Element Is Not Visible    jquery=#LoadingPanel  60
     sleep  1
 
 Підтвердити підписання контракту
