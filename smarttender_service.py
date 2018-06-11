@@ -41,6 +41,11 @@ def convert_datetime_to_kot_format(isodate):
     return date_string
 
 
+def convert_date(s):
+    dt = parse(s, parserinfo(True, False))
+    return dt.strftime('%Y-%m-%dT%H:%M:%S+03:00')
+
+
 def adapt_data_assets(tender_data):
     tender_data.data.assetCustodian.name = u'ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ "ЕКСПРІМ"'
     tender_data.data.assetCustodian.identifier.legalName = u'ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ "ЕКСПРІМ"'

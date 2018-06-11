@@ -35,9 +35,6 @@ Login
   Input Text  ${password field}  ${USERS.users['${username}'].password}
   Click Element  ${remember me}
   Click Element  ${login button}
-  Run Keyword If  '${username}' != 'SmartTender_Owner'
-  ...  Wait Until Page Contains  ${USERS.users['${username}'].login}  ${wait}
-  ...  ELSE  Wait Until Element Is Not Visible  ${webClient loading}  ${wait}
 
 Підготувати дані для оголошення тендера
   [Arguments]  ${username}  ${tender_data}  ${role_name}
@@ -62,6 +59,22 @@ Login
   ${last_modification_date}  convert_datetime_to_kot_format  ${time}
   Open Browser  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}  chrome
   Wait Until Keyword Succeeds  10min  5sec  waiting_for_synch  ${last_modification_date}
+
+waiting_for_synch
+  [Arguments]  ${last_modification_date}
+  ${synch dict}  Get Text  css=.text
+  ${dict}  synchronization  ${synch dict}
+  ${DateStart}  Set Variable  ${dict[0]}
+  ${DateEnd}  Set Variable  ${dict[1]}
+  ${WorkStatus}  Set Variable  ${dict[2]}
+  ${Success}  Set Variable  ${dict[3]}
+  ${status}  Run Keyword if  '${last_modification_date}' < '${DateStart}' and '${DateEnd}' != '${EMPTY}' and '${WorkStatus}' != 'working' and '${WorkStatus}' != 'fail' and '${Success}' == 'true'
+  ...  Set Variable  Pass
+  ...  ELSE  Reload Page
+  Should Be Equal  ${status}  Pass
+  Close Browser
+  Switch Browser  ${browserAlias}
+  Reload Page
 
 Оновити сторінку з лотом
   [Arguments]  ${username}  ${tender_uaid}
@@ -118,18 +131,23 @@ Login
   waiting skeleton
 
 Створити об'єкт приватизації
-  Зберегти asset
-  wait until keyword succeeds  30s  5s  Опублікувати asset
-  wait_for_loading_assets
+  Зберегти об'єкт
+  wait until keyword succeeds  120s  5s  Опублікувати asset
+  wait_for_loading
 
-Зберегти asset
+Зберегти об'єкт
   ${status}  Run Keyword And Return Status  Click Element  xpath=//*[contains(text(), "Внести зміни")]
   Run Keyword If  "${status}" == "False"  Click Element  xpath=//*[contains(text(), "Зберегти")]
   Wait Until Page Contains Element  css=.ivu-notice>div.ivu-notice-notice  120
+  waiting skeleton
 
 Опублікувати asset
   Run Keyword And Ignore Error  Click Element  xpath=//*[contains(text(), "Опублікувати")]
   Wait Until Page Does Not Contain Element  xpath=//*[contains(text(), "Опублікувати")]
+
+wait_for_loading
+  ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Page Contains Element  css=.ivu-message .ivu-load-loop  3
+  Run Keyword If  "${status}" == "PASS"  Run Keyword And Ignore Error  Wait Until Page Does Not Contain Element  css=.ivu-message .ivu-load-loop  120
 
 Натиснути Коригувати asset
   Wait Until Keyword Succeeds  30s  5  Run Keywords
@@ -330,6 +348,7 @@ Login
 
 Отримати та обробити дані із об'єкта МП
   [Arguments]  ${field_name}
+  waiting skeleton
   ${selector}  object_field_info  ${field_name}
   Focus  ${selector}
   ${value}  Get Text  ${selector}
@@ -358,14 +377,14 @@ Login
   [Documentation]  Змінює значення поля fieldname на fieldvalue для об’єкта МП tender_uaid.
   Натиснути Коригувати asset
   Run Keyword  Заповнити ${fieldname} для assets  ${fieldvalue}
-  Зберегти asset
+  Зберегти об'єкт
 
 Внести зміни в актив об'єкта МП
   [Arguments]  ${username}  ${item_id}  ${tender_uaid}  ${fieldname}  ${fieldvalue}
   [Documentation]  Змінює значення поля fieldname на fieldvalue для активу item_id об’єкта МП tender_uaid.
   Натиснути Коригувати asset
   Run Keyword  Заповнити ${fieldname} для item  ${fieldvalue}
-  Зберегти asset
+  Зберегти об'єкт
 
 Завантажити ілюстрацію в об'єкт МП
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}
@@ -373,7 +392,7 @@ Login
   Натиснути Коригувати asset
   Choose File  xpath=//input[@type='file'][1]  ${filepath}
   Вибрати тип документу для asset  illustration
-  Зберегти asset
+  Зберегти об'єкт
 
 Завантажити документ в об'єкт МП з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${documentType}
@@ -381,7 +400,7 @@ Login
   Натиснути Коригувати asset
   Choose File  xpath=//input[@type='file'][1]  ${filepath}
   Вибрати тип документу для asset  ${documentType}
-  Зберегти asset
+  Зберегти об'єкт
   Run Keyword If  "${TESTNAME}" == "Можливість завантажити публічний паспорт активу об'єкта МП"  Sleep   180s
 
 Вибрати тип документу для asset
@@ -414,7 +433,7 @@ Login
   Заповнити locality для item  ${item.address.locality}  2
   Заповнити streetAddress для item  ${item.address.streetAddress}  2
   Заповнити registrationDetails.status для item  ${item.registrationDetails.status}  2
-  Зберегти asset
+  Зберегти об'єкт
 
 Завантажити документ для видалення об'єкта МП
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}
@@ -435,7 +454,12 @@ Login
   ${number_of_items}  Get Matching Xpath Count  //*[@data-qa="item"]
   [Return]  ${number_of_items}
 
-######Лоти:
+########################################
+#                                      #
+#                Лоти                  #
+#                                      #
+########################################
+
 Створити лот
   [Arguments]  ${username}  ${tender_data}  ${asset_uaid}
   [Documentation]  Створює лот з початковими даними tender_data і прив’язаним до нього об’єктом МП asset_uaid
@@ -527,7 +551,7 @@ ss Отримати та обробити дані із лоту
   [Documentation]  Змінює значення поля fieldname на fieldvalue для лоту tender_uaid.
   Натиснути Коригувати lot
   Внести зміни в лот продовження  ${fieldname}  ${fieldvalue}
-  Зберегти asset
+  Зберегти об'єкт
 
 Внести зміни в лот продовження
   [Arguments]  ${fieldname}  ${fieldvalue}
@@ -542,7 +566,7 @@ ss Отримати та обробити дані із лоту
   [Documentation]  Змінює значення поля fieldname на fieldvalue для активу item_id лоту tender_uaid.
   Натиснути Коригувати lot
   Run Keyword  Заповнити ${fieldname} для item  ${fieldvalue}
-  Зберегти asset
+  Зберегти об'єкт
 
 Завантажити ілюстрацію в лот
   [Arguments]  ${username}  ${tender _uaid}  ${filepath}
@@ -550,7 +574,7 @@ ss Отримати та обробити дані із лоту
   Натиснути Коригувати lot
   Choose File  xpath=(//input[@type='file'][1])[last()]  ${filepath}
   Вибрати тип документу для asset  illustration
-  Зберегти asset
+  Зберегти об'єкт
 
 Завантажити документ в лот з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${documentType}
@@ -559,7 +583,7 @@ ss Отримати та обробити дані із лоту
   Натиснути Коригувати lot
   Choose File  xpath=(//input[@type='file'][1])[last()]  ${filepath}
   Вибрати тип документу для asset  ${documentType}
-  Зберегти asset
+  Зберегти об'єкт
   Run Keyword If  "${TESTNAME}" == "Можливість завантажити публічний паспорт активу лоту"  Sleep  180
 
 Завантажити документ для видалення лоту
@@ -597,7 +621,7 @@ ss Отримати та обробити дані із лоту
   ${duration}  Set Variable  ${auction.tenderingDuration}
   ${duration}  Run Keyword if  "${duration}" == "P1M"  Set Variable  30
   Заповнити duration для auction  ${duration}
-  Зберегти asset
+  Зберегти об'єкт
   Wait Until Keyword Succeeds  15  5  Передати на перевірку лот
 
 Передати на перевірку лот
@@ -661,7 +685,7 @@ ss Отримати та обробити дані із лоту
   [Documentation]  Змінює значення поля fieldname на fieldvalue для аукціону auction_index лоту tender_uaid.
   Натиснути Коригувати lot
   Run Keyword  Заповнити ${fieldname} для auction  ${fieldvalue}
-  Зберегти asset
+  Зберегти об'єкт
 
 Завантажити документ в умови проведення аукціону
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${documentType}  ${auction_index}
@@ -669,12 +693,8 @@ ss Отримати та обробити дані із лоту
   Натиснути Коригувати lot
   Choose File  xpath=//input[@type='file'][1]  ${filepath}
   Вибрати тип документу для auction  ${documentType}
-  Зберегти asset
+  Зберегти об'єкт
   Run Keyword If  "${TESTNAME}" == "Можливість завантажити публічний паспорт до умов проведення аукціону"  Sleep  180
-
-wait_for_loading_assets
-  ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Page Contains Element  css=.ivu-message .ivu-load-loop  3
-  Run Keyword If  "${status}" == "PASS"  Run Keyword And Ignore Error  Wait Until Page Does Not Contain Element  css=.ivu-message .ivu-load-loop  120
 
 waiting skeleton
   ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Page Contains Element  css=.skeleton-wrapper  3
