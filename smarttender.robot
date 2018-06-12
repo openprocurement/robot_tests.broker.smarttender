@@ -6,7 +6,6 @@ Library           op_robot_tests.tests_files.service_keywords
 
 *** Variables ***
 ${browserAlias}                        'main_browser'
-${wait}                                 120
 
 #login
 ${open login button}                    id=LoginAnchor
@@ -330,7 +329,6 @@ wait_for_loading
   Wait Until Page Contains Element  xpath=//span[contains(text(), "${tender_uaid}")]
   ${privatization assets page}  Get Element Attribute  xpath=//p[contains(text(), "${tender_uaid}")]/..//a[@href]@href
   Go To  ${privatization assets page}
-  Set Global Variable  ${privatization assets page}
   Log  ${privatization assets page}  WARN
 
 Знайти id активу
@@ -465,8 +463,8 @@ wait_for_loading
   [Documentation]  Створює лот з початковими даними tender_data і прив’язаним до нього об’єктом МП asset_uaid
   Відкрити бланк створення лоту
   Заповнити asset_uaid для lots  ${asset_uaid}
-  Заповинити decisionDate для lots  ${tender_data.data.decisions[0].decisionDate}
-  Заповинити decisionID для lots  ${tender_data.data.decisions[0].decisionID}
+  Заповнити decisionDate для lots  ${tender_data.data.decisions[0].decisionDate}
+  Заповнити decisionID для lots  ${tender_data.data.decisions[0].decisionID}
   Створити об'єкт приватизації
   ${tender_uaid}  smarttender.Отримати інформацію із об'єкта МП  assetID  assetID  assetID
   [Return]  ${tender_uaid}
@@ -481,14 +479,14 @@ wait_for_loading
   ${selector}  Set Variable  xpath=(//*[contains(text(), "Загальна інформація")]/ancestor::*[@class="ivu-card-body"]//input)[1]
   Input Text  ${selector}  ${data}
 
-Заповинити decisionDate для lots
+Заповнити decisionDate для lots
   [Arguments]  ${data}
   ${selector}  Set Variable  xpath=(//*[contains(text(), "Рішення про затверждення умов продажу лоту")]/following-sibling::*//input)[3]
   ${text}  convert_datetime_to_smarttender_format_minute  ${data}
   Input Text  ${selector}  ${text}
   Press Key  ${selector}  \\09
 
-Заповинити decisionID для lots
+Заповнити decisionID для lots
   [Arguments]  ${data}
   ${selector}  Set Variable  xpath=(//*[contains(text(), "Рішення про затверждення умов продажу лоту")]/following-sibling::*//input)[2]
   Input Text  ${selector}  ${data}
