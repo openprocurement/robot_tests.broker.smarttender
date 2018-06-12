@@ -466,7 +466,7 @@ wait_for_loading
   Заповнити decisionDate для lots  ${tender_data.data.decisions[0].decisionDate}
   Заповнити decisionID для lots  ${tender_data.data.decisions[0].decisionID}
   Створити об'єкт приватизації
-  ${tender_uaid}  smarttender.Отримати інформацію із об'єкта МП  assetID  assetID  assetID
+  ${tender_uaid}  ss Отримати та обробити дані із лоту  lotID
   [Return]  ${tender_uaid}
 
 Відкрити бланк створення лоту
@@ -706,7 +706,6 @@ waiting skeleton
   Sleep  180
   Reload Page
   log  ${mode}
-  Run Keyword If  "${mode}" != "assets" and "${mode}" != "lots"  Відкрити сторінку  tender  ${tender_uaid}
   ${fileUrl}=  Get Element Attribute  xpath=//*[contains(text(), '${doc_id}')]@href
   ${filename}=  Get Text  xpath=//*[contains(text(), '${doc_id}')]
   smarttender_service.download_file  ${fileUrl}  ${OUTPUT_DIR}/${filename}
