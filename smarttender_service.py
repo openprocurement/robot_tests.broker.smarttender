@@ -46,6 +46,11 @@ def convert_date(s):
     return dt.strftime('%Y-%m-%dT%H:%M:%S+03:00')
 
 
+def convert_tzdate_synch(isodate):
+    iso_dt = parse_date(isodate)
+    date_string = iso_dt.strftime('%Y-%m-%d %H:%M:%S')
+    return date_string
+
 def adapt_data_assets(tender_data):
     tender_data.data.assetCustodian.name = u'ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ "ЕКСПРІМ"'
     tender_data.data.assetCustodian.identifier.legalName = u'ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ "ЕКСПРІМ"'
@@ -210,7 +215,7 @@ def convert_asset_result(field, value):
 
 def ss_lot_field_info(field):
     id = 1
-    if "auctions" in field:
+    if "auctions[" in field:
         list = re.search('auctions\[(?P<id>\d)\]\.(?P<field>.+)', field)
         field = "auctions." + list.group('field')
         id = int(list.group('id')) + 1
@@ -249,6 +254,7 @@ def ss_lot_field_info(field):
         "auctions.registrationFee.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Реєстраційний внесок")]/../following-sibling::div""".format(id),
         "auctions.tenderingDuration": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Період між аукціонами")]/../following-sibling::div""".format(id),
         "auctions.auctionPeriod.startDate": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Дата проведення аукціону")]/../following-sibling::div""".format(id),
+        "auctions.auctionID": "xpath=//*[text()='Посилання на процедуру']/../following-sibling::div",
     }
     return map[field]
 
@@ -292,6 +298,8 @@ def convert_lot_result(field, value):
                 response_ = "P30D"
         elif "auctionPeriod.startDate" in field:
             response_ = convert_date(value)
+        elif "auctionID" in field:
+            response_ = re.findall('UA.+', value)[0]
     elif "dateModified" == field:
         response_ = convert_date(value)
     return response_
@@ -305,17 +313,24 @@ def map_object_status(doctype):
         u"Об'єкт реєструється.": "registering",
         u"Об'єкт зареєстровано": "complete",
         u"Виключено з переліку": "deleted",
-        # auctions
         #procurementMethodType
         u"Голландський аукціон. Мала приватизація": "sellout.insider",
         u"Англійський аукціон. Мала приватизація": "sellout.english",
-        #status
+        #Condition Auction
         u"Заплановано": "scheduled",
         u"Відбувається": "active",
         u"Аукціон відбувся": "complete",
         u"Торги скасовано": "cancelled",
         u"Торги не відбулися": "unsuccessful",
         u"Об’єкт виключено": "deleted",
+        u"Оренда майна": "deleted",
+        #Auction
+        u"Прийняття заяв на участь": "pending.activation",
+        u"Аукціон": 'active.auction',
+        u"Очікується опублікування протоколу": "active.qualification",
+        u"Очікується опублікування договору": "active.awarded",
+        u"Аукціон відмінено": "cancelled",
+        u"Аукціон не відбувся": "unsuccessful",
     }
     return map[doctype]
 
@@ -359,3 +374,94 @@ def get_id_from_tender_href(href, lot=None):
         list = re.search(u'.+?/lots/(?P<id>.{32})[\?opt_pretty=1]?', href)
     id = list.group('id')
     return id
+
+
+def object_tender_info(field):
+    map = {
+        "auctionID": "xpath=//h4/following-sibling::a",
+        "title": "xpath=//h3[contains(text(), '[ТЕСТУВАННЯ]')]",
+        "description": "css=.text-justify",
+        "minNumberOfQualifiedBids": "xpath=//*[contains(text(), 'Мінімальна кількість учасників')]/../following-sibling::div",
+        "procurementMethodType": "xpath=//h5[text()='Тип процедури']//following-sibling::p",
+        "procuringEntity.name": "xpath=//h5[text()='Продавець']//following-sibling::div",
+        "value.amount": "css=.action-block-item h4",
+        "minimalStep.amount": "xpath=//*[contains(text(), 'Мінімальний крок аукціону')]/../following-sibling::div",
+        "guarantee.amount": "xpath=//*[contains(text(), 'Гарантійний внесок')]/../following-sibling::div",
+        "registrationFee.amount": "xpath=//*[contains(text(), 'Реєстраційний внесок')]/../following-sibling::div",
+        "tenderPeriod.endDate": "xpath=//*[contains(text(), 'Прийом пропозицій')]/../following-sibling::div",
+        "cancellations[0].status": "xpath=//*[@class='ivu-card-body']/h4",
+        "status": "xpath=//*[@class='ivu-card-body']/h4",
+        "cancellations[0].reason": "xpath=//*[contains(text(), 'Причина скасування')]/../following-sibling::div",
+
+    }
+    return map[field]
+
+
+def convert_tender_result(field, value):
+    if field == "procurementMethodType":
+        response = map_object_status(value)
+    elif "amount" in field:
+        if "value" in field:
+            list = re.search(u'(?P<value>[\d\s\.]+) (?P<tr>.+)\. (?P<ty>з ПДВ)', value)
+        elif "minimalStep" in field:
+            list = re.search(u'.+ або (?P<value>[\d\s\.]+) грн.', value)
+        elif "guarantee" in field or "registrationFee" in field:
+            list = re.search(u'(?P<value>[\d\s\.]+) грн.', value)
+        value = list.group('value')
+        response = float(value.replace(" ", ""))
+    elif field == 'tenderPeriod.endDate':
+        list = re.search(u'з (?P<startDate>[\d\.\s\:]+) по (?P<endDate>[\d\.\s\:]+)', value)
+        value = list.group('endDate')
+        response = convert_date(value)
+    elif field == 'minNumberOfQualifiedBids':
+        response = int(value)
+    elif field == 'status':
+        response = map_object_status(value)
+    else:
+        response = value
+    return response
+
+
+def object_item_info(field, id):
+    map = {
+        "description": "xpath=//*[contains(text(), '{0}')]".format(id),
+        "unit.name": "xpath=//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-card-body']//*[text()='Кількість']/../following-sibling::div".format(id),
+        "quantity": "xpath=//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-card-body']//*[text()='Кількість']/../following-sibling::div".format(id),
+        }
+    return map[field]
+
+
+def convert_item_result(field, value):
+    if field == "unit.name" or field == 'quantity':
+        list = re.search(u'(?P<value>[\d\s\.]+) (?P<name>.+)', value)
+        if field == "unit.name":
+            response = list.group('name')
+        elif field == 'quantity':
+            response = float(list.group('value'))
+    else:
+        response = value
+    return response
+
+
+def object_question_info(field, id):
+    map = {
+        "title": "xpath=//*[contains(text(), '{0}')]".format(id),
+        "description": "xpath=//*[contains(text(), '{0}')]/../../following-sibling::div".format(id),
+        "answer": "xpath=(//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-row']/following-sibling::div)[3]".format(id),
+        }
+    return map[field]
+
+
+def object_proposal_info(field):
+    map = {
+        "value.amount": "xpath=//*[contains(@id, 'lotAmount')]//input@value",
+        }
+    return map[field]
+
+
+def object_document_info(field, id):
+    map = {
+        "title": "xpath=//a[contains(text(), '{0}') and @class]".format(id),
+        "description": "xpath=//*[contains(text(), '{0}')]/following-sibling::*[contains(text(), 'Опис документу')]/span".format(id),
+        }
+    return map[field]
