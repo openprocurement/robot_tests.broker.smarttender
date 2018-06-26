@@ -6,6 +6,21 @@ Library           op_robot_tests.tests_files.service_keywords
 
 *** Variables ***
 ${browserAlias}                        'main_browser'
+${loading}                              css=div.smt-load
+${send offer button}                    css=button#submitBidPlease
+${validation message}                   css=.ivu-modal-content .ivu-modal-confirm-body>div:nth-child(2)
+${cancellation succeed}                 Пропозиція анульована.
+${cancellation error1}                  Не вдалося анулювати пропозицію.
+${succeed1}                              Пропозицію прийнято
+${succeed2}                             Не вдалося зчитати пропозицію з ЦБД!
+${empty error}                          ValueError: Element locator
+${error1}                               Не вдалося подати пропозицію
+${error2}                               Виникла помилка при збереженні пропозиції.
+${error3}                               Непередбачувана ситуація
+${error4}                               В даний момент вже йде подача/зміна пропозиції по тендеру від Вашої організації!
+${ok button}                            xpath=.//div[@class="ivu-modal-body"]/div[@class="ivu-modal-confirm"]//button
+${cancellation offers button}           xpath=.//*[@class='ivu-card ivu-card-bordered'][last()]//div[@class="ivu-poptip-rel"]/button
+${cancel. offers confirm button}        xpath=.//*[@class='ivu-card ivu-card-bordered'][last()]//div[@class="ivu-poptip-footer"]/button[2]
 
 #login
 ${open login button}                    id=LoginAnchor
@@ -22,9 +37,9 @@ ${ss_id}                                None
 
 *** Keywords ***
 Підготувати клієнт для користувача
-  [Arguments]  ${username}
+  [Arguments]  ${username}  @{ARGUMENTS}
   [Documentation]  Відкриває переглядач на потрібній сторінці, готує api wrapper, тощо для користувача username.
-  Open Browser  ${USERS.users['${username}'].homepage}  ${USERS.users['${username}'].browser}  alias=${browserAlias}
+  Open Browser  http://test.smarttender.biz  chrome  alias=${browserAlias}
   Run Keyword If  '${username}' != 'SmartTender_Viewer'  Login  ${username}
 
 Login
@@ -45,18 +60,32 @@ Login
   ${tender_data}  smarttender_service.adapt_data_assets  ${tender_data}
   [Return]  ${tender_data}
 
+
+########################################################################
+###                                                                  ###
+###                           ASSET                                  ###
+###                                                                  ###
+########################################################################
+
+
 Оновити сторінку з об'єктом МП
   [Arguments]  ${username}  ${tender_uaid}
   [Documentation]  Оновлює сторінку з об’єктом МП для отримання потенційно оновлених даних.
-  Run Keyword If  "${username}" != "SmartTender_Owner"  Оновити сторінку з об'єктом МП continue
+  Run Keyword If
+  ...  "${username}" != "SmartTender_Owner" or "${username}" == "SmartTender_Owner" and '${mode}' == 'auctions'
+  ...  Оновити сторінку з об'єктом МП continue
 
 Оновити сторінку з об'єктом МП continue
+  [Documentation]  можно спробувати прискорити синхронізацію використовуючи
+  ...  ${last_modification_date} convert_tzdate_synch ${TENDER.LAST_MODIFICATION_DATE}
+  ...  але не у всіх сютах оновлюється ${TENDER.LAST_MODIFICATION_DATE} перед виконанням синхронізації
   Log  ${mode}
-  ${n}    Run Keyword If  '${mode}' == 'assets'    Set Variable  7
-  ...     ELSE IF         '${mode}' == 'lots'     Set Variable  8
+  ${n}    Run Keyword If  '${mode}' == 'assets'             Set Variable  7
+  ...     ELSE IF         '${mode}' == 'lots'               Set Variable  8
+  ...     ELSE IF         '${mode}' == 'auctions'           Set Variable  6
   ${time}  Get Current Date
   ${last_modification_date}  convert_datetime_to_kot_format  ${time}
-  Open Browser  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}  chrome
+  Go To  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}
   Wait Until Keyword Succeeds  10min  5sec  waiting_for_synch  ${last_modification_date}
 
 waiting_for_synch
@@ -71,9 +100,10 @@ waiting_for_synch
   ...  Set Variable  Pass
   ...  ELSE  Reload Page
   Should Be Equal  ${status}  Pass
-  Close Browser
-  Switch Browser  ${browserAlias}
-  Reload Page
+  Run Keyword If  '${status}' == 'Pass'  Run Keywords
+  ...       Go Back
+  ...  AND  Reload Page
+  ...  AND  waiting skeleton
 
 Оновити сторінку з лотом
   [Arguments]  ${username}  ${tender_uaid}
@@ -94,6 +124,7 @@ waiting_for_synch
   Заповнити countryName для assetHolder  ${tender_data.data.assetHolder.address.countryName}
   Заповнити locality для assetHolder  ${tender_data.data.assetHolder.address.locality}
   Заповнити streetAddress для assetHolder  ${tender_data.data.assetHolder.address.streetAddress}
+  Додати contactPoint
   Заповнити name для assetHolder.contactPoint  ${tender_data.data.assetHolder.contactPoint.name}
   Заповнити telephone для assetHolder.contactPoint  ${tender_data.data.assetHolder.contactPoint.telephone}
   Заповнити faxNumber для assetHolder.contactPoint  ${tender_data.data.assetHolder.contactPoint.faxNumber}
@@ -165,11 +196,13 @@ wait_for_loading
 
 Заповнити name для assetHolder
   [Arguments]  ${text}
-  Input Text  xpath=//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[1]//input  ${text}
+  Input Text  xpath=//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Назва')]/..//input  ${text}
 
 Заповнити scheme для assetHolder
   [Arguments]  ${text}
-  ${locator}  Set Variable  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[2]//input)[2]
+  ${locator}  Set Variable  xpath=(//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Код агентства реєстрації')]/..//input)[2]
+  Mouse Over  ${locator}
+  Click Element  xpath=//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Код агентства реєстрації')]/..//*[contains(@class, 'ivu-icon-ios-close')]
   Click Element  ${locator}
   Sleep  .5
   Input Text  ${locator}  ${text}
@@ -178,15 +211,15 @@ wait_for_loading
 
 Заповнити id для assetHolder
   [Arguments]  ${text}
-  Input Text  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[2]//input)[3]  ${text}
+  Input Text  xpath=//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Код ЄДРПОУ')]/../following-sibling::div//input  ${text}
 
 Заповнити postalCode для assetHolder
   [Arguments]  ${text}
-  Input Text  xpath=//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[3]//input  ${text}
+  Input Text  xpath=//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Поштовий індекс')]/../following-sibling::div//input  ${text}
 
 Заповнити countryName для assetHolder
   [Arguments]  ${text}
-  ${locator}  Set Variable  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[3]//input)[3]
+  ${locator}  Set Variable  xpath=(//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Країна')]/../following-sibling::div//input)[2]
   Click Element  ${locator}
   Sleep  .5
   Input Text  ${locator}  ${text}
@@ -195,7 +228,7 @@ wait_for_loading
 
 Заповнити locality для assetHolder
   [Arguments]  ${text}
-  ${locator}   Set Variable  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[3]//input)[5]
+  ${locator}   Set Variable  xpath=(//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Місто')]/../following-sibling::div//input)[2]
   Click Element  ${locator}
   Sleep  .5
   Input Text  ${locator}  ${text}
@@ -204,27 +237,30 @@ wait_for_loading
 
 Заповнити streetAddress для assetHolder
   [Arguments]  ${text}
-  Input Text  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[3]//input)[6]  ${text}
+  Input Text  xpath=//*[contains(text(), 'Балансоутримувач')]/ancestor::div[@class='ivu-card-body']//*[contains(text(), 'Вулиця')]/..//input  ${text}
+
+Додати contactPoint
+  Click Element  xpath=//*[contains(text(), 'Контактна особа')]/../following-sibling::div//*[contains(@class, 'ivu-icon-plus')]
 
 Заповнити name для assetHolder.contactPoint
   [Arguments]  ${text}
-  Input Text  xpath=//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[4]//input  ${text}
+  Input Text  xpath=//*[contains(text(), "Контактна особа")]/../../following-sibling::*//*[contains(text(), 'ПІБ')]/..//input  ${text}
 
 Заповнити telephone для assetHolder.contactPoint
   [Arguments]  ${text}
-  Input Text  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[5]//input)[1]  ${text}
+  Input Text  xpath=//*[contains(text(), "Контактна особа")]/../../following-sibling::*//*[contains(text(), 'Телефон')]/..//input  ${text}
 
 Заповнити faxNumber для assetHolder.contactPoint
   [Arguments]  ${text}
-  Input Text  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[5]//input)[2]  ${text}
+  Input Text  xpath=(//*[contains(text(), "Контактна особа")]/../../following-sibling::*//*[contains(text(), 'Телефон')]/..//input)[2]  ${text}
 
 Заповнити email для assetHolder.contactPoint
   [Arguments]  ${text}
-  Input Text  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[6]//input)[1]  ${text}
+  Input Text  xpath=(//*[contains(text(), "Контактна особа")]/../../following-sibling::*//*[contains(text(), 'Email')]/..//input)[1]  ${text}
 
 Заповнити url для assetHolder.contactPoint
   [Arguments]  ${text}
-  Input Text  xpath=(//*[contains(text(), "Балансоутримувач")]/../../../div[3]/div[6]//input)[2]  ${text}
+  Input Text  xpath=(//*[contains(text(), "Контактна особа")]/../../following-sibling::*//*[contains(text(), 'Email')]/..//input)[2]  ${text}
 
 Заповнити title для decision
   [Arguments]  ${text}
@@ -250,15 +286,22 @@ wait_for_loading
 Заповнити classification для item
   [Arguments]  ${id}  ${scheme}  ${description}  ${number}=1
   Click Element  xpath=//*[@data-qa="item"][${number}]//div[1]//a
-  Wait Until Keyword Succeeds  15  3  Click Element  xpath=(//*[contains(text(), "${scheme}")])[last()]
+  Wait Until Keyword Succeeds  45  3  Вибрати потрібну вкладку для item.classification  ${scheme}
   Sleep  1
-  ${locator}  Run Keyword If  "${scheme}" == "ДК021"
+  ${locator}  Run Keyword If  "${scheme}" == "CPV"
   ...        Set Variable  css=.ivu-tabs-tabpane:nth-child(1) input
   ...  ELSE  Set Variable  css=.ivu-tabs-tabpane:nth-child(2) input
   Input Text  ${locator}  ${id}
   Sleep  1
-  Wait Until Keyword Succeeds  15  3  Click Element  xpath=(//a[contains(text(), "${id}") and contains(text(), "${description}")])[last()]
+  Wait Until Keyword Succeeds  45  3  Click Element  xpath=(//a[contains(text(), "${id}") and contains(text(), "${description}")])[last()]
   Click Element  css=.ivu-modal-footer button
+
+Вибрати потрібну вкладку для item.classification
+  [Arguments]  ${scheme}
+  ${scheme}  Run Keyword If  '${scheme}' == 'CPV'  Set Variable  ДК021
+  ...  ELSE  Set Variable  ${scheme}
+  Click Element  xpath=(//*[contains(text(), "${scheme}")])[last()]
+  Wait Until Page Contains Element  xpath=(//*[contains(text(), "${scheme}") and contains(@class, 'active')])[last()]
 
 Заповнити quantity для item
   [Arguments]  ${text}  ${number}=1
@@ -291,7 +334,7 @@ wait_for_loading
   Sleep  .5
   Input Text  ${locator}  ${text}
   Sleep  .5
-  Click Element  xpath=(//ul[@class="ivu-select-dropdown-list"]/li[text()="${text}"])[last()]
+  Wait Until Keyword Succeeds  15s  3s  Click Element  xpath=(//ul[@class="ivu-select-dropdown-list"]/li[text()="${text}"])[last()]
 
 Заповнити locality для item
   [Arguments]  ${text}  ${number}=1
@@ -300,7 +343,7 @@ wait_for_loading
   Sleep  .5
   Input Text  ${locator}  ${text}
   Sleep  .5
-  wait until keyword succeeds  15s  3s  Click Element  xpath=//*[@data-qa="item"][${number}]//div//ul[@class="ivu-select-dropdown-list"]/li[contains(text(), "${text}")]
+  Wait Until Keyword Succeeds  45s  3s  Click Element  xpath=//*[@data-qa="item"][${number}]//div//ul[@class="ivu-select-dropdown-list"]/li[contains(text(), "${text}")]
 
 Заповнити streetAddress для item
   [Arguments]  ${text}  ${number}=1
@@ -452,11 +495,12 @@ wait_for_loading
   ${number_of_items}  Get Matching Xpath Count  //*[@data-qa="item"]
   [Return]  ${number_of_items}
 
-########################################
-#                                      #
-#                Лоти                  #
-#                                      #
-########################################
+
+########################################################################
+###                                                                  ###
+###                            LOTS                                  ###
+###                                                                  ###
+########################################################################
 
 Створити лот
   [Arguments]  ${username}  ${tender_data}  ${asset_uaid}
@@ -466,7 +510,7 @@ wait_for_loading
   Заповнити decisionDate для lots  ${tender_data.data.decisions[0].decisionDate}
   Заповнити decisionID для lots  ${tender_data.data.decisions[0].decisionID}
   Створити об'єкт приватизації
-  ${tender_uaid}  ss Отримати та обробити дані із лоту  lotID
+  ${tender_uaid}  Отримати та обробити дані із лоту  lotID
   [Return]  ${tender_uaid}
 
 Відкрити бланк створення лоту
@@ -514,15 +558,20 @@ wait_for_loading
   [Arguments]  ${username}  ${tender_uaid}  ${field_name}
   [Documentation]  Отримує значення поля field_name для лоту tender_uaid. return: tender['field_name'] (значення поля).
   Reload Page
+  waiting skeleton
   ${result}  Run Keyword If  "assets" in "${field_name}"  Отримати asset_id для лоту
   ...  ELSE IF  "${field_name}" == "auctions[2].minimalStep.amount"  Evaluate  float(0)
-  ...  ELSE  ss Отримати та обробити дані із лоту  ${field_name}
+  ...  ELSE  Отримати та обробити дані із лоту  ${field_name}
   ${result}  Run Keyword If  "${username}" == "SmartTender_Viewer" and 'tenderingDuration' in '${field_name}'  Set Variable  P1M
   ...  ELSE  Set Variable  ${result}
   [Return]  ${result}
 
-ss Отримати та обробити дані із лоту
+Отримати та обробити дані із лоту
   [Arguments]  ${field_name}
+  Run Keyword If  '${field_name}' == 'auctions[0].auctionID'  Run Keywords
+  ...  Sleep  240
+  ...  AND  Reload Page
+  ...  AND  waiting skeleton
   ${selector}  ss_lot_field_info  ${field_name}
   Focus  ${selector}
   ${value}  Get Text  ${selector}
@@ -607,12 +656,18 @@ ss Отримати та обробити дані із лоту
 Додати умови проведення аукціону 0
   [Arguments]  ${auction}  ${tender_uaid}
   Натиснути Коригувати lot
-  Заповнити auctionPeriod.startDate для auction  ${auction.auctionPeriod.startDate}
-  Заповнити value.amount для auction  ${auction.value.amount}
-  Заповнити valueAddedTaxIncluded для auction  ${auction.value.valueAddedTaxIncluded}
-  Заповнити minimalStep.amount для auction  ${auction.minimalStep.amount}
-  Заповнити guarantee.amount для auction  ${auction.guarantee.amount}
-  Заповнити registrationFee.amount для auction  ${auction.registrationFee.amount}
+  Заповнити auctionPeriod.startDate для auction    ${auction.auctionPeriod.startDate}
+  Заповнити value.amount для auction               ${auction.value.amount}
+  Заповнити valueAddedTaxIncluded для auction      ${auction.value.valueAddedTaxIncluded}
+  Заповнити minimalStep.amount для auction         ${auction.minimalStep.amount}
+  Заповнити guarantee.amount для auction           ${auction.guarantee.amount}
+  Заповнити registrationFee.amount для auction     ${auction.registrationFee.amount}
+
+  Заповнити bankName для bankAccount                             ${auction.bankAccount.bankName}
+  Заповнити description для bankAccount                          ${auction.bankAccount.description}
+  Заповнити accountIdentification.scheme для bankAccount         ${auction.bankAccount.accountIdentification[0].scheme}
+  Заповнити accountIdentification.id для bankAccount             ${auction.bankAccount.accountIdentification[0].id}
+  Заповнити accountIdentification.description для bankAccount    ${auction.bankAccount.accountIdentification[0].description}
 
 Додати умови проведення аукціону 1
   [Arguments]  ${auction}  ${tender_uaid}
@@ -620,7 +675,7 @@ ss Отримати та обробити дані із лоту
   ${duration}  Run Keyword if  "${duration}" == "P1M"  Set Variable  30
   Заповнити duration для auction  ${duration}
   Зберегти об'єкт
-  Wait Until Keyword Succeeds  15  5  Передати на перевірку лот
+  Wait Until Keyword Succeeds  120  5  Передати на перевірку лот
 
 Передати на перевірку лот
   Run Keyword And Ignore Error  Click Element  xpath=//*[contains(text(), "Передати на перевірку")]
@@ -640,6 +695,7 @@ ss Отримати та обробити дані із лоту
   [Arguments]  ${data}
   ${selector}  Set Variable  xpath=//*[contains(text(), "Умови аукціону")]/..//*[contains(text(), "Період між аукціонами")]/..//input
   Input Text  ${selector}  ${data}
+
 
 Заповнити value.amount для auction
   [Arguments]  ${data}
@@ -670,6 +726,33 @@ ss Отримати та обробити дані із лоту
   ${text}  Evaluate  str(${data})
   ${selector}  Set Variable  xpath=(//*[contains(text(), "Умови аукціону")]/..//*[contains(text(), "Реєстраційний внесок")]/..//input)[1]
   Input Text  ${selector}  ${text}
+
+Заповнити bankName для bankAccount
+  [Arguments]  ${text}
+  Input Text  xpath=//*[contains(text() , 'Найменування банку')]/following-sibling::div//input  ${text}
+
+Заповнити description для bankAccount
+  [Arguments]  ${text}
+  Input Text  xpath=//*[contains(text() , 'Інформація про казначейські')]/following-sibling::div//textarea  ${text}
+
+Заповнити accountIdentification.id для bankAccount
+  [Arguments]  ${text}
+  ${selector}  Set Variable  xpath=(//*[contains(text() , 'Реквізити')]/following-sibling::div//input)[2]
+  Focus  ${selector}
+  Input Text  ${selector}  ${text}
+
+Заповнити accountIdentification.scheme для bankAccount
+  [Arguments]  ${text}
+  ${mapped}  Run Keyword If
+  ...           '${text}' == 'UA-MFO'  Set Variable  МФО банку
+  ...  ELSE IF  '${text}' == 'UA-EDR'  Set Variable  Код ЄДРПОУ
+  ...  ELSE IF  '${text}' == 'accountNumber'  Set Variable  Номер рахунку
+  Click Element  xpath=//*[contains(text() , 'Реквізити')]/following-sibling::div//*[contains(text(), 'Обрати')]
+  Click Element  xpath=(//*[contains(text(), '${mapped}')])[last()]
+
+Заповнити accountIdentification.description для bankAccount
+  [Arguments]  ${text}
+  Input Text  xpath=(//*[contains(text() , 'Реквізити')]/following-sibling::div//input)[3]  ${text}
 
 Натиснути Коригувати lot
   Wait Until Keyword Succeeds  30s  5  Run Keywords
@@ -710,3 +793,409 @@ waiting skeleton
   ${filename}=  Get Text  xpath=//*[contains(text(), '${doc_id}')]
   smarttender_service.download_file  ${fileUrl}  ${OUTPUT_DIR}/${filename}
   [Return]  ${filename}
+
+########################################################################
+###                          TENDER                                  ###
+########################################################################
+Пошук тендера по ідентифікатору
+  [Arguments]  ${username}  ${tender_uaid}
+  [Documentation]  Шукає лот з uaid = tender_uaid.
+  ...  [Повертає] tender (словник з інформацією про лот)
+  Run Keyword If  '${mode}' == 'auctions' and "${username}" == "SmartTender_Owner"  Go To  http://test.smarttender.biz/komertsiyni-torgy/
+  ...  ELSE  Go To  http://test.smarttender.biz/test-tenders/?mode=prop
+  Input Text  xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]  ${tender_uaid}
+  Press Key  xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]  \\13
+  ${search result}  Get Matching Xpath Count  xpath=//tr[@class='head']//a[@href and contains(text(), '[ТЕСТУВАННЯ]')]
+  Should Be Equal  ${search result}  1
+  ${href}  Get Element Attribute  xpath=//tr[@class='head']//a@href
+  Go To  ${href}
+  Log  ${href}  WARN
+
+Оновити сторінку з тендером
+  [Arguments]  ${username}  ${tender_uaid}
+  [Documentation]  Оновлює сторінку з лотом для отримання потенційно оновлених даних.
+  smarttender.Оновити сторінку з об'єктом МП  ${username}  ${tender_uaid}
+
+Отримати інформацію із тендера
+  [Arguments]  ${username}  ${tender_uaid}  ${field_name}
+  [Documentation]  Отримує значення поля field_name для лоту tender_uaid.
+  ${reply}  Отримати та обробити дані із тендера  ${field_name}
+  [Return]  ${reply}
+
+Отримати та обробити дані із тендера
+  [Arguments]  ${field_name}
+  ${selector}  object_tender_info  ${field_name}
+  Focus  ${selector}
+  ${value}  Get Text  ${selector}
+  ${length}  Get Length  ${value}
+  Run Keyword If  ${length} == 0  Capture Page Screenshot  ${OUTPUTDIR}/my_screen{index}.png
+  ${result}  convert_tender_result  ${field_name}  ${value}
+  ${status}  Run keyword And Ignore Error  Page Should Contain Element  xpath=//*[@contains(text(), 'Дата скасування')]
+  ${result}  Run Keyword If  '${field_name}' == 'cancellations[0].status' and '${status[0]}' == 'FAIL'
+  ...        Set Variable  active
+  ...  ELSE  Set Variable  ${result}
+  [Return]  ${result}
+
+Отримати інформацію із предмету
+  [Arguments]  ${username}  ${tender_uaid}  ${item_id}  ${field_name}
+  [Documentation]  Отримує значення поля field_name з предмету з item_id в описі лоту tender_uaid.
+  ...  [Повертає] item['field_name'] (значення поля).
+  ${reply}  Отримати та обробити дані із предмету  ${field_name}  ${item_id}
+  [Return]  ${reply}
+
+Отримати та обробити дані із предмету
+  [Arguments]  ${field_name}  ${item_id}
+  ${selector}  object_item_info  ${field_name}  ${item_id}
+  Focus  ${selector}
+  ${value}  Get Text  ${selector}
+  ${length}  Get Length  ${value}
+  Run Keyword If  ${length} == 0  Capture Page Screenshot  ${OUTPUTDIR}/my_screen{index}.png
+  ${result}  convert_item_result  ${field_name}  ${value}
+  [Return]  ${result}
+
+
+########################################################################
+###                         AUCTION                                  ###
+########################################################################
+
+Отримати посилання на аукціон для глядача
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=Empty
+  [Documentation]  Отримує посилання на аукціон для лоту tender_uaid.
+  ...  [Повертає] auctionUrl (посилання).
+  Click Element  xpath=//*[contains(text(), 'Перегляд аукціону')]
+  Sleep  5
+  Wait Until Page Contains Element  xpath=//*[contains(text(), 'До аукціону') and @href]  120
+  ${participationUrl}  Get Element Attribute  xpath=//*[contains(text(), 'До аукціону') and @href]@href
+  [Return]  ${auctionUrl}
+
+Отримати посилання на аукціон для учасника
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=Empty
+  [Documentation]  Отримує посилання на участь в аукціоні для користувача username для лоту tender_uaid.
+  ...  [Повертає] participationUrl (посилання).
+  Click Element  xpath=//*[contains(text(), 'До аукціону')]
+  Sleep  3
+  Click Element  xpath=//*[contains(text(), 'Взяти участь в аукціоні')]
+  Sleep  5
+  Wait Until Page Contains Element  xpath=//*[contains(text(), 'До аукціону') and @href]  120
+  ${participationUrl}  Get Element Attribute  xpath=//*[contains(text(), 'До аукціону') and @href]@href
+  [Return]  ${participationUrl}
+
+Скасувати закупівлю
+  [Arguments]  ${username}  ${tender_uaid}  ${cancellation_reason}  ${path}  ${new_description}
+  [Documentation]  Створює запит для скасування лоту tender_uaid, додає до цього запиту документ,
+  ...  який знаходиться по шляху document, змінює опис завантаженого документа на new_description
+  ...  і переводить скасування закупівлі в статус active. Цей ківорд реалізовуємо лише для процедур на цбд1.
+  smarttender.Відкрити бланк скасування лоту
+  Заповнити cancellation_reason для скасування лоту  ${cancellation_reason}
+  Додати файл для скасування лоту  ${path}
+  Заповнити doc.description для скасування лоту  ${new_description}
+  Відправити запит на скасування лоту
+
+Відкрити бланк скасування лоту
+  Click Element  xpath=//button//*[contains(text(), 'Відмінити аукціон')]
+
+Заповнити cancellation_reason для скасування лоту
+  [Arguments]  ${cancellation_reason}
+  Input Text  xpath=//*[@class='ivu-modal-content']//textarea  ${cancellation_reason}
+
+Додати файл для скасування лоту
+  [Arguments]  ${path}
+  Choose File  xpath=//*[@class='file-container']/following-sibling::input[1]  ${path}
+
+Заповнити doc.description для скасування лоту
+  [Arguments]  ${new_description}
+  Input Text  xpath=//*[@class='ivu-modal-content']//input[@type='text']  ${new_description}
+
+Відправити запит на скасування лоту
+  Click Element  xpath=//*[@class='ivu-modal-content']//button//*[contains(text(), 'Відмінити аукціон')]
+
+Активувати процедуру
+  [Arguments]  ${username}  ${tender_uaid}
+  No Operation
+
+########################################################################
+###                        DOCUMENTS                                 ###
+########################################################################
+
+Отримати інформацію із документа
+  [Arguments]  ${username}  ${tender_uaid}  ${doc_id}  ${field}
+  [Documentation]  Отримує значення поля field документа doc_id з лоту tender_uaid для перевірки правильності відображення цього поля.
+  ...  [Повертає] document['field'] (значення поля field)
+  ${reply}  Отримати та обробити дані із документу  ${field}  ${doc_id}
+  [Return]  ${reply}
+
+Отримати та обробити дані із документу
+  [Arguments]  ${field_name}  ${item_id}
+  ${selector}  object_document_info  ${field_name}  ${item_id}
+  Focus  ${selector}
+  ${result}  Get Text  ${selector}
+  [Return]  ${result}
+
+Завантажити документ в ставку
+  [Arguments]  ${username}  ${path}  ${tender_uaid}  ${doc_type}=documents
+  [Documentation]  Завантажує документ типу doc_type, який знаходиться за шляхом path, до цінової пропозиції користувача username для тендера tender_uaid.
+  ...  [Повертає] reply (словник з інформацією про завантажений документ).
+  Відкрити сторінку подачі пропозиції
+  Choose File  xpath=//input[@type='file'][1]  ${path}
+  Подати пропозицію
+  Go Back
+
+Змінити документ в ставці
+  [Arguments]  ${username}  ${tender_uaid}  ${path}  ${docid}
+  [Documentation]  Змінює документ з doc_id в пропозиції користувача username для лоту tender_uaid на документ,
+  ...  який знаходиться по шляху path.
+  ...  [Повертає] uploaded_file (словник з інформацією про завантажений документ).
+  Відкрити сторінку подачі пропозиції
+  Mouse Over  xpath=//*[@class='ivu-tooltip-inner']
+  Choose File  xpath=//input[@type='file'][2]  ${path}
+  Подати пропозицію
+  Go Back
+
+########################################################################
+###                       Price offers                               ###
+########################################################################
+
+Подати цінову пропозицію
+  [Arguments]  ${username}  ${tender_uaid}  ${bid}
+  [Documentation]  Подає цінову пропозицію bid до лоту tender_uaid користувачем username.
+  ...  [Повертає] reply (словник з інформацією про цінову пропозицію).
+  ${shouldQualify}=  Get Variable Value  ${bid['data'].qualified}
+  Run Keyword If  '${shouldQualify}' != 'False'  Run Keywords
+  #...  no operation
+  ...  Пройти кваліфікацію для подачі пропозиції  ${username}  ${tender_uaid}  ${bid}
+  ...  AND  Відкрити сторінку подачі пропозиції
+  Заповнити value.amount для подачі пропозиції  ${bid.data.value.amount}
+  Подати пропозицію
+  Go Back
+
+Подати пропозицію
+  ${message}  Натиснути надіслати пропозицію та вичитати відповідь
+  Виконати дії відповідно повідомленню  ${message}
+  Wait Until Page Does Not Contain Element  ${ok button}
+
+Відкрити сторінку подачі пропозиції
+  ${location}  Get Location
+  Run Keyword If  '/bid/' not in '${location}'  Run Keywords
+  ...  Reload Page
+  ...  AND  Click Element  xpath=//*[contains(text(), 'Подача пропозиції') or contains(text(), 'Змінити пропозицію')]
+  ...  AND  Wait Until Page Contains Element  xpath=//button/*[contains(text(), 'Надіслати пропозицію')]
+
+Заповнити value.amount для подачі пропозиції
+  [Arguments]  ${value}
+  ${value}  Evaluate  str(${value})
+  Input Text  xpath=//*[contains(@id, 'lotAmount')]//input  ${value}
+
+Натиснути надіслати пропозицію та вичитати відповідь
+  Click Element  ${send offer button}
+  Run Keyword And Ignore Error  Wait Until Page Contains Element  ${loading}
+  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  ${loading}  600
+  ${status}  ${message}  Run Keyword And Ignore Error  Get Text  ${validation message}
+  [Return]  ${message}
+
+Виконати дії відповідно повідомленню
+  [Arguments]  ${message}
+  Run Keyword If  "${empty error}" in """${message}"""  Подати пропозицію
+  ...  ELSE IF  "${error1}" in """${message}"""  Ignore error
+  ...  ELSE IF  "${error2}" in """${message}"""  Ignore error
+  ...  ELSE IF  "${error3}" in """${message}"""  Ignore error
+  ...  ELSE IF  "${error4}" in """${message}"""  Ignore error
+  ...  ELSE IF  "${succeed1}" in """${message}"""  Click Element  ${ok button}
+  ...  ELSE IF  "${succeed2}" in """${message}"""  Click Element  ${ok button}
+  ...  ELSE  Fail  Look to message above
+
+Ignore error
+  Click Element  ${ok button}
+  Wait Until Page Does Not Contain Element  ${ok button}
+  Sleep  30
+  Подати пропозицію
+
+Пройти кваліфікацію для подачі пропозиції
+  [Arguments]  ${username}  ${tender_uaid}  ${bid}
+  Відкрити бланк подачі заявки
+  Додати файл для подачі заявки
+  Підтвердити відповідність для подачі заявки
+  Відправити заявку для подачі пропозиції та закрити валідаційне вікно
+  Підтвердити заявку  ${tender_uaid}
+
+Відкрити бланк подачі заявки
+  Click Element  xpath=//button[@type='button']//*[contains(text(), 'Взяти участь')]
+
+Додати файл для подачі заявки
+  Wait Until Page Contains Element  xpath=//input[@type='file' and @accept]
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Choose File  xpath=//input[@type='file' and @accept]  ${file_path}
+
+Підтвердити відповідність для подачі заявки
+  Select Checkbox  xpath=//*[@class="group-line"]//input
+
+Відправити заявку для подачі пропозиції та закрити валідаційне вікно
+  Click Element  xpath=//button[@class="ivu-btn ivu-btn-primary pull-right ivu-btn-large"]
+  Wait Until Page Contains  Ваша заявка відправлена!
+  Sleep  3
+  Click Element  xpath=//*[contains(text(), 'Ваша заявка відправлена!')]/ancestor::*[@class='ivu-modal-content']//a
+  Wait Until Element Is Not Visible  xpath=//*[contains(text(), 'Ваша заявка відправлена!')]/ancestor::*[@class='ivu-modal-content']//a
+
+Підтвердити заявку
+  [Arguments]  ${tender_uaid}
+  Go To  http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_QA.ACCEPTAUCTIONBIDREQUEST&args={"IDLOT":"${tender_uaid}","SUCCESS":"true"}&ticket=
+  Wait Until Page Contains  True
+  Go Back
+
+Змінити цінову пропозицію
+  [Arguments]  ${username}  ${tender_uaid}  ${fieldname}  ${fieldvalue}
+  [Documentation]  Змінює поле fieldname на fieldvalue цінової пропозиції користувача username до лоту tender_uaid.
+  ...  [Повертає] reply (словник з інформацією про цінову пропозицію).
+  Відкрити сторінку подачі пропозиції
+  Заповнити value.amount для подачі пропозиції  ${fieldvalue}
+  Подати пропозицію
+  Go Back
+
+Отримати інформацію із пропозиції
+  [Arguments]  ${username}  ${tender_uaid}  ${field}
+  [Documentation]  Отримує значення поля field пропозиції користувача username для лоту tender_uaid.
+  ...  [Повертає] bid['field'] (значення поля).
+  Відкрити сторінку подачі пропозиції
+  ${selector}  object_proposal_info  ${field}
+  ${value}  Get Element Attribute  ${selector}
+  ${reply}  Evaluate  float('${value}'.replace(" ", ""))
+  Go Back
+  [Return]  ${reply}
+
+Скасувати цінову пропозицію
+  [Arguments]  ${username}  ${tender_uaid}
+  [Documentation]  Змінює статус цінової пропозиції до лоту tender_uaid користувача username на cancelled.
+  ...  [Повертає] reply (словник з інформацією про цінову пропозицію).
+  ...  Цей ківорд реалізовуємо лише для процедур на цбд1.
+  Відкрити сторінку подачі пропозиції
+  Скасувати пропозицію smart
+  Go Back
+
+Скасувати пропозицію smart
+  ${message}  Скасувати пропозицію та вичитати відповідь
+  Виконати дії відповідно повідомленню при скасуванні  ${message}
+  Wait Until Page Does Not Contain Element   ${cancellation offers button}
+
+Скасувати пропозицію та вичитати відповідь
+  Wait Until Page Contains Element  ${cancellation offers button}
+  Click Element  ${cancellation offers button}
+  Click Element   ${cancel. offers confirm button}
+  Run Keyword And Ignore Error  Wait Until Page Contains Element  ${loading}
+  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  ${loading}  600
+  ${status}  ${message}  Run Keyword And Ignore Error  Get Text  ${validation message}
+  [Return]  ${message}
+
+Виконати дії відповідно повідомленню при скасуванні
+  [Arguments]  ${message}
+  Run Keyword If  """${message}""" == "${EMPTY}"  Fail  Message is empty
+  ...  ELSE IF  "${cancellation error1}" in """${message}"""  Ignore cancellation error
+  ...  ELSE IF  "${cancellation succeed}" in """${message}"""  Click Element  ${ok button}
+  ...  ELSE  Fail  Look to message above
+
+Ignore cancellation error
+  Click Element  ${ok button}
+  Wait Until Page Does Not Contain Element  ${ok button}
+  Sleep  20
+  Скасувати пропозицію smart
+
+########################################################################
+###                         QUESTIONS                                ###
+########################################################################
+
+Задати запитання на предмет
+  [Arguments]  ${username}  ${tender_uaid}  ${item_id}  ${question}
+  [Documentation]  Створює запитання з даними question до активу лоту з item_id
+  ...  для лоту з tender_uaid користувачем username.
+  ...  [Повертає] reply (словник з інформацією про запитання).
+  Відкрити сторінку с запитаннями
+  Відкрити бланк створення запитання
+  Wait Until Keyword Succeeds  30  3  Вибрати предмет запитання  ${item_id}
+  Заповнити title для запитання  ${question.data.title}
+  Заповнити description для запитання  ${question.data.description}
+  Wait Until Keyword Succeeds  1m  5s  Натиснути подати запитання
+  Закрити сторінку із запитаннями
+
+Вибрати предмет запитання
+  [Arguments]  ${item_id}
+  Click Element  xpath=//*[@class='ivu-select-selection']/input[@type='text']
+  Click Element  xpath=//*[contains(text(), '${item_id}')]
+
+Задати запитання на тендер
+  [Arguments]  ${username}  ${tender_uaid}  ${question}
+  [Documentation]  Створює запитання з даними question до лоту з tender_uaid користувачем username.
+  ...  [Повертає] reply (словник з інформацією про запитання).
+  Відкрити сторінку с запитаннями
+  Відкрити бланк створення запитання
+  Заповнити title для запитання  ${question.data.title}
+  Заповнити description для запитання  ${question.data.description}
+  Wait Until Keyword Succeeds  1m  5s  Натиснути подати запитання
+  Закрити сторінку із запитаннями
+
+Відкрити бланк створення запитання
+  Click Element  xpath=//button//*[contains(text(), 'Поставити запитання')]
+
+Заповнити title для запитання
+  [Arguments]  ${text}
+  ${selector}  Set Variable  xpath=//*[contains(text(), 'Тема')]/following-sibling::div//input
+  Input Text  ${selector}  ${text}
+
+Заповнити description для запитання
+  [Arguments]  ${text}
+  ${selector}  Set Variable  xpath=//*[contains(text(), 'Запитання')]/following-sibling::div//textarea
+  Input Text  ${selector}  ${text}
+
+Натиснути подати запитання
+  Click Element  xpath=//button//*[contains(text(), 'Подати')]
+  Wait Until Page Does Not Contain Element  xpath=//button//*[contains(text(), 'Подати')]
+
+Отримати інформацію із запитання
+  [Arguments]  ${username}  ${tender_uaid}  ${question_id}  ${field_name}
+  [Documentation]  Отримує значення поля field_name із запитання з question_id в описі для тендера tender_uaid.
+  ...  [Повертає] question['field_name'] (значення поля).
+  Відкрити сторінку с запитаннями
+  ${reply}  Отримати та обробити дані із запитання  ${field_name}  ${question_id}
+  Закрити сторінку із запитаннями
+  [Return]  ${reply}
+
+Відкрити сторінку с запитаннями
+  ${status}  Run Keyword And Return Status  Page Should Contain Element  xpath=//*[contains(text(), 'Без відповіді')]
+  Run Keyword if  '${status}' == 'False'  Run Keywords
+  ...  Run Keyword And Ignore Error  Click Element  xpath=//div[contains(text(), 'Запитання та відповіді')]
+  ...  AND  Wait Until Page Contains Element  xpath=//*[contains(text(), 'Без відповіді')]
+
+Закрити сторінку із запитаннями
+  ${status}  Run Keyword And Return Status  Page Should Contain Element  xpath=//*[contains(text(), 'Без відповіді')]
+  Run Keyword if  '${status}' == 'True'  Click Element  xpath=//div[contains(text(), 'Аукціон')]
+
+Отримати та обробити дані із запитання
+  [Arguments]  ${field_name}  ${question_id}
+  ${selector}  object_question_info  ${field_name}  ${question_id}
+  Focus  ${selector}
+  ${result}  Get Text  ${selector}
+  ${length}  Get Length  ${result}
+  Run Keyword If  ${length} == 0  Capture Page Screenshot  ${OUTPUTDIR}/my_screen{index}.png
+  [Return]  ${result}
+
+Відповісти на запитання
+  [Arguments]  ${username}  ${tender_uaid}  ${answer_data}  ${question_id}
+  [Documentation]  Надає відповідь answer_data на запитання з question_id до лоту tender_uaid.
+  ...  [Повертає] reply (словник з інформацією про відповідь).
+  Відкрити сторінку с запитаннями
+  Wait Until Keyword Succeeds  30  3  Відкрити бланк дати відповідь для запитання  ${question_id}
+  Заповнити answer для відповіді на запитання  ${answer_data.data.answer}  ${question_id}
+  Wait Until Keyword Succeeds  30  3  Відправити відповідь на запитання  ${question_id}
+  Закрити сторінку із запитаннями
+
+Відкрити бланк дати відповідь для запитання
+  [Arguments]  ${question_id}
+  Click Element  xpath=//*[contains(text(), '${question_id}')]/ancestor::div[@class='ivu-card-body']//button
+  Wait Until Page Contains Element  xpath=//*[contains(text(), 'касувати')]  3
+
+Заповнити answer для відповіді на запитання
+  [Arguments]  ${text}  ${question_id}
+  Input Text  //*[contains(text(), '${question_id}')]/ancestor::*[@class='ivu-card-body']//textarea  ${text}
+
+Відправити відповідь на запитання
+  [Arguments]  ${question_id}
+  ${selector}  Set Variable  xpath=//*[contains(text(), '${question_id}')]/ancestor::*[@class='ivu-card-body']//*[contains(text(), 'Дати відповідь')]
+  Click Element  ${selector}
+  Wait Until Page Does Not Contain Element  ${selector}
