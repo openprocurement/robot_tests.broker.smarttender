@@ -1018,6 +1018,7 @@ Ignore error
   Підтвердити заявку  ${tender_uaid}
 
 Відкрити бланк подачі заявки
+  Reload Page
   Click Element  xpath=//button[@type='button']//*[contains(text(), 'Взяти участь')]
 
 Додати файл для подачі заявки
