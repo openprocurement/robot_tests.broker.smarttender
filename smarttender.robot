@@ -1163,8 +1163,7 @@ Ignore cancellation error
   ...  AND  Wait Until Page Contains Element  xpath=//*[contains(text(), 'Без відповіді')]
 
 Закрити сторінку із запитаннями
-  ${status}  Run Keyword And Return Status  Page Should Contain Element  xpath=//*[contains(text(), 'Без відповіді')]
-  Run Keyword if  '${status}' == 'True'  Click Element  xpath=//div[contains(text(), 'Аукціон')]
+  Reload Page
 
 Отримати та обробити дані із запитання
   [Arguments]  ${field_name}  ${question_id}
