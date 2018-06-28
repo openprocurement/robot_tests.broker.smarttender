@@ -862,6 +862,7 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=Empty
   [Documentation]  Отримує посилання на аукціон для лоту tender_uaid.
   ...  [Повертає] auctionUrl (посилання).
+  Reload Page
   Click Element  xpath=//*[contains(text(), 'Перегляд аукціону')]
   Sleep  5
   Wait Until Page Contains Element  xpath=//*[contains(text(), 'До аукціону') and @href]  120
@@ -872,6 +873,7 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=Empty
   [Documentation]  Отримує посилання на участь в аукціоні для користувача username для лоту tender_uaid.
   ...  [Повертає] participationUrl (посилання).
+  Reload Page
   Click Element  xpath=//*[contains(text(), 'До аукціону')]
   Sleep  3
   Click Element  xpath=//*[contains(text(), 'Взяти участь в аукціоні')]
