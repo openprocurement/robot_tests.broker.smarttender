@@ -862,16 +862,18 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=Empty
   [Documentation]  Отримує посилання на аукціон для лоту tender_uaid.
   ...  [Повертає] auctionUrl (посилання).
+  Reload Page
   Click Element  xpath=//*[contains(text(), 'Перегляд аукціону')]
   Sleep  5
   Wait Until Page Contains Element  xpath=//*[contains(text(), 'До аукціону') and @href]  120
-  ${participationUrl}  Get Element Attribute  xpath=//*[contains(text(), 'До аукціону') and @href]@href
+  ${auctionUrl}  Get Element Attribute  xpath=//*[contains(text(), 'До аукціону') and @href]@href
   [Return]  ${auctionUrl}
 
 Отримати посилання на аукціон для учасника
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=Empty
   [Documentation]  Отримує посилання на участь в аукціоні для користувача username для лоту tender_uaid.
   ...  [Повертає] participationUrl (посилання).
+  Reload Page
   Click Element  xpath=//*[contains(text(), 'До аукціону')]
   Sleep  3
   Click Element  xpath=//*[contains(text(), 'Взяти участь в аукціоні')]
@@ -1018,6 +1020,7 @@ Ignore error
   Підтвердити заявку  ${tender_uaid}
 
 Відкрити бланк подачі заявки
+  Reload Page
   Click Element  xpath=//button[@type='button']//*[contains(text(), 'Взяти участь')]
 
 Додати файл для подачі заявки
@@ -1163,8 +1166,7 @@ Ignore cancellation error
   ...  AND  Wait Until Page Contains Element  xpath=//*[contains(text(), 'Без відповіді')]
 
 Закрити сторінку із запитаннями
-  ${status}  Run Keyword And Return Status  Page Should Contain Element  xpath=//*[contains(text(), 'Без відповіді')]
-  Run Keyword if  '${status}' == 'True'  Click Element  xpath=//div[contains(text(), 'Аукціон')]
+  Reload Page
 
 Отримати та обробити дані із запитання
   [Arguments]  ${field_name}  ${question_id}
