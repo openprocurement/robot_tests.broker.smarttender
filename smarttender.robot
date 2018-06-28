@@ -865,7 +865,7 @@ waiting skeleton
   Click Element  xpath=//*[contains(text(), 'Перегляд аукціону')]
   Sleep  5
   Wait Until Page Contains Element  xpath=//*[contains(text(), 'До аукціону') and @href]  120
-  ${participationUrl}  Get Element Attribute  xpath=//*[contains(text(), 'До аукціону') and @href]@href
+  ${auctionUrl}  Get Element Attribute  xpath=//*[contains(text(), 'До аукціону') and @href]@href
   [Return]  ${auctionUrl}
 
 Отримати посилання на аукціон для учасника
