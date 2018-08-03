@@ -1155,6 +1155,7 @@ Ignore cancellation error
   [Documentation]  Отримує значення поля field_name із запитання з question_id в описі для тендера tender_uaid.
   ...  [Повертає] question['field_name'] (значення поля).
   Відкрити сторінку с запитаннями
+  Розгорнути потрібне запитання  ${question_id}
   ${reply}  Отримати та обробити дані із запитання  ${field_name}  ${question_id}
   Закрити сторінку із запитаннями
   [Return]  ${reply}
@@ -1164,6 +1165,12 @@ Ignore cancellation error
   Run Keyword if  '${status}' == 'False'  Run Keywords
   ...  Run Keyword And Ignore Error  Click Element  xpath=//div[contains(text(), 'Запитання та відповіді')]
   ...  AND  Wait Until Page Contains Element  xpath=//*[contains(text(), 'Без відповіді')]
+
+Розгорнути потрібне запитання
+  [Arguments]  ${title}
+  ${expand element}  Set Variable  xpath=//*[contains(text(), "${title}")]/ancestor::*[@class='ivu-card-body']//*[contains(text(), 'Розкрити')]
+  ${status}  Run Keyword and Return Status  Element Should Be Visible  ${expand element}
+  Run Keyword If  '${status}' == 'True'  Click Element  ${expand element}
 
 Закрити сторінку із запитаннями
   Reload Page
