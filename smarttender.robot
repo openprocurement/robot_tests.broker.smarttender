@@ -161,15 +161,20 @@ waiting_for_synch
   waiting skeleton
 
 Створити об'єкт приватизації
-  Зберегти об'єкт
-  wait until keyword succeeds  120s  5s  Опублікувати asset
+  Wait Until Keyword Succeeds  40s  2s  Зберегти об'єкт
+  Wait Until Keyword Succeeds  120s  5s  Опублікувати asset
   wait_for_loading
 
 Зберегти об'єкт
-  ${status}  Run Keyword And Return Status  Click Element  xpath=//*[contains(text(), "Внести зміни")]
-  Run Keyword If  "${status}" == "False"  Click Element  xpath=//*[contains(text(), "Зберегти")]
-  Wait Until Page Contains Element  css=.ivu-notice>div.ivu-notice-notice  120
+  ${status}  Run Keyword And Return Status
+  ...  Click Element  xpath=(//*[contains(text(), "Внести зміни")])[1]
+  ${status}  Run Keyword And Return Status  Run Keyword If  "${status}" == "False"
+  ...  Click Element  xpath=(//*[contains(text(), "Внести зміни")])[last()]
+  Run Keyword If  "${status}" == "False"
+  ...  Click Element  xpath=//*[contains(text(), "Зберегти")]
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  css=.ivu-notice>div.ivu-notice-notice  120
   waiting skeleton
+  Run Keyword If  '${status}' == 'False'  Зберегти об'єкт
 
 Опублікувати asset
   Run Keyword And Ignore Error  Click Element  xpath=//*[contains(text(), "Опублікувати")]
@@ -188,7 +193,7 @@ wait_for_loading
 
 Заповнити title для assets
   [Arguments]  ${text}
-  Input Text  xpath=(//*[contains(text(), "Найменування")]/..//input)[1]  ${text}
+  Input Text  xpath=//*[contains(@class, 'asset-form')]/div[1]//*[contains(text(), 'Назва')]/following-sibling::*//input  ${text}
 
 Заповнити description для assets
   [Arguments]  ${text}
@@ -233,6 +238,7 @@ wait_for_loading
   Sleep  .5
   Input Text  ${locator}  ${text}
   Sleep  .5
+  Wait Until Page Does Not Contain Element  xpath=//ul[@class="ivu-select-dropdown-list"]//li[contains(text(), 'Завантаження')]
   Click Element  xpath=//ul[@class="ivu-select-dropdown-list"]//li[contains(text(), '${text}')]
 
 Заповнити streetAddress для assetHolder
@@ -285,39 +291,49 @@ wait_for_loading
 
 Заповнити classification для item
   [Arguments]  ${id}  ${scheme}  ${description}  ${number}=1
-  Click Element  xpath=//*[@data-qa="item"][${number}]//div[1]//a
-  Wait Until Keyword Succeeds  45  3  Вибрати потрібну вкладку для item.classification  ${scheme}
+  ${detailedClassification}  Вибрати вид об'єкту для item.classification  ${scheme}  ${id}  ${number}
+  Run Keyword If  '${detailedClassification}' == '${TRUE}'  Обрати класифікацію  ${id}  ${scheme}  ${description}  ${number}
+
+Вибрати вид об'єкту для item.classification
+  [Arguments]  ${scheme}  ${id}  ${number}
+  ${scheme_number}  ${detailedClassification}  ret_scheme  ${id}
+  Click Element  //*[@data-qa="item"][${number}]//*[contains(text(), "Вид об'єкту")]/following-sibling::div
+  Sleep  3
+  Wait Until Page Contains Element  //*[@data-qa="item"]//li[contains(text(), '${scheme_number}')]
   Sleep  1
-  ${locator}  Run Keyword If  "${scheme}" == "CPV"
-  ...        Set Variable  css=.ivu-tabs-tabpane:nth-child(1) input
-  ...  ELSE  Set Variable  css=.ivu-tabs-tabpane:nth-child(2) input
-  Input Text  ${locator}  ${id}
+  debug
+  Wait Until Keyword Succeeds  30  2  Click Element  //*[@data-qa="item"]//li[contains(text(), '${scheme_number}')]
+  Wait Until Page Contains Element  //*[@data-qa="item"]//span[contains(text(), '${scheme_number} - ')]
+  Sleep  2
+  Page Should Contain Element  //*[@data-qa="item"]//span[contains(text(), '${scheme_number} - ')]
+  [Return]  ${detailedClassification}
+
+Обрати класифікацію
+  [Arguments]  ${id}  ${scheme}  ${description}  ${number}
+  Click Element  //*[@data-qa='item']//a/*[contains(text(), 'Обрати')]
+  Sleep  1
+  Input Text  css=.ivu-tabs-tabpane:nth-child(1) input  ${id}
   Sleep  1
   Wait Until Keyword Succeeds  45  3  Click Element  xpath=(//a[contains(text(), "${id}") and contains(text(), "${description}")])[last()]
   Click Element  css=.ivu-modal-footer button
-
-Вибрати потрібну вкладку для item.classification
-  [Arguments]  ${scheme}
-  ${scheme}  Run Keyword If  '${scheme}' == 'CPV'  Set Variable  ДК021
-  ...  ELSE  Set Variable  ${scheme}
-  Click Element  xpath=(//*[contains(text(), "${scheme}")])[last()]
-  Wait Until Page Contains Element  xpath=(//*[contains(text(), "${scheme}") and contains(@class, 'active')])[last()]
+  Wait Until Page Contains Element  //span[contains(text(), "${id}") and contains(text(), "${description}")]
 
 Заповнити quantity для item
   [Arguments]  ${text}  ${number}=1
   ${str_text}  Evaluate  str(${text})
-  ${locator}  Set Variable  xpath=((//*[contains(text(), "Загальна інформація")]/ancestor::*[@class="ivu-card-body"]//*[contains(text(), "Об'єм")])[${number}]/following-sibling::div//input)[1]
+  ${locator}  Set Variable  xpath=((//*[contains(text(), "Загальна інформація")]/ancestor::*[@class="ivu-card-body"]//*[contains(text(), "Обсяг")])[${number}]/following-sibling::div//input)[1]
   Double Click Element   ${locator}
   Sleep  .5
   Press Key  ${locator}  \\127
   Sleep  .5
   Input Text  ${locator}  ${str_text}
   Sleep  .5
+  Press Key  ${locator}  \\13
 
 Заповнити items.unit для item
   [Arguments]  ${text}  ${number}=1
   ${locator}  Set Variable  xpath=(//*[@data-qa="item"][${number}]//*[@class="ivu-card-body"]/div[4]//input)[3]
-  Click Element  ${locator}
+  Wait Until Keyword Succeeds  15  2  Click Element  ${locator}
   Sleep  1
   Input Text  ${locator}  ${text}
   Sleep  1
