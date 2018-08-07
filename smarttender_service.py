@@ -199,7 +199,7 @@ def convert_asset_result(field, value):
     elif "registrationDetails.status" == field:
         response = map_object_status(value)
     elif "classification" in field:
-        list = re.search(u'(?P<scheme>.+)\:\s+(?P<id>[\d\-]+)\s\-\s(?P<description>.+)', value)
+        list = re.search(u'((?P<scheme>.+)\:\s+)+(?P<id>[\d\-]+)\s\-\s(?P<description>.+)', value)
         if "scheme" in field:
             response = list.group("scheme")
         elif "id" in field:
@@ -232,7 +232,7 @@ def ss_lot_field_info(field):
 
         "lotCustodian.identifier.scheme": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Код агентства реєстрації"]/../following-sibling::div',
         "lotCustodian.identifier.id": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Код ЄДРПОУ"]/../following-sibling::div',
-        "lotCustodian.identifier.legalName": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Найменування"]/../following-sibling::div',
+        "lotCustodian.identifier.legalName": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Назва"]/../following-sibling::div',
         "lotCustodian.contactPoint.name": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="ПІБ"]/../following-sibling::div',
         "lotCustodian.contactPoint.telephone": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Телефон"]/../following-sibling::div',
         "lotCustodian.contactPoint.email": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Email"]/../following-sibling::div',
@@ -280,7 +280,7 @@ def convert_lot_result(field, value):
     elif "status" in field:
         response_ = map_object_status(value)
     elif "decisions" in field:
-        list = re.search(u'(?P<title>.+\.)? ?№(?P<decisionID>[\d-]+) від (?P<decisionDate>[\d\s:.]+)\.', value)
+        list = re.search(u'(?P<title>.+\.)? ?(?P<decisionID>[\d-]+) від (?P<decisionDate>[\d\s:.]+)\.', value)
         if "title" in field:
             response_ = list.group("title")
         elif "decisionID" in field:
@@ -321,8 +321,8 @@ def map_object_status(doctype):
         u"Об'єкт зареєстровано": "complete",
         u"Виключено з переліку": "deleted",
         # procurementMethodType
-        u"Голландський аукціон. Мала приватизація": "sellout.insider",
-        u"Англійський аукціон. Мала приватизація": "sellout.english",
+        u"Аукціон з умовами, без умов за методом покрокового зниження стартової ціни та подальшого подання цінових пропозицій": "sellout.insider",
+        u"Аукціон з умовами, без умов": "sellout.english",
         # Condition Auction
         u"Заплановано": "scheduled",
         u"Відбувається": "active",

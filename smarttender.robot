@@ -172,7 +172,7 @@ waiting_for_synch
   ...  Click Element  xpath=(//*[contains(text(), "Внести зміни")])[last()]
   Run Keyword If  "${status}" == "False"
   ...  Click Element  xpath=//*[contains(text(), "Зберегти")]
-  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  css=.ivu-notice>div.ivu-notice-notice  120
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  css=.ivu-notice>div.ivu-notice-notice  30
   waiting skeleton
   Run Keyword If  '${status}' == 'False'  Зберегти об'єкт
 
@@ -301,8 +301,7 @@ wait_for_loading
   Sleep  3
   Wait Until Page Contains Element  //*[@data-qa="item"]//li[contains(text(), '${scheme_number}')]
   Sleep  1
-  debug
-  Wait Until Keyword Succeeds  30  2  Click Element  //*[@data-qa="item"]//li[contains(text(), '${scheme_number}')]
+  Wait Until Keyword Succeeds  30  2  Click Element  xpath=(//*[@data-qa="item"]//li[contains(text(), '${scheme_number}')])[last()]
   Wait Until Page Contains Element  //*[@data-qa="item"]//span[contains(text(), '${scheme_number} - ')]
   Sleep  2
   Page Should Contain Element  //*[@data-qa="item"]//span[contains(text(), '${scheme_number} - ')]
