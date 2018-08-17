@@ -320,17 +320,19 @@ def map_object_status(doctype):
         u"Об'єкт реєструється.": "registering",
         u"Об'єкт зареєстровано": "complete",
         u"Виключено з переліку": "deleted",
+
         # procurementMethodType
         u"Аукціон з умовами, без умов за методом покрокового зниження стартової ціни та подальшого подання цінових пропозицій": "sellout.insider",
         u"Аукціон з умовами, без умов": "sellout.english",
+
         # Condition Auction
         u"Заплановано": "scheduled",
         u"Відбувається": "active",
         u"Аукціон відбувся": "complete",
         u"Торги скасовано": "cancelled",
         u"Торги не відбулися": "unsuccessful",
-        u"Об’єкт виключено": "deleted",
         u"Оренда майна": "deleted",
+
         # Auction
         u"Прийняття заяв на участь": "pending.activation",
         u"Аукціон": 'active.auction',
@@ -338,6 +340,18 @@ def map_object_status(doctype):
         u"Очікується опублікування договору": "active.awarded",
         u"Аукціон відмінено": "cancelled",
         u"Аукціон не відбувся": "unsuccessful",
+
+        # Lots
+        u"Об’єкт виставлено на продаж": "active.salable",
+        u"Об’єкт продано": "sold",
+        u"Аукціон завершено. Об’єкт не продано": "pending.dissolution",
+        u"Об’єкт не продано": "dissolved",
+        u"Об’єкт виключено": "deleted",
+        u"Аукціон завершено": "pending.sold",
+        u"Публікація інформаційного повідомлення": "composing",
+        u"Відхилений після перевірки": "invalid",
+        u"Аукціон відбувся. Кваліфікація": "active.contracting",
+        u"Відправлено на видалення": "pending.deleted",
     }
     return map[doctype]
 
@@ -407,6 +421,8 @@ def object_tender_info(field):
 def convert_tender_result(field, value):
     if field == "procurementMethodType":
         response = map_object_status(value)
+    elif field == 'date':
+        response = convert_date(value)
     elif "amount" in field:
         if "value" in field:
             list = re.search(u'(?P<value>[\d\s\.]+) (?P<tr>.+)\. (?P<ty>з ПДВ)', value)
@@ -556,7 +572,7 @@ def ret_scheme(id):
                 "CAV-PS"
             ],
             "classifierId": [
-                "04200000-0"
+                #"04200000-0"
             ],
             "detailedClassification": False,
             "additionalClassifier": "DK018",
@@ -612,6 +628,8 @@ def ret_scheme(id):
     if ret_bool is None:
         sep_id = id[0:3]
         if sep_id == '041':
+            sep_id = '040'
+        elif sep_id == '042':
             sep_id = '040'
         for key, value in scheme.iteritems():
             for j in scheme[key]['classifierId']:

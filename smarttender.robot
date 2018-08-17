@@ -85,8 +85,10 @@ Login
   ...     ELSE IF         '${mode}' == 'auctions'           Set Variable  6
   ${time}  Get Current Date
   ${last_modification_date}  convert_datetime_to_kot_format  ${time}
-  Go To  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}
-  Wait Until Keyword Succeeds  10min  5sec  waiting_for_synch  ${last_modification_date}
+  Run Keyword If  "${mode}" == "auctions" and "${role}" == "tender_owner" and "${TESTNAME}" != "Можливість скасувати рішення кваліфікації другим кандидатом" and "${TESTNAME}" != "Можливість знайти процедуру по ідентифікатору"  No Operation
+  ...  ELSE  Run Keywords
+  ...  Go To  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}
+  ...  AND  Wait Until Keyword Succeeds  10min  5sec  waiting_for_synch  ${last_modification_date}
 
 waiting_for_synch
   [Arguments]  ${last_modification_date}
@@ -170,8 +172,10 @@ waiting_for_synch
   ...  Click Element  xpath=(//*[contains(text(), "Внести зміни")])[1]
   ${status}  Run Keyword And Return Status  Run Keyword If  "${status}" == "False"
   ...  Click Element  xpath=(//*[contains(text(), "Внести зміни")])[last()]
+  ${status}  Run Keyword And Return Status  Run Keyword If  "${status}" == "False"
+  ...  Click Element  xpath=(//*[contains(text(), "Зберегти")])[1]
   Run Keyword If  "${status}" == "False"
-  ...  Click Element  xpath=//*[contains(text(), "Зберегти")]
+  ...  Click Element  xpath=(//*[contains(text(), "Зберегти")])[last()]
   ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  css=.ivu-notice>div.ivu-notice-notice  30
   waiting skeleton
   Run Keyword If  '${status}' == 'False'  Зберегти об'єкт
@@ -331,20 +335,22 @@ wait_for_loading
 
 Заповнити items.unit для item
   [Arguments]  ${text}  ${number}=1
-  ${locator}  Set Variable  xpath=(//*[@data-qa="item"][${number}]//*[@class="ivu-card-body"]/div[4]//input)[3]
-  Wait Until Keyword Succeeds  15  2  Click Element  ${locator}
+  ${locator}  Set Variable  xpath=(//*[@data-qa="item"][${number}]//*[contains(text(), 'Обсяг')]/following-sibling::*//input)[3]
+  Click Element  ${locator}
   Sleep  1
   Input Text  ${locator}  ${text}
   Sleep  1
-  Click Element  xpath=(//ul[@class="ivu-select-dropdown-list"]//li[contains(text(), '${text}')])[${number}]
+  Wait Until Keyword Succeeds  15s  3s  Click Element  xpath=(//ul[@class="ivu-select-dropdown-list"]//li[contains(text(), '${text}')])[${number}]
+  Sleep  3
+  Click Element  xpath=//*[@data-qa="item"][${number}]//*[contains(text(), 'Поштовий індекс')]/../following-sibling::*//input
 
 Заповнити postalCode для item
   [Arguments]  ${text}  ${number}=1
-  Input Text  xpath=(//*[@data-qa="item"][${number}]//*[@class="ivu-card-body"]/div[5]//input)[1]  ${text}
+  Input Text  xpath=//*[@data-qa="item"][${number}]//*[contains(text(), 'Поштовий індекс')]/../following-sibling::*//input  ${text}
 
 Заповнити countryName для item
   [Arguments]  ${text}  ${number}=1
-  ${locator}  Set Variable  xpath=(//*[@data-qa="item"][${number}]//*[@class="ivu-card-body"]/div[5]//input)[3]
+  ${locator}  Set Variable  xpath=//*[@data-qa="item"][${number}]//*[contains(text(), 'Країна')]/../following-sibling::*//input[@spellcheck]
   Click Element  ${locator}
   Sleep  .5
   Input Text  ${locator}  ${text}
@@ -353,7 +359,7 @@ wait_for_loading
 
 Заповнити locality для item
   [Arguments]  ${text}  ${number}=1
-  ${locator}  Set Variable  xpath=(//*[@data-qa="item"][${number}]//*[@class="ivu-card-body"]/div[5]//input)[5]
+  ${locator}  Set Variable  xpath=//*[@data-qa="item"][${number}]//*[contains(text(), 'Місто')]/../following-sibling::*//input[@spellcheck]
   Click Element  ${locator}
   Sleep  .5
   Input Text  ${locator}  ${text}
@@ -362,7 +368,7 @@ wait_for_loading
 
 Заповнити streetAddress для item
   [Arguments]  ${text}  ${number}=1
-  Input Text  xpath=(//*[@data-qa="item"][${number}]//*[@class="ivu-card-body"]/div[5]//input)[6]  ${text}
+  Input Text  xpath=//*[@data-qa="item"][${number}]//*[contains(text(), 'Вулиця')]/following-sibling::*//input  ${text}
 
 Заповнити registrationDetails.status для item
   [Arguments]  ${status}  ${number}=1
@@ -382,6 +388,7 @@ wait_for_loading
   Run Keyword If  "${username}" == "SmartTender_Owner"
   ...  Go to  http://test.smarttender.biz/cabinet/registry/privatization-objects
   ...  ELSE  Go to  http://test.smarttender.biz/small-privatization/registry/privatization-objects
+  Увімкнути тестовий режим
   Input Text  ${search input field privatization}  ${tender_uaid}
   Click Element  ${do search privatization}
   Wait Until Page Contains Element  xpath=//span[contains(text(), "${tender_uaid}")]
@@ -561,6 +568,7 @@ wait_for_loading
   Run Keyword If  "${username}" == "SmartTender_Owner"
   ...  Go to        http://test.smarttender.biz/cabinet/registry/privatization-lots
   ...  ELSE  Go to  http://test.smarttender.biz/small-privatization/registry/privatization-lots
+  Увімкнути тестовий режим
   Input Text  ${search input field privatization}  ${tender_uaid}
   Click Element  ${do search privatization}
   Wait Until Page Contains Element  xpath=//span[contains(text(), "${tender_uaid}")]
@@ -804,7 +812,7 @@ waiting skeleton
   Sleep  180
   Reload Page
   log  ${mode}
-  ${fileUrl}=  Get Element Attribute  xpath=//*[contains(text(), '${doc_id}')]@href
+  ${fileUrl}=  Get Element Attribute  xpath=//*[contains(text(), '${doc_id}')]/ancestor::*[@class="ivu-poptip"]//a[@href]
   ${filename}=  Get Text  xpath=//*[contains(text(), '${doc_id}')]
   smarttender_service.download_file  ${fileUrl}  ${OUTPUT_DIR}/${filename}
   [Return]  ${filename}
@@ -816,15 +824,23 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}
   [Documentation]  Шукає лот з uaid = tender_uaid.
   ...  [Повертає] tender (словник з інформацією про лот)
-  Run Keyword If  '${mode}' == 'auctions' and "${username}" == "SmartTender_Owner"  Go To  http://test.smarttender.biz/komertsiyni-torgy/
-  ...  ELSE  Go To  http://test.smarttender.biz/test-tenders/?mode=prop
-  Input Text  xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]  ${tender_uaid}
-  Press Key  xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]  \\13
-  ${search result}  Get Matching Xpath Count  xpath=//tr[@class='head']//a[@href and contains(text(), '[ТЕСТУВАННЯ]')]
+  Go To  https://test.smarttender.biz/small-privatization/auctions
+  Увімкнути тестовий режим
+  Input Text  xpath=//*[contains(@class, 'search-block')]//input  ${tender_uaid}
+  Press Key  xpath=//*[contains(@class, 'search-block')]//input  \\13
+  waiting skeleton
+  ${search result}  Get Matching Xpath Count  xpath=//*[@class='ivu-card-body']//a[@href and contains(text(), '[ТЕСТУВАННЯ]')]
   Should Be Equal  ${search result}  1
-  ${href}  Get Element Attribute  xpath=//tr[@class='head']//a@href
+  ${href}  Get Element Attribute  xpath=//*[@class='ivu-card-body']//a@href
   Go To  ${href}
   Log  ${href}  WARN
+
+Увімкнути тестовий режим
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  //span[@tabindex and contains(@class, 'checked')]
+  Run Keyword If  '${status}' == 'False'  Click Element  //span[@tabindex]
+  Wait Until Page Contains Element  //span[@tabindex and contains(@class, 'checked')]
+  waiting skeleton
+  Sleep  3
 
 Оновити сторінку з тендером
   [Arguments]  ${username}  ${tender_uaid}
@@ -930,6 +946,193 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}
   No Operation
 
+
+###############################################
+Отримати кількість авардів в тендері
+  [Arguments]  ${tender_uaid}
+  [Documentation]  Отримує кількість сформованих авардів аукціону tender_uaid.  Повертає  (кількість сформованих авардів).
+  ${number_of_awards}  Get Element Count  xpath=//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)]
+  [Return]  ${number_of_awards}
+
+
+Завантажити протокол погодження в авард
+  [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${award_index}
+  [Documentation]  Завантажує протокол аукціону, який знаходиться по шляху filepath і має documentType = admissionProtocol, до ставки кандидата на кваліфікацію аукціону tender_uaid користувачем username. Ставка, до якої потрібно додавати протокол визначається за award_index.
+  ...  [Повертає]  reply (словник з інформацією про документ).
+  ${block}  Розгорнути потрібний аукціон  ${award_index}
+  Відкрити бланк протоколу погодження в авард
+  Завантажити файл у протокол погодження в авард  ${filepath}
+
+
+Відкрити бланк протоколу погодження в авард
+  Click Element  css=[data-qa="redemptionPublication"]
+
+
+Завантажити файл у протокол погодження в авард
+  [Arguments]  ${filepath}
+  Choose File  //*[@data-qa="redemptionPublicationCard"]//button/../following-sibling::input  ${filepath}
+
+
+Активувати кваліфікацію учасника
+  [Arguments]  ${username}  ${tender_uaid}
+  [Documentation]  [Призначення]  Переводить кандидата аукціону tender_uaid в статус pending під час admissionPeriod.
+  ...  [Повертає]  reply (словник з інформацією про кандидата).
+  Натиснути submit
+
+
+Завантажити протокол аукціону в авард
+  [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${award_index}
+  [Documentation]  Завантажує протокол аукціону, який знаходиться по шляху filepath і має documentType = auctionProtocol, до ставки кандидата на кваліфікацію аукціону tender_uaid користувачем username. Ставка, до якої потрібно додавати протокол аукціону протоколу визначається за award_index.
+  ...  [Повертає]  reply (словник з інформацією про документ).
+  ${block}  Розгорнути потрібний аукціон  ${award_index}
+  Завантажити протокол  ${block}  ${filepath}
+  Натиснути submit
+
+
+Завантажити протокол
+  [Arguments]  ${block}  ${filepath}
+  Click Element  css=[data-qa=uploadProtocol]
+  Choose File  ${block}//input  ${filepath}
+
+
+Підтвердити постачальника
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  [Documentation]  Переводить кандидата під номером award_num для аукціону tender_uaid в статус active.
+  ...  [Повертає]  reply (словник з інформацією про кандидата).
+  Натиснути submit
+
+
+Завантажити протокол дискваліфікації в авард
+  [Arguments]   ${username}  ${tender_uaid}  ${filepath}  ${award_index}
+  [Documentation]  Завантажує протокол дискваліфікації, який знаходиться по шляху filepath і має documentType = act/rejectionProtocol, до ставки кандидата на кваліфікацію аукціону tender_uaid користувачем username. Ставка, до якої потрібно додавати протокол визначається за award_index.
+  ...  [Повертає]  reply (словник з інформацією про документ).
+  Розгорнути потрібний аукціон  ${award_index}
+  Завантажити файл до протоколу дискваліфікації в авард  ${filepath}
+
+
+Завантажити файл до протоколу дискваліфікації в авард
+  [Arguments]  ${filepath}
+  Click Element  css=[data-qa="disqualify"]
+  Wait Until Page Contains Element  css=[data-qa="uploadRejectionProtocol"]
+  Sleep  2
+  Click Element  css=[data-qa="uploadRejectionProtocol"]
+  Sleep  2
+  Choose File  //*[@data-qa="uploadRejectionProtocolContractCard"]//input  ${filepath}
+  Sleep  2
+
+
+Дискваліфікувати постачальника
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}  ${description}=None
+  [Documentation]  Переводить кандидата під номером award_num для аукціону tender_uaid в статус unsuccessful.
+  ...  [Повертає]  reply (словник з інформацією про кандидата).
+  Натиснути submit
+
+
+Скасування рішення кваліфікаційної комісії
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  [Documentation]  Переводить кандидата під номером award_num для аукціону tender_uaid в статус cancelled.
+  ...  [Повертає]  reply (словник з інформацією про кандидата).
+  Click Element  xpath=//*[contains(text(), "Забрати гарантійний внесок")]
+  Sleep  3
+  Select Frame  xpath=//iFrame[contains(@src, "_WITHDRAW_PARTICIPATION")]
+  Click Element  css=div#firstYes
+  Sleep  3
+  Click Element  css=div#secondYes
+  Sleep  3
+  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  css=div#progress  60
+  Unselect Frame
+
+
+Завантажити протокол скасування в контракт
+  [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${contract_num}
+  [Documentation]  Завантажує до контракту contract_num аукціону tender_uaid документ, який знаходиться по шляху filepath і має documentType = act/rejectionProtocol, користувачем username.
+  Розгорнути потрібний авард  ${contract_num}
+  Завантажити файл до протоколу скасування в контракт  ${filepath}
+
+
+Завантажити файл до протоколу скасування в контракт
+  [Arguments]  ${filepath}
+  Click Element  css=[data-qa="disqualify"]
+  Wait Until Page Contains Element  css=[data-qa="uploadAct"]
+  Sleep  2
+  Click Element  css=[data-qa="uploadAct"]
+  Sleep  2
+  Choose File  //*[@data-qa="uploadActCard"]//input  ${filepath}
+  Натиснути submit
+
+
+Скасувати контракт
+  [Arguments]  ${username}  ${tender_uaid}  ${contract_num}
+  [Documentation]  Переводить договір під номером contract_num до аукціону tender_uaid в статус cancelled.
+  Log To Console  Скасувати контракт
+  Натиснути submit
+
+
+Встановити дату підписання угоди
+  [Arguments]  ${username}  ${tender_uaid}  ${contract_num}  ${fieldvalue}
+  [Documentation]  Встановлює в договорі під номером contract_num аукціону tender_uaid дату підписання контракту зі значенням fieldvalue.
+  Розгорнути потрібний авард  ${contract_num}
+  Натиснути Завантажити договір
+  Заповнити поле с датою для Завантажити договір  ${fieldvalue}
+
+
+Розгорнути потрібний авард
+  [Arguments]  ${contract_num}
+  ${contract_num}  Run Keyword If  '${contract_num}' == '-1'  Set Variable  1
+  ...  ELSE  Set Variable  ${contract_num}
+  ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${contract_num}]
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
+  Run Keyword If  '${status}' == 'False'  Click Element  ${block}//i
+  Run Keyword And Ignore Error  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
+  Sleep  5
+
+
+Розгорнути потрібний аукціон
+  [Arguments]  ${award_index}
+  ${award_index}  Evaluate  ${award_index}+1
+  ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${award_index}]
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
+  Run Keyword If  '${status}' == 'False'  Click Element  ${block}//i
+  Run Keyword And Ignore Error  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
+  Sleep  5
+  [Return]  ${block}
+
+
+Натиснути Завантажити договір
+  Click Element  css=[data-qa="uploadContract"]
+
+
+Заповнити поле с датою для Завантажити договір
+  [Arguments]  ${fieldvalue}
+  ${time}  convert_datetime_to_smarttender_format_minute  ${fieldvalue}
+  Input Text  css=[data-qa="dateSigned"] input  ${time}
+  Press Key  css=[data-qa="dateSigned"] input  \\09
+
+
+Завантажити угоду до тендера
+  [Arguments]  ${username}  ${tender_uaid}  ${contract_num}  ${filepath}
+  [Documentation]  Завантажує до контракту contract_num аукціону tender_uaid документ, який знаходиться по шляху filepath і має documentType = contractSigned, користувачем username.
+  Choose File  //*[@data-qa="uploadContractCard"]//button/../following-sibling::input  ${filepath}
+  Натиснути submit
+
+
+Натиснути submit
+  Click Element  css=[data-qa="submit"]
+  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  css=[data-qa="submit"]  60
+
+
+Підтвердити підписання контракту
+  [Arguments]  ${username}  ${tender_uaid}  ${contract_num}
+  [Documentation]  Переводить договір під номером contract_num до аукціону tender_uaid в статус active.
+  Розгорнути потрібний авард  ${contract_num}
+  Натиснути Аукціон завершено. Договір підписано
+
+
+Натиснути Аукціон завершено. Договір підписано
+  Click Element  css=[data-qa="finishHim"]
+  Wait Until Element Is Not Visible  css=[data-qa="finishHim"]  60
+
+
 ########################################################################
 ###                        DOCUMENTS                                 ###
 ########################################################################
@@ -978,7 +1181,6 @@ waiting skeleton
   ...  [Повертає] reply (словник з інформацією про цінову пропозицію).
   ${shouldQualify}=  Get Variable Value  ${bid['data'].qualified}
   Run Keyword If  '${shouldQualify}' != 'False'  Run Keywords
-  #...  no operation
   ...  Пройти кваліфікацію для подачі пропозиції  ${username}  ${tender_uaid}  ${bid}
   ...  AND  Відкрити сторінку подачі пропозиції
   Заповнити value.amount для подачі пропозиції  ${bid.data.value.amount}
@@ -1178,7 +1380,7 @@ Ignore cancellation error
 Відкрити сторінку с запитаннями
   ${status}  Run Keyword And Return Status  Page Should Contain Element  xpath=//*[contains(text(), 'Без відповіді')]
   Run Keyword if  '${status}' == 'False'  Run Keywords
-  ...  Run Keyword And Ignore Error  Click Element  xpath=//div[contains(text(), 'Запитання та відповіді')]
+  ...  Click Element  xpath=//*[@class='ivu-tabs-tab']//*[contains(text(), 'Запитання та відповіді')]
   ...  AND  Wait Until Page Contains Element  xpath=//*[contains(text(), 'Без відповіді')]
 
 Розгорнути потрібне запитання
