@@ -1017,7 +1017,7 @@ waiting skeleton
   Sleep  2
   Click Element  css=[data-qa="uploadRejectionProtocol"]
   Sleep  2
-  Choose File  //*[@data-qa="uploadRejectionProtocolContractCard"]//input  ${filepath}
+  Choose File  //*[@data-qa="uploadRejectionProtocolCard"]//input  ${filepath}
   Sleep  2
 
 
