@@ -4,9 +4,9 @@
 #      Main script file
 # ==============
 import sys
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
 
 from munch import munchify as smarttender_munchify
 from iso8601 import parse_date
@@ -50,6 +50,7 @@ def convert_tzdate_synch(isodate):
     iso_dt = parse_date(isodate)
     date_string = iso_dt.strftime('%Y-%m-%d %H:%M:%S')
     return date_string
+
 
 def adapt_data_assets(tender_data):
     tender_data.data.assetCustodian.name = u'ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ "ЕКСПРІМ"'
@@ -116,7 +117,7 @@ def synchronization(string):
 def object_field_info(field):
     map = {
         "assetID": "css=h4>a[href]",
-        "date": "xpath=//*[@class='key' and contains(text(), 'Період коригування')]/../../div[2]/span",
+        "date": "xpath=//*[contains(text(), 'Дата створення')]/../../div[2]/span",
         "rectificationPeriod.endDate": "xpath=//*[@class='key' and contains(text(), 'Період коригування')]/../../div[2]/span",
         "status": "css=.action-block-item.text-center.bold",
         "title": "css=h3>span",
@@ -129,12 +130,12 @@ def object_field_info(field):
         "assetHolder.identifier.id": """xpath=//*[contains(text(), "Балансоутримувач")]/..//*[contains(text(), "Код ЄДРПОУ")]/..//following-sibling::div""",
         "assetCustodian.identifier.scheme": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "Код агентства реєстрації")]/..//following-sibling::div""",
         "assetCustodian.identifier.id": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "Код ЄДРПОУ")]/..//following-sibling::div""",
-        "assetCustodian.identifier.legalName": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "Найменування")]/..//following-sibling::div""",
+        "assetCustodian.identifier.legalName": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "Назва")]/..//following-sibling::div""",
         "assetCustodian.contactPoint.name": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "ПІБ")]/..//following-sibling::div""",
         "assetCustodian.contactPoint.telephone": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "Телефон")]/..//following-sibling::div""",
         "assetCustodian.contactPoint.email": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "Email")]/..//following-sibling::div""",
         "assetCustodian.address.countryName": """xpath=//*[contains(text(), "Орган приватизації")]/..//*[contains(text(), "Адреса")]/..//following-sibling::div""",
-        "documents[0].documentType": "xpath=//*[contains(text(), 'Загальна інформація')]/../div[4]/div[1]",
+        "documents[0].documentType": "xpath=//*[contains(text(), 'Загальна інформація')]/../div[6]/div[1]",
         "items[0].address.countryName": "xpath=(//*[contains(text(), 'Документи')]/..//*[@class='ivu-row']//p)[3]",
         "dateModified": """xpath=//*[contains(text(), "Загальна інформація")]/ancestor::*[@class="ivu-card-body"]//*[contains(text(), "Дата модифікації у ЦБД")]/../following-sibling::div""",
     }
@@ -143,18 +144,15 @@ def object_field_info(field):
 
 def convert_object_result(field, value):
     global response
-    if field == "date" or field == "rectificationPeriod.endDate":
+    if field == "rectificationPeriod.endDate":
         list = re.search(u'з\s(?P<start_date>[\d\.\s:]+)\sпо\s(?P<end_date>[\d\.\s:]+)', value)
-        start_date = list.group('start_date')
         end_date = list.group('end_date')
         if 'endDate' in field:
             response = convert_date(end_date)
-        else:
-            response = convert_date(start_date)
     elif field == "status":
         response = map_object_status(value)
     elif "decisions[0]" in field:
-        list = re.search(u'(?P<decisions>.+\.)\s№(?P<decisionID>[\d\-]+)\sвід\s(?P<date>[\d\.\s\:]+)\.', value)
+        list = re.search(u'(?P<decisions>.+\.)\s(?P<decisionID>[\d\-]+)\sвід\s(?P<date>[\d\.\s\:]+)\.', value)
         if "title" in field:
             response = list.group("decisions")
         elif "decisionDate" in field:
@@ -177,8 +175,8 @@ def asset_field_info(field, id):
         "description": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Опис об'єкту"]/../following-sibling::div""".format(id),
         "classification.scheme": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Класифікація"]/../following-sibling::div""".format(id),
         "classification.id": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Класифікація"]/../following-sibling::div""".format(id),
-        "unit.name": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Об'єм"]/../following-sibling::div""".format(id),
-        "quantity": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Об'єм"]/../following-sibling::div""".format(id),
+        "unit.name": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Обсяг"]/../following-sibling::div""".format(id),
+        "quantity": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Обсяг"]/../following-sibling::div""".format(id),
         "registrationDetails.status": """xpath=//*[contains(text(), "{0}")]/ancestor::*[@class="ivu-card-body"]//*[text()="Реєстрація"]/../following-sibling::div""".format(id),
     }
     return map[field]
@@ -201,7 +199,7 @@ def convert_asset_result(field, value):
     elif "registrationDetails.status" == field:
         response = map_object_status(value)
     elif "classification" in field:
-        list = re.search(u'(?P<scheme>.+)\:\s(?P<id>[\d\-]+)\s\-\s(?P<description>.+)', value)
+        list = re.search(u'((?P<scheme>.+)\:\s+)+(?P<id>[\d\-]+)\s\-\s(?P<description>.+)', value)
         if "scheme" in field:
             response = list.group("scheme")
         elif "id" in field:
@@ -234,7 +232,7 @@ def ss_lot_field_info(field):
 
         "lotCustodian.identifier.scheme": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Код агентства реєстрації"]/../following-sibling::div',
         "lotCustodian.identifier.id": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Код ЄДРПОУ"]/../following-sibling::div',
-        "lotCustodian.identifier.legalName": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Найменування"]/../following-sibling::div',
+        "lotCustodian.identifier.legalName": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Назва"]/../following-sibling::div',
         "lotCustodian.contactPoint.name": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="ПІБ"]/../following-sibling::div',
         "lotCustodian.contactPoint.telephone": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Телефон"]/../following-sibling::div',
         "lotCustodian.contactPoint.email": 'xpath=//*[text()="Орган приватизації"]/..//*[text()="Email"]/../following-sibling::div',
@@ -245,15 +243,24 @@ def ss_lot_field_info(field):
         "decisions[1].decisionDate": """xpath=//*[text()="Загальна інформація"]/..//*[text()="Рішення про приватизацію об'єкту"]/../following-sibling::div""",
         "decisions[1].decisionID": """xpath=//*[text()="Загальна інформація"]/..//*[text()="Рішення про приватизацію об'єкту"]/../following-sibling::div""",
 
-        "auctions.procurementMethodType": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Тип торгів")]/../following-sibling::div""".format(id),
-        "auctions.status": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Статус")]/../following-sibling::div""".format(id),
-        "auctions.tenderAttempts": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]""".format(id),
-        "auctions.value.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Стартова ціна об’єкта")]/../following-sibling::div""".format(id),
-        "auctions.minimalStep.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Крок аукціону")]/../following-sibling::div""".format(id),
-        "auctions.guarantee.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Розмір гарантійного внеску")]/../following-sibling::div""".format(id),
-        "auctions.registrationFee.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Реєстраційний внесок")]/../following-sibling::div""".format(id),
-        "auctions.tenderingDuration": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Період між аукціонами")]/../following-sibling::div""".format(id),
-        "auctions.auctionPeriod.startDate": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Дата проведення аукціону")]/../following-sibling::div""".format(id),
+        "auctions.procurementMethodType": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Тип торгів")]/../following-sibling::div""".format(
+            id),
+        "auctions.status": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Статус")]/../following-sibling::div""".format(
+            id),
+        "auctions.tenderAttempts": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]""".format(
+            id),
+        "auctions.value.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Стартова ціна об’єкта")]/../following-sibling::div""".format(
+            id),
+        "auctions.minimalStep.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Крок аукціону")]/../following-sibling::div""".format(
+            id),
+        "auctions.guarantee.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Розмір гарантійного внеску")]/../following-sibling::div""".format(
+            id),
+        "auctions.registrationFee.amount": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Реєстраційний внесок")]/../following-sibling::div""".format(
+            id),
+        "auctions.tenderingDuration": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Період між аукціонами")]/../following-sibling::div""".format(
+            id),
+        "auctions.auctionPeriod.startDate": """xpath=//*[contains(text(), 'Умови') and contains(text(), 'аукціону')][{0}]/following-sibling::div//*[contains(text(), "Дата проведення аукціону")]/../following-sibling::div""".format(
+            id),
         "auctions.auctionID": "xpath=//*[text()='Посилання на процедуру']/../following-sibling::div",
     }
     return map[field]
@@ -273,7 +280,7 @@ def convert_lot_result(field, value):
     elif "status" in field:
         response_ = map_object_status(value)
     elif "decisions" in field:
-        list = re.search(u'(?P<title>.+\.)? ?№(?P<decisionID>[\d-]+) від (?P<decisionDate>[\d\s:.]+)\.', value)
+        list = re.search(u'(?P<title>.+\.)? ?(?P<decisionID>[\d-]+) від (?P<decisionDate>[\d\s:.]+)\.', value)
         if "title" in field:
             response_ = list.group("title")
         elif "decisionID" in field:
@@ -287,12 +294,12 @@ def convert_lot_result(field, value):
         elif "status" in field:
             response_ = map_object_status(value)
         elif "tenderAttempts" in field:
-            list = re.search(u"Умови\s(?P<id>\d)\sаукціону",value)
+            list = re.search(u"Умови\s(?P<id>\d)\sаукціону", value)
             response_ = int(list.group('id'))
         elif "amount" in field:
             value = value.replace(",", "")
             list = re.search(u"(?P<amount>[\d.]+) UAH[ без ПДВ]?", value)
-            response_= float(list.group('amount'))
+            response_ = float(list.group('amount'))
         elif "tenderingDuration" in field:
             if "30" in value:
                 response_ = "P30D"
@@ -313,24 +320,38 @@ def map_object_status(doctype):
         u"Об'єкт реєструється.": "registering",
         u"Об'єкт зареєстровано": "complete",
         u"Виключено з переліку": "deleted",
-        #procurementMethodType
-        u"Голландський аукціон. Мала приватизація": "sellout.insider",
-        u"Англійський аукціон. Мала приватизація": "sellout.english",
-        #Condition Auction
+
+        # procurementMethodType
+        u"Аукціон з умовами, без умов за методом покрокового зниження стартової ціни та подальшого подання цінових пропозицій": "sellout.insider",
+        u"Аукціон з умовами, без умов": "sellout.english",
+
+        # Condition Auction
         u"Заплановано": "scheduled",
         u"Відбувається": "active",
         u"Аукціон відбувся": "complete",
         u"Торги скасовано": "cancelled",
         u"Торги не відбулися": "unsuccessful",
-        u"Об’єкт виключено": "deleted",
         u"Оренда майна": "deleted",
-        #Auction
+
+        # Auction
         u"Прийняття заяв на участь": "pending.activation",
         u"Аукціон": 'active.auction',
         u"Очікується опублікування протоколу": "active.qualification",
         u"Очікується опублікування договору": "active.awarded",
         u"Аукціон відмінено": "cancelled",
         u"Аукціон не відбувся": "unsuccessful",
+
+        # Lots
+        u"Об’єкт виставлено на продаж": "active.salable",
+        u"Об’єкт продано": "sold",
+        u"Аукціон завершено. Об’єкт не продано": "pending.dissolution",
+        u"Об’єкт не продано": "dissolved",
+        u"Об’єкт виключено": "deleted",
+        u"Аукціон завершено": "pending.sold",
+        u"Публікація інформаційного повідомлення": "composing",
+        u"Відхилений після перевірки": "invalid",
+        u"Аукціон відбувся. Кваліфікація": "active.contracting",
+        u"Відправлено на видалення": "pending.deleted",
     }
     return map[doctype]
 
@@ -400,6 +421,8 @@ def object_tender_info(field):
 def convert_tender_result(field, value):
     if field == "procurementMethodType":
         response = map_object_status(value)
+    elif field == 'date':
+        response = convert_date(value)
     elif "amount" in field:
         if "value" in field:
             list = re.search(u'(?P<value>[\d\s\.]+) (?P<tr>.+)\. (?P<ty>з ПДВ)', value)
@@ -424,10 +447,10 @@ def convert_tender_result(field, value):
 
 def object_item_info(field, id):
     map = {
-        "description": "xpath=//*[contains(text(), '{0}')]".format(id),
-        "unit.name": "xpath=//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-card-body']//*[text()='Кількість']/../following-sibling::div".format(id),
-        "quantity": "xpath=//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-card-body']//*[text()='Кількість']/../following-sibling::div".format(id),
-        }
+        "description": """xpath=//*[contains(text(), '{0}')]""".format(id),
+        "unit.name": """xpath=//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-card-body']//*[text()='Кількість']/../following-sibling::div""".format(id),
+        "quantity": """xpath=//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-card-body']//*[text()='Кількість']/../following-sibling::div""".format(id),
+    }
     return map[field]
 
 
@@ -447,21 +470,172 @@ def object_question_info(field, id):
     map = {
         "title": "xpath=//*[contains(text(), '{0}')]".format(id),
         "description": "xpath=//*[contains(text(), '{0}')]/../../following-sibling::div".format(id),
-        "answer": "xpath=(//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-row']/following-sibling::div)[3]".format(id),
-        }
+        "answer": "xpath=(//*[contains(text(), '{0}')]/ancestor::div[@class='ivu-row']/following-sibling::div)[3]".format(
+            id),
+    }
     return map[field]
 
 
 def object_proposal_info(field):
     map = {
         "value.amount": "xpath=//*[contains(@id, 'lotAmount')]//input@value",
-        }
+    }
     return map[field]
 
 
 def object_document_info(field, id):
     map = {
         "title": "xpath=//a[contains(text(), '{0}') and @class]".format(id),
-        "description": "xpath=//*[contains(text(), '{0}')]/following-sibling::*[contains(text(), 'Опис документу')]/span".format(id),
-        }
+        "description": "xpath=//*[contains(text(), '{0}')]/following-sibling::*[contains(text(), 'Опис документу')]/span".format(
+            id),
+    }
     return map[field]
+
+
+def ret_scheme(id):
+    scheme = {
+        "101": {
+            "title": "101 - окреме нерухоме майно",
+            "classifier": [
+                "CAV-PS"
+            ],
+            "classifierId": [
+                "04000000-8"
+            ],
+            "detailedClassification": True,
+            "additionalClassifier": "DK018",
+            "additionalClassifierId": "125"
+        },
+        "102": {
+            "title": "102 - окреме рухоме майно",
+            "classifier": [
+                "CPV"
+            ],
+            "classifierId": [
+                "42990000-2"
+            ],
+            "detailedClassification": False,
+            "additionalClassifier": "",
+            "additionalClassifierId": ""
+        },
+        "200": {
+            "title": "200 - єдині майнові комплекси державних підприємств, їх структурні підрозділи",
+            "classifier": [
+                "CAV-PS"
+            ],
+            "classifierId": [
+                "05100000-6"
+            ],
+            "detailedClassification": True,
+            "additionalClassifier": "DK018",
+            "additionalClassifierId": "230"
+        },
+        "301": {
+            "title": "301 - пакети акцій акціонерних товариств, утворених у процесі приватизації або корпоратизації",
+            "classifier": [
+                "CAV-PS"
+            ],
+            "classifierId": [
+                "08110000-0"
+            ],
+            "detailedClassification": False,
+            "additionalClassifier": "",
+            "additionalClassifierId": ""
+        },
+        "302": {
+            "title": "302 - акції (частки), що належать державі у статутному капіталі господарських організацій, заснованих на базі об'єднання майна різних форм власності",
+            "classifier": [
+                "CAV-PS"
+            ],
+            "classifierId": [
+                "08160000-5"
+            ],
+            "detailedClassification": False,
+            "additionalClassifier": "",
+            "additionalClassifierId": ""
+        },
+        "400": {
+            "title": "400 - об’єкти незавершеного будівництва, законсервовані об’єкти",
+            "classifier": [
+                "CAV-PS"
+            ],
+            "classifierId": [
+                "04000000-8"
+            ],
+            "detailedClassification": True,
+            "additionalClassifier": "DK018",
+            "additionalClassifierId": "242"
+        },
+        "500": {
+            "title": "500 - об’єкти соціально-культурного призначення",
+            "classifier": [
+                "CAV-PS"
+            ],
+            "classifierId": [
+                #"04200000-0"
+            ],
+            "detailedClassification": False,
+            "additionalClassifier": "DK018",
+            "additionalClassifierId": "126"
+        },
+        "900": {
+            "title": "900 - інші об'єкти",
+            "classifier": [
+                "CPV",
+                "CAV-PS"
+            ],
+            "classifierId": [
+                "06000000-2",
+                "03000000-1",
+                "09000000-3",
+                "14000000-1",
+                "15000000-8",
+                "16000000-5",
+                "18000000-9",
+                "19000000-6",
+                "22000000-0",
+                "24000000-4",
+                "30000000-9",
+                "31000000-6",
+                "32000000-3",
+                "33000000-0",
+                "34000000-7",
+                "35000000-4",
+                "37000000-8",
+                "38000000-5",
+                "39000000-2",
+                "41000000-9",
+                "42000000-6",
+                "43000000-3",
+                "44000000-0"
+            ],
+            "detailedClassification": True,
+            "additionalClassifier": "DK018",
+            "additionalClassifierId": "127"
+        }
+    }
+
+    ret_key = id
+    ret_bool = None
+
+    for key, value in scheme.iteritems():
+        for j in scheme[key]['classifierId']:
+            if j == id:
+                ret_key = key
+                ret_bool = scheme[key]['detailedClassification']
+                break
+
+    if ret_bool is None:
+        sep_id = id[0:3]
+        if sep_id == '041':
+            sep_id = '040'
+        elif sep_id == '042':
+            sep_id = '040'
+        for key, value in scheme.iteritems():
+            for j in scheme[key]['classifierId']:
+                if j.startswith(sep_id):
+                    ret_key = key
+                    ret_bool = scheme[key]['detailedClassification']
+                    break
+
+    return ret_key, ret_bool
