@@ -5,7 +5,9 @@ Library           smarttender_service.py
 Library           op_robot_tests.tests_files.service_keywords
 
 *** Variables ***
-${browserAlias}                        'main_browser'
+${width}                                945
+${height}                               1022
+${browserAlias}                         'main_browser'
 ${loading}                              css=div.smt-load
 ${send offer button}                    css=button#submitBidPlease
 ${validation message}                   css=.ivu-modal-content .ivu-modal-confirm-body>div:nth-child(2)
@@ -40,6 +42,7 @@ ${ss_id}                                None
   [Arguments]  ${username}  @{ARGUMENTS}
   [Documentation]  Відкриває переглядач на потрібній сторінці, готує api wrapper, тощо для користувача username.
   Open Browser  http://test.smarttender.biz  chrome  alias=${browserAlias}
+  Set Window Size  ${width}	  ${height}
   Run Keyword If  '${username}' != 'SmartTender_Viewer'  Login  ${username}
 
 Login
