@@ -181,6 +181,7 @@ waiting_for_synch
   Run Keyword If  '${status}' == 'False'  Зберегти об'єкт
 
 Опублікувати asset
+  Reload Page
   Run Keyword And Ignore Error  Click Element  xpath=//*[contains(text(), "Опублікувати")]
   Wait Until Page Does Not Contain Element  xpath=//*[contains(text(), "Опублікувати")]
 
@@ -1017,7 +1018,8 @@ waiting skeleton
   Sleep  2
   Click Element  css=[data-qa="uploadRejectionProtocol"]
   Sleep  2
-  Choose File  //*[@data-qa="uploadRejectionProtocolCard"]//input  ${filepath}
+  Run Keyword And Ignore Error  Choose File  //*[@data-qa="uploadRejectionProtocolCard"]//input  ${filepath}
+  Run Keyword And Ignore Error  Choose File  //*[@data-qa="uploadRejectionProtocolContractCard"]//input  ${filepath}
   Sleep  2
 
 
@@ -1057,14 +1059,14 @@ waiting skeleton
   Sleep  2
   Click Element  css=[data-qa="uploadAct"]
   Sleep  2
-  Choose File  //*[@data-qa="uploadActCard"]//input  ${filepath}
-  Натиснути submit
+  Run Keyword And Ignore Error  Choose File  //*[@data-qa="uploadActContractCard"]//input  ${filepath}
+  Run Keyword And Ignore Error  Choose File  //*[@data-qa="uploadActCard"]//input  ${filepath}
+  Sleep  2
 
 
 Скасувати контракт
   [Arguments]  ${username}  ${tender_uaid}  ${contract_num}
   [Documentation]  Переводить договір під номером contract_num до аукціону tender_uaid в статус cancelled.
-  Log To Console  Скасувати контракт
   Натиснути submit
 
 
@@ -1112,6 +1114,7 @@ waiting skeleton
 Завантажити угоду до тендера
   [Arguments]  ${username}  ${tender_uaid}  ${contract_num}  ${filepath}
   [Documentation]  Завантажує до контракту contract_num аукціону tender_uaid документ, який знаходиться по шляху filepath і має documentType = contractSigned, користувачем username.
+  Sleep  3
   Choose File  //*[@data-qa="uploadContractCard"]//button/../following-sibling::input  ${filepath}
   Натиснути submit
 
