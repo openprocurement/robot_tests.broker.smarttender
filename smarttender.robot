@@ -88,7 +88,7 @@ Login
   ...     ELSE IF         '${mode}' == 'auctions'           Set Variable  6
   ${time}  Get Current Date
   ${last_modification_date}  convert_datetime_to_kot_format  ${time}
-  Run Keyword If  "${mode}" == "auctions" and "${role}" == "tender_owner" and "${TESTNAME}" != "Можливість скасувати рішення кваліфікації другим кандидатом" and "${TESTNAME}" != "Можливість знайти процедуру по ідентифікатору"  No Operation
+  Run Keyword If  "${mode}" == "auctions" and "${role}" == "tender_owner" and "${TESTNAME}" != "Можливість скасувати рішення кваліфікації другим кандидатом" and "${TESTNAME}" != "Можливість знайти процедуру по ідентифікатору" and "запитання" not in "${TESTNAME}"  No Operation
   ...  ELSE  Run Keywords
   ...  Go To  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}
   ...  AND  Wait Until Keyword Succeeds  10min  5sec  waiting_for_synch  ${last_modification_date}
@@ -990,7 +990,6 @@ waiting skeleton
   ...  [Повертає]  reply (словник з інформацією про документ).
   ${block}  Розгорнути потрібний аукціон  ${award_index}
   Завантажити протокол  ${block}  ${filepath}
-  Натиснути submit
 
 
 Завантажити протокол
@@ -1084,7 +1083,7 @@ waiting skeleton
 Розгорнути потрібний авард
   [Arguments]  ${contract_num}
   ${contract_num}  Run Keyword If  '${contract_num}' == '-1'  Set Variable  1
-  ...  ELSE  Set Variable  ${contract_num}
+  ...  ELSE  Evaluate  ${contract_num}+1
   ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${contract_num}]
   ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
   Run Keyword If  '${status}' == 'False'  Click Element  ${block}//i
