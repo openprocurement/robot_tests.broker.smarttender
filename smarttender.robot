@@ -966,6 +966,7 @@ waiting skeleton
   ${block}  Розгорнути потрібний аукціон  ${award_index}
   Відкрити бланк протоколу погодження в авард
   Завантажити файл у протокол погодження в авард  ${filepath}
+  Натиснути submit
 
 
 Відкрити бланк протоколу погодження в авард
@@ -981,7 +982,7 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}
   [Documentation]  [Призначення]  Переводить кандидата аукціону tender_uaid в статус pending під час admissionPeriod.
   ...  [Повертає]  reply (словник з інформацією про кандидата).
-  Натиснути submit
+  No Operation
 
 
 Завантажити протокол аукціону в авард
@@ -990,6 +991,7 @@ waiting skeleton
   ...  [Повертає]  reply (словник з інформацією про документ).
   ${block}  Розгорнути потрібний аукціон  ${award_index}
   Завантажити протокол  ${block}  ${filepath}
+  Натиснути submit
 
 
 Завантажити протокол
@@ -1002,7 +1004,7 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}
   [Documentation]  Переводить кандидата під номером award_num для аукціону tender_uaid в статус active.
   ...  [Повертає]  reply (словник з інформацією про кандидата).
-  Натиснути submit
+  No Operation
 
 
 Завантажити протокол дискваліфікації в авард
@@ -1011,6 +1013,7 @@ waiting skeleton
   ...  [Повертає]  reply (словник з інформацією про документ).
   Розгорнути потрібний аукціон  ${award_index}
   Завантажити файл до протоколу дискваліфікації в авард  ${filepath}
+  Натиснути submit
 
 
 Завантажити файл до протоколу дискваліфікації в авард
@@ -1029,7 +1032,7 @@ waiting skeleton
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}  ${description}=None
   [Documentation]  Переводить кандидата під номером award_num для аукціону tender_uaid в статус unsuccessful.
   ...  [Повертає]  reply (словник з інформацією про кандидата).
-  Натиснути submit
+  No Operation
 
 
 Скасування рішення кваліфікаційної комісії
@@ -1052,6 +1055,7 @@ waiting skeleton
   [Documentation]  Завантажує до контракту contract_num аукціону tender_uaid документ, який знаходиться по шляху filepath і має documentType = act/rejectionProtocol, користувачем username.
   Розгорнути потрібний авард  ${contract_num}
   Завантажити файл до протоколу скасування в контракт  ${filepath}
+  Натиснути submit
 
 
 Завантажити файл до протоколу скасування в контракт
@@ -1069,7 +1073,7 @@ waiting skeleton
 Скасувати контракт
   [Arguments]  ${username}  ${tender_uaid}  ${contract_num}
   [Documentation]  Переводить договір під номером contract_num до аукціону tender_uaid в статус cancelled.
-  Натиснути submit
+  No Operation
 
 
 Встановити дату підписання угоди
@@ -1082,7 +1086,7 @@ waiting skeleton
 
 Розгорнути потрібний авард
   [Arguments]  ${contract_num}
-  ${contract_num}  Run Keyword If  '${contract_num}' == '-1'  Set Variable  1
+  ${contract_num}  Run Keyword If  '${contract_num}' == '-1'  Set Variable  last()
   ...  ELSE  Evaluate  ${contract_num}+1
   ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${contract_num}]
   ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
@@ -1096,7 +1100,7 @@ waiting skeleton
   ${award_index}  Evaluate  ${award_index}+1
   ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${award_index}]
   ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
-  Run Keyword If  '${status}' == 'False'  Click Element  ${block}//i
+  Run Keyword If  '${status}' == 'False'  Run Keyword And Ignore Error  Click Element  ${block}//i
   Run Keyword And Ignore Error  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
   Sleep  5
   [Return]  ${block}
