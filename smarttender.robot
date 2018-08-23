@@ -1086,8 +1086,9 @@ waiting skeleton
 
 Розгорнути потрібний авард
   [Arguments]  ${contract_num}
-  ${contract_num}  Run Keyword If  '${contract_num}' == '-1'  Set Variable  last()
-  ...  ELSE  Evaluate  ${contract_num}+1
+  ${text}  Get Text  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[1]//*[@class="ivu-row"]//div[3]//p[2]
+  ${length}  Get Length  ${text}
+  ${contract_num}  Run Keyword If  ${length} == 0  Set Variable  2  ELSE  Set Variable  1
   ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${contract_num}]
   ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
   Run Keyword If  '${status}' == 'False'  Click Element  ${block}//i
