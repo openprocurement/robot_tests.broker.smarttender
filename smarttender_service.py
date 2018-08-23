@@ -408,7 +408,7 @@ def object_tender_info(field):
         "value.amount": "css=.action-block-item h4",
         "minimalStep.amount": "xpath=//*[contains(text(), 'Мінімальний крок аукціону')]/../following-sibling::div",
         "guarantee.amount": "xpath=//*[contains(text(), 'Гарантійний внесок')]/../following-sibling::div",
-        "registrationFee.amount": "xpath=//*[contains(text(), 'Реєстраційний внесок')]/../following-sibling::div",
+        "registrationFee.amount": "xpath=//*[contains(text(), 'Оплата за участь')]/../following-sibling::div",
         "tenderPeriod.endDate": "xpath=//*[contains(text(), 'Прийом пропозицій')]/../following-sibling::div",
         "cancellations[0].status": "xpath=//*[@class='ivu-card-body']/h4",
         "status": "xpath=//*[@class='ivu-card-body']/h4",
