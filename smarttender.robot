@@ -1079,9 +1079,10 @@ waiting skeleton
 Встановити дату підписання угоди
   [Arguments]  ${username}  ${tender_uaid}  ${contract_num}  ${fieldvalue}
   [Documentation]  Встановлює в договорі під номером contract_num аукціону tender_uaid дату підписання контракту зі значенням fieldvalue.
-  Розгорнути потрібний авард  ${contract_num}
-  Натиснути Завантажити договір
+  Run Keyword And Ignore Error  Розгорнути потрібний авард  ${contract_num}
+  Run Keyword And Ignore Error  Натиснути Завантажити договір
   Заповнити поле с датою для Завантажити договір  ${fieldvalue}
+  Run Keyword And Ignore Error  Натиснути submit
 
 
 Розгорнути потрібний авард
@@ -1121,9 +1122,11 @@ waiting skeleton
 Завантажити угоду до тендера
   [Arguments]  ${username}  ${tender_uaid}  ${contract_num}  ${filepath}
   [Documentation]  Завантажує до контракту contract_num аукціону tender_uaid документ, який знаходиться по шляху filepath і має documentType = contractSigned, користувачем username.
+  Run Keyword And Ignore Error  Розгорнути потрібний авард  ${contract_num}
+  Run Keyword And Ignore Error  Натиснути Завантажити договір
   Sleep  3
   Choose File  //*[@data-qa="uploadContractCard"]//button/../following-sibling::input  ${filepath}
-  Натиснути submit
+  Run Keyword And Ignore Error  Натиснути submit
 
 
 Натиснути submit
