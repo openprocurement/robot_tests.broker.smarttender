@@ -854,6 +854,8 @@ waiting skeleton
 Отримати інформацію із тендера
   [Arguments]  ${username}  ${tender_uaid}  ${field_name}
   [Documentation]  Отримує значення поля field_name для лоту tender_uaid.
+  Run Keyword If  "${TESTNAME}" == "Можливість звірити статус процедури в період кваліфікації"
+  ...  smarttender.Оновити сторінку з об'єктом МП  ${username}  ${tender_uaid}
   ${reply}  Отримати та обробити дані із тендера  ${field_name}
   [Return]  ${reply}
 
@@ -1263,7 +1265,7 @@ Ignore error
 
 Відправити заявку для подачі пропозиції та закрити валідаційне вікно
   Click Element  xpath=//button[@class="ivu-btn ivu-btn-primary pull-right ivu-btn-large"]
-  Wait Until Page Contains  Ваша заявка відправлена!
+  Wait Until Page Contains  Ваша заявка відправлена!  120
   Sleep  3
   Click Element  xpath=//*[contains(text(), 'Ваша заявка відправлена!')]/ancestor::*[@class='ivu-modal-content']//a
   Wait Until Element Is Not Visible  xpath=//*[contains(text(), 'Ваша заявка відправлена!')]/ancestor::*[@class='ivu-modal-content']//a
