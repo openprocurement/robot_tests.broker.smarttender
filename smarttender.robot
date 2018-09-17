@@ -86,6 +86,7 @@ Login
   ${n}    Run Keyword If  '${mode}' == 'assets'             Set Variable  7
   ...     ELSE IF         '${mode}' == 'lots'               Set Variable  8
   ...     ELSE IF         '${mode}' == 'auctions'           Set Variable  6
+  ...     ELSE IF         '${mode}' == 'contracts'          Set Variable  6
   ${time}  Get Current Date
   ${last_modification_date}  convert_datetime_to_kot_format  ${time}
   Run Keyword If  "${mode}" == "auctions" and "${role}" == "tender_owner" and "${TESTNAME}" != "Можливість скасувати рішення кваліфікації другим кандидатом" and "${TESTNAME}" != "Можливість знайти процедуру по ідентифікатору" and "запитання" not in "${TESTNAME}"  No Operation
@@ -807,6 +808,7 @@ wait_for_loading
 waiting skeleton
   ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Page Contains Element  css=.skeleton-wrapper  3
   Run Keyword If  "${status}" == "PASS"  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  css=.skeleton-wrapper  60
+  Run Keyword If  "${status}" == "PASS"  waiting skeleton
 
 Отримати документ
   [Arguments]  ${username}  ${tender_uaid}  ${doc_id}
@@ -854,8 +856,6 @@ waiting skeleton
 Отримати інформацію із тендера
   [Arguments]  ${username}  ${tender_uaid}  ${field_name}
   [Documentation]  Отримує значення поля field_name для лоту tender_uaid.
-  Run Keyword If  "${TESTNAME}" == "Можливість звірити статус процедури в період кваліфікації"
-  ...  smarttender.Оновити сторінку з об'єктом МП  ${username}  ${tender_uaid}
   ${reply}  Отримати та обробити дані із тендера  ${field_name}
   [Return]  ${reply}
 
@@ -955,9 +955,10 @@ waiting skeleton
 
 ###############################################
 Отримати кількість авардів в тендері
-  [Arguments]  ${tender_uaid}
+  [Arguments]  ${user_name}  ${tender_uaid}
   [Documentation]  Отримує кількість сформованих авардів аукціону tender_uaid.  Повертає  (кількість сформованих авардів).
-  ${number_of_awards}  Get Element Count  xpath=//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)]
+  ${number_of_awards}  Get Matching Xpath Count  xpath=//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)]
+  ${number_of_awards}  Evaluate  int(${number_of_awards})
   [Return]  ${number_of_awards}
 
 
@@ -1132,7 +1133,7 @@ waiting skeleton
 
 
 Натиснути submit
-  Click Element  css=[data-qa="submit"]
+  Run Keyword And Ignore Error  Click Element  css=[data-qa="submit"]
   Run Keyword And Ignore Error  Wait Until Element Is Not Visible  css=[data-qa="submit"]  60
 
 
@@ -1256,9 +1257,13 @@ Ignore error
   Click Element  xpath=//button[@type='button']//*[contains(text(), 'Взяти участь')]
 
 Додати файл для подачі заявки
-  Wait Until Page Contains Element  xpath=//input[@type='file' and @accept]
+  Додати файл за локатором  xpath=//input[@type='file' and @accept]
+
+Додати файл за локатором
+  [Arguments]  ${selector}
+  Wait Until Page Contains Element  ${selector}
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
-  Choose File  xpath=//input[@type='file' and @accept]  ${file_path}
+  Choose File  ${selector}  ${file_path}
 
 Підтвердити відповідність для подачі заявки
   Select Checkbox  xpath=//*[@class="group-line"]//input
@@ -1440,3 +1445,155 @@ Ignore cancellation error
   ${selector}  Set Variable  xpath=//*[contains(text(), '${question_id}')]/ancestor::*[@class='ivu-card-body']//*[contains(text(), 'Дати відповідь')]
   Click Element  ${selector}
   Wait Until Page Does Not Contain Element  ${selector}
+
+
+#########################################################################
+#######                                                           #######
+#######                     CONTRACTING                           #######
+#######                                                           #######
+#########################################################################
+Активувати контракт
+  [Arguments]  ${username}  ${contract_uaid}
+  [Documentation]  використовується тільки для брокера Квінти, тому його не потрібно реалізовувати
+  ...  лише додати в драйвер свого майданчика
+  ...  Змінює власника контракту і активує його.
+  No Operation
+
+
+Отримати інформацію із договору
+  [Arguments]  ${username}  ${contract_uaid}  ${field_name}
+  [Documentation]  Отримує значення поля field_name для контракту contract_uaid.
+  ...  [Повертає] field_value - значення поля.
+  Відкрити вкладку Завершення та виконання умов приватизації
+  ${field_value}  Отримати та обробити інформацію із договору  ${field_name}
+  [Return]  ${field_value}
+
+
+Отримати інформацію з активу в договорі
+  [Arguments]  ${username}  ${contract_uaid}  ${item_id}  ${field_name}
+  [Documentation]  Отримує значення поля field_name з активу з item_id контракту contract_uaid.
+  ...  [Повертає] field_value - значення поля.
+  Відкрити вкладку Завершення та виконання умов приватизації
+  ${field_value}  Отримати та обробити інформацію із договору  ${field_name}_in_contract
+  [Return]  ${field_value}
+
+
+Вказати дату отримання оплати
+  [Arguments]  ${username}  ${contract_uaid}  ${dateMet}  ${milestone_index}
+  [Documentation]  Вказує дату отримання оплати dateMet в контракті contract_uaid
+  Відкрити вкладку Завершення та виконання умов приватизації
+  Відкрити бланк дати отримання оплати
+  Заповнити поле з датою отримання оплати  ${dateMet}
+  Натиснути submit
+
+
+Підтвердити відсутність оплати
+  [Arguments]  ${username}  ${contract_uaid}  ${milestone_index}
+  [Documentation]  Підтверджується відсутність оплати( в перший майлстоун передається статус notMet)
+  Відкрити вкладку Завершення та виконання умов приватизації
+  Відкрити бланк оплата відсутня
+  Натиснути submit
+
+
+Завантажити наказ про завершення приватизації
+  [Arguments]  ${username}  ${contract_uaid}  ${filepath}
+  [Documentation]  Завантажує документ filepath про завершення приватизації в контракт contract_uaid.
+  Відкрити вкладку Завершення та виконання умов приватизації
+  Відкрити бланк наказ про завершення приватизації
+  Choose File  //*[@class="action-block-item"]//input[@type='file']  ${file_path}
+  Натиснути submit
+
+
+Вказати дату прийняття наказу
+  [Arguments]  ${username}  ${contract_uaid}  ${dateMet}
+  [Documentation]  Вказує дату прийняття наказу dateMet в контракті contract_uaid
+  Відкрити вкладку Завершення та виконання умов приватизації
+  Відкрити бланк наказ про завершення приватизації
+  Заповнити поле з датою отримання оплати  ${dateMet}
+  Натиснути submit
+
+
+Підтвердити відсутність наказу про приватизацію
+  [Arguments]  ${username}  ${contract_uaid}  ${filepath}
+  [Documentation]  Завантажується документ filepath  з типом rejectionProtocol і підтверджується
+  ...  відсутність завантаженого наказу про приватизацію (в другий майлстоун передається статус notMet)
+  Відкрити вкладку Завершення та виконання умов приватизації
+  Відкрити бланк про відсутність наказу
+  Choose File  //*[@class="action-block-item"]//input[@type='file']  ${filepath}
+  Натиснути submit
+
+
+Вказати дату виконання умов контракту
+  [Arguments]  ${username}  ${contract_uaid}  ${dateMet}
+  [Documentation]  Вказує дату виконання умов договору dateMet в контракті contract_uaid
+  Відкрити вкладку Завершення та виконання умов приватизації
+  Відкрити бланк умови продажу виконано
+  Заповнити поле з датою отримання оплати  ${dateMet}
+  Натиснути submit
+
+
+Підтвердити невиконання умов приватизації
+  [Arguments]  ${username}  ${contract_uaid}
+  [Documentation]  В третій майлстоун передається статус notMet(Кнопка в інтерфейсі “Умови продажу не виконано”)
+  Відкрити вкладку Завершення та виконання умов приватизації
+  Відкрити бланк умови продажу не виконано
+  Натиснути submit
+
+
+#########################
+Знайти договір
+  [Arguments]  ${contract_uaid}
+  Пошук лоту по ідентифікатору  user_name  ${contract_uaid}
+
+
+Відкрити вкладку Завершення та виконання умов приватизації
+  ${status}  Run Keyword And Return Status  Page Should Contain Element  //*[contains(@class, 'active') and contains(text(), "Завершення та виконання умов приватизації")]
+  Run Keyword if  '${status}' == 'False'  Run Keywords
+  ...  Click Element  //*[contains(@class, "ivu-tabs-tab") and contains(., "Завершення та виконання умов приватизації")]
+  ...  AND  Wait Until Page Contains Element  //*[contains(@class, 'active') and contains(text(), "Завершення та виконання умов приватизації")]
+
+
+Заповнити поле з датою отримання оплати
+  [Arguments]  ${date}
+  ${time}  convert_datetime_to_smarttender_format_minute  ${date}
+  Input Text  css=[data-qa="dateMet"] input  ${time}
+  Press Key  css=[data-qa="dateMet"] input  \\09
+
+
+Відкрити бланк
+  [Arguments]  ${selector}
+  Wait Until Page Contains Element  ${selector}
+  Click Element  ${selector}
+  Wait Until Page Does Not Contain Element  ${selector}
+
+
+Відкрити бланк дати отримання оплати
+  Run Keyword And Ignore Error  Відкрити бланк  //*[@data-qa="paymentPositiveAction"]
+
+
+Відкрити бланк оплата відсутня
+  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="paymentNegativeAction"]
+
+
+Відкрити бланк наказ про завершення приватизації
+  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="mandatePositiveAction"]
+
+
+Відкрити бланк про відсутність наказу
+  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="mandateNegativeAction"]
+
+
+Відкрити бланк умови продажу виконано
+  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="termsComplyingPositiveAction"]
+
+
+Відкрити бланк умови продажу не виконано
+  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="termsComplyingPositiveAction"]
+
+
+Отримати та обробити інформацію із договору
+  [Arguments]  ${field_name}
+  ${locator}  object_contract_info  ${field_name}
+  ${text}  Get Text  ${locator}
+  ${field_value}  convert_contract_result  ${field_name}  ${text}
+  [Return]  ${field_value}
