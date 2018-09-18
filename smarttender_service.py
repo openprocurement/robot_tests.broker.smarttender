@@ -643,9 +643,9 @@ def ret_scheme(id):
 
 def object_contract_info(field):
     map = {
-        "status": "//*[@data-qa='assetStatus']",
+        "status": "//*[@data-qa='auctionStatus']",
         "status_in_contract": "//*[@data-qa='contractStatus']",
-        "description_in_contract": "//*[@data-qa='contractStatus']",
+        "description_in_contract": "//*[@data-qa='contractDescription']",
     }
     return map[field]
 
