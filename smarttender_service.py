@@ -639,3 +639,34 @@ def ret_scheme(id):
                     break
 
     return ret_key, ret_bool
+
+
+def object_contract_info(field):
+    map = {
+        "status": "//*[@data-qa='auctionStatus']",
+        "status_in_contract": "//*[@data-qa='contractStatus']",
+        "description_in_contract": "//*[@data-qa='contractDescription']",
+    }
+    return map[field]
+
+
+def convert_contract_result(field, value):
+    if "status" in field:
+        response = map_contract_status(value)
+    else:
+        response = value
+    return response
+
+
+def map_contract_status(doctype):
+    map = {
+        u"Очікується оплата": "active.confirmation",
+        u"Очікується оплата": "active.payment",
+        u"Договір оплачено. Очікується наказ": "active.approval",
+        u"Період виконання умов продажу (період оскарження)": "active",
+        u"Приватизація об’єкта завершена": "pending.terminated",
+        u"Приватизація об’єкта завершена": "terminated",
+        u"Приватизація об’єкта неуспішна": "pending.unsuccessful",
+        u"Приватизація об’єкта неуспішна": "unsuccessful",
+    }
+    return map[doctype]
