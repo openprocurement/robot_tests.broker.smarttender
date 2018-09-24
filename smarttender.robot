@@ -74,25 +74,18 @@ Login
 Оновити сторінку з об'єктом МП
   [Arguments]  ${username}  ${tender_uaid}
   [Documentation]  Оновлює сторінку з об’єктом МП для отримання потенційно оновлених даних.
-  Run Keyword If
-  ...  "${username}" != "SmartTender_Owner" or "${username}" == "SmartTender_Owner" and '${mode}' == 'auctions'
-  ...  Оновити сторінку з об'єктом МП continue
-
-Оновити сторінку з об'єктом МП continue
-  [Documentation]  можно спробувати прискорити синхронізацію використовуючи
+  ...  можно спробувати прискорити синхронізацію використовуючи
   ...  ${last_modification_date} convert_tzdate_synch ${TENDER.LAST_MODIFICATION_DATE}
   ...  але не у всіх сютах оновлюється ${TENDER.LAST_MODIFICATION_DATE} перед виконанням синхронізації
   Log  ${mode}
   ${n}    Run Keyword If  '${mode}' == 'assets'             Set Variable  7
   ...     ELSE IF         '${mode}' == 'lots'               Set Variable  8
   ...     ELSE IF         '${mode}' == 'auctions'           Set Variable  6
-  ...     ELSE IF         '${mode}' == 'contracts'          Set Variable  6
+  ...     ELSE IF         '${mode}' == 'contracts'          Set Variable  11
   ${time}  Get Current Date
   ${last_modification_date}  convert_datetime_to_kot_format  ${time}
-  Run Keyword If  "${mode}" == "auctions" and "${role}" == "tender_owner" and "${TESTNAME}" != "Можливість скасувати рішення кваліфікації другим кандидатом" and "${TESTNAME}" != "Можливість знайти процедуру по ідентифікатору" and "запитання" not in "${TESTNAME}"  No Operation
-  ...  ELSE  Run Keywords
-  ...  Go To  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}
-  ...  AND  Wait Until Keyword Succeeds  10min  5sec  waiting_for_synch  ${last_modification_date}
+  Go To  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":${n}}
+  Wait Until Keyword Succeeds  10min  5sec  waiting_for_synch  ${last_modification_date}
 
 waiting_for_synch
   [Arguments]  ${last_modification_date}
@@ -856,6 +849,7 @@ waiting skeleton
 Отримати інформацію із тендера
   [Arguments]  ${username}  ${tender_uaid}  ${field_name}
   [Documentation]  Отримує значення поля field_name для лоту tender_uaid.
+  Обновити сторінку за необхідністю  ${username}  ${tender_uaid}
   ${reply}  Отримати та обробити дані із тендера  ${field_name}
   [Return]  ${reply}
 
@@ -1090,24 +1084,29 @@ waiting skeleton
 
 Розгорнути потрібний авард
   [Arguments]  ${contract_num}
+  Sleep  2
   ${text}  Get Text  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[1]//*[@class="ivu-row"]//div[3]//p[2]
   ${length}  Get Length  ${text}
   ${contract_num}  Run Keyword If  ${length} == 0  Set Variable  2  ELSE  Set Variable  1
   ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${contract_num}]
+  Scroll Page To Element XPATH  ${block}//i
   ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
   Run Keyword If  '${status}' == 'False'  Click Element  ${block}//i
-  Run Keyword And Ignore Error  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
-  Sleep  5
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
+  Run Keyword If  '${status}' == 'False'  Розгорнути потрібний авард  ${contract_num}
+  Sleep  3
 
 
 Розгорнути потрібний аукціон
   [Arguments]  ${award_index}
   ${award_index}  Evaluate  ${award_index}+1
   ${block}  Set Variable  xpath=(//h4[contains(text(), 'Результати аукціону')]/following-sibling::div[not(@class)])[${award_index}]
+  Scroll Page To Element XPATH  ${block}//i
   ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
   Run Keyword If  '${status}' == 'False'  Run Keyword And Ignore Error  Click Element  ${block}//i
-  Run Keyword And Ignore Error  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
-  Sleep  5
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  ${block}//i[contains(@class, 'dropup')]
+  Run Keyword If  '${status}' == 'False'  Розгорнути потрібний аукціон  ${award_index}
+  Sleep  3
   [Return]  ${block}
 
 
@@ -1134,7 +1133,8 @@ waiting skeleton
 
 Натиснути submit
   Run Keyword And Ignore Error  Click Element  css=[data-qa="submit"]
-  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  css=[data-qa="submit"]  60
+  ${status}  Run Keyword And Return Status  Wait Until Element Is Not Visible  css=[data-qa="submit"]  60
+  Run Keyword If  '${status}' == 'False'  Натиснути submit
 
 
 Підтвердити підписання контракту
@@ -1145,8 +1145,11 @@ waiting skeleton
 
 
 Натиснути Аукціон завершено. Договір підписано
-  Click Element  css=[data-qa="finishHim"]
-  Wait Until Element Is Not Visible  css=[data-qa="finishHim"]  60
+  Sleep  3
+  Scroll Page To Element XPATH  //*[@data-qa="finishHim"]
+  Click Element  //*[@data-qa="finishHim"]
+  ${status}  Run Keyword And Return Status  Wait Until Element Is Not Visible  css=[data-qa="finishHim"]  60
+  Run Keyword If  '${status}' == 'False'  Натиснути Аукціон завершено. Договір підписано
 
 
 ########################################################################
@@ -1457,14 +1460,15 @@ Ignore cancellation error
   [Documentation]  використовується тільки для брокера Квінти, тому його не потрібно реалізовувати
   ...  лише додати в драйвер свого майданчика
   ...  Змінює власника контракту і активує його.
-  No Operation
+  smarttender.Оновити сторінку з об'єктом МП  ${username}  ${contract_uaid}
 
 
 Отримати інформацію із договору
   [Arguments]  ${username}  ${contract_uaid}  ${field_name}
   [Documentation]  Отримує значення поля field_name для контракту contract_uaid.
   ...  [Повертає] field_value - значення поля.
-  Пошук тендера по ідентифікатору  ${username}  ${contract_uaid}
+  ${tender_uaid}  Evaluate  "${contract_uaid}"[:-3]
+  smarttender.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
   Відкрити вкладку Завершення та виконання умов приватизації
   ${field_value}  Отримати та обробити інформацію із договору  ${field_name}
   [Return]  ${field_value}
@@ -1474,7 +1478,8 @@ Ignore cancellation error
   [Arguments]  ${username}  ${contract_uaid}  ${item_id}  ${field_name}
   [Documentation]  Отримує значення поля field_name з активу з item_id контракту contract_uaid.
   ...  [Повертає] field_value - значення поля.
-  Пошук тендера по ідентифікатору  ${username}  ${contract_uaid}
+  ${tender_uaid}  Evaluate  "${contract_uaid}"[:-3]
+  smarttender.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
   Відкрити вкладку Завершення та виконання умов приватизації
   ${field_value}  Отримати та обробити інформацію із договору  ${field_name}_in_contract
   [Return]  ${field_value}
@@ -1503,7 +1508,6 @@ Ignore cancellation error
   Відкрити вкладку Завершення та виконання умов приватизації
   Відкрити бланк наказ про завершення приватизації
   Choose File  //*[@class="action-block-item"]//input[@type='file']  ${file_path}
-  Натиснути submit
 
 
 Вказати дату прийняття наказу
@@ -1539,12 +1543,16 @@ Ignore cancellation error
   [Documentation]  В третій майлстоун передається статус notMet(Кнопка в інтерфейсі “Умови продажу не виконано”)
   Відкрити вкладку Завершення та виконання умов приватизації
   Відкрити бланк умови продажу не виконано
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Choose File  //*[@class="action-block-item"]//input[@type='file']  ${file_path}
   Натиснути submit
 
 
 #########################
 Відкрити вкладку Завершення та виконання умов приватизації
-  ${status}  Run Keyword And Return Status  Page Should Contain Element  //*[contains(@class, 'active') and contains(text(), "Завершення та виконання умов приватизації")]
+  ${selector}  Set Variable  //*[contains(@class, "active") and contains(text(), "Завершення та виконання умов приватизації")]
+  Scroll Page To Element XPATH  ${selector}
+  ${status}  Run Keyword And Return Status  Page Should Contain Element  ${selector}
   Run Keyword if  '${status}' == 'False'  Run Keywords
   ...  Click Element  //*[contains(@class, "ivu-tabs-tab") and contains(., "Завершення та виконання умов приватизації")]
   ...  AND  Wait Until Page Contains Element  //*[contains(@class, 'active') and contains(text(), "Завершення та виконання умов приватизації")]
@@ -1565,27 +1573,33 @@ Ignore cancellation error
 
 
 Відкрити бланк дати отримання оплати
+  Scroll Page To Element XPATH  //*[@data-qa="paymentPositiveAction"]
   Run Keyword And Ignore Error  Відкрити бланк  //*[@data-qa="paymentPositiveAction"]
 
 
 Відкрити бланк оплата відсутня
-  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="paymentNegativeAction"]
+  Scroll Page To Element XPATH  //*[@data-qa="paymentNegativeAction"]
+  Run Keyword And Ignore Error  Відкрити бланк  //*[@data-qa="paymentNegativeAction"]
 
 
 Відкрити бланк наказ про завершення приватизації
-  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="mandatePositiveAction"]
+  Scroll Page To Element XPATH  //*[@data-qa="mandatePositiveAction"]
+  Run Keyword And Ignore Error  Відкрити бланк  //*[@data-qa="mandatePositiveAction"]
 
 
 Відкрити бланк про відсутність наказу
-  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="mandateNegativeAction"]
+  Scroll Page To Element XPATH  //*[@data-qa="mandateNegativeAction"]
+  Run Keyword And Ignore Error  Відкрити бланк  //*[@data-qa="mandateNegativeAction"]
 
 
 Відкрити бланк умови продажу виконано
-  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="termsComplyingPositiveAction"]
+  Scroll Page To Element XPATH  //*[@data-qa="termsComplyingPositiveAction"]
+  Run Keyword And Ignore Error  Відкрити бланк  //*[@data-qa="termsComplyingPositiveAction"]
 
 
 Відкрити бланк умови продажу не виконано
-  Run Keyword And Ignore Error  Відкрити бланк  css=[data-qa="termsComplyingPositiveAction"]
+  Scroll Page To Element XPATH  //*[@data-qa="termsComplyingNegativeAction"]
+  Run Keyword And Ignore Error  Відкрити бланк  //*[@data-qa="termsComplyingNegativeAction"]
 
 
 Отримати та обробити інформацію із договору
@@ -1594,3 +1608,23 @@ Ignore cancellation error
   ${text}  Get Text  ${locator}
   ${field_value}  convert_contract_result  ${field_name}  ${text}
   [Return]  ${field_value}
+
+
+Обновити сторінку за необхідністю
+  [Arguments]  ${username}  ${tender_uaid}
+  ${list}  Set Variable
+  ...  Можливість звірити статус процедури в період кваліфікації
+  ...  Something else
+  Run Keyword If  "${TESTNAME}" in ${list}  smarttender.Оновити сторінку з тендером  ${username}  ${tender_uaid}
+
+
+Scroll Page To Element XPATH
+  [Arguments]    ${xpath}
+  Run Keyword And Ignore Error
+  ...  Execute JavaScript  document.evaluate('${xpath.replace("xpath=", "")}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
+  Run Keyword And Ignore Error
+  ...  Execute JavaScript  document.evaluate("${xpath.replace('xpath=', '')}", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
+
+
+Scroll Page To Top
+  Execute JavaScript  window.scrollTo(0,0);

@@ -116,7 +116,7 @@ def synchronization(string):
 
 def object_field_info(field):
     map = {
-        "assetID": "css=h4>a[href]",
+        "assetID": "css=[data-qa='cdbNumber']",
         "date": "xpath=//*[contains(text(), 'Дата створення')]/../../div[2]/span",
         "rectificationPeriod.endDate": "xpath=//*[@class='key' and contains(text(), 'Період коригування')]/../../div[2]/span",
         "status": "css=.action-block-item.text-center.bold",
@@ -218,7 +218,7 @@ def ss_lot_field_info(field):
         field = "auctions." + list.group('field')
         id = int(list.group('id')) + 1
     map = {
-        "lotID": "css=h4>a[href]",
+        "lotID": "css=[data-qa='cdbNumber']",
         "title": "css=h3>span",
         "status": "css=.action-block-item.text-center.bold",
         "description": "css=div.ivu-card-body .ivu-row>span",
@@ -427,11 +427,11 @@ def convert_tender_result(field, value):
         if "value" in field:
             list = re.search(u'(?P<value>[\d\s\.]+) (?P<tr>.+)\. (?P<ty>з ПДВ)', value)
         elif "minimalStep" in field:
-            list = re.search(u'.+ або (?P<value>[\d\s\.]+) грн.', value)
+            list = re.search(u'.+ або (?P<value>[\d\s\.,]+) грн.', value)
         elif "guarantee" in field or "registrationFee" in field:
             list = re.search(u'(?P<value>[\d\s\.]+) грн.', value)
         value = list.group('value')
-        response = float(value.replace(" ", ""))
+        response = float((value.replace(" ", "")).replace(",", "."))
     elif field == 'tenderPeriod.endDate':
         list = re.search(u'з (?P<startDate>[\d\.\s\:]+) по (?P<endDate>[\d\.\s\:]+)', value)
         value = list.group('endDate')
@@ -643,7 +643,7 @@ def ret_scheme(id):
 
 def object_contract_info(field):
     map = {
-        "status": "//*[@data-qa='auctionStatus']",
+        "status": "//*[@data-qa='contractStatus']",
         "status_in_contract": "//*[@data-qa='contractStatus']",
         "description_in_contract": "//*[@data-qa='contractDescription']",
     }
