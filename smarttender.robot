@@ -839,7 +839,7 @@ waiting skeleton
   Run Keyword If  '${status}' == 'False'  Click Element  //span[@tabindex]
   Wait Until Page Contains Element  //span[@tabindex and contains(@class, 'checked')]
   waiting skeleton
-  Sleep  3
+  Sleep  1
 
 Оновити сторінку з тендером
   [Arguments]  ${username}  ${tender_uaid}
@@ -1148,7 +1148,7 @@ waiting skeleton
   Sleep  3
   Scroll Page To Element XPATH  //*[@data-qa="finishHim"]
   Click Element  //*[@data-qa="finishHim"]
-  ${status}  Run Keyword And Return Status  Wait Until Element Is Not Visible  css=[data-qa="finishHim"]  60
+  ${status}  Run Keyword And Return Status  Wait Until Page Does Not Contain Element  css=[data-qa="finishHim"]  60
   Run Keyword If  '${status}' == 'False'  Натиснути Аукціон завершено. Договір підписано
 
 
@@ -1418,7 +1418,7 @@ Ignore cancellation error
 Отримати та обробити дані із запитання
   [Arguments]  ${field_name}  ${question_id}
   ${selector}  object_question_info  ${field_name}  ${question_id}
-  Focus  ${selector}
+  Scroll Page To Element XPATH  ${selector}
   ${result}  Get Text  ${selector}
   ${length}  Get Length  ${result}
   Run Keyword If  ${length} == 0  Capture Page Screenshot  ${OUTPUTDIR}/my_screen{index}.png
@@ -1460,6 +1460,7 @@ Ignore cancellation error
   [Documentation]  використовується тільки для брокера Квінти, тому його не потрібно реалізовувати
   ...  лише додати в драйвер свого майданчика
   ...  Змінює власника контракту і активує його.
+  Sleep  120
   smarttender.Оновити сторінку з об'єктом МП  ${username}  ${contract_uaid}
 
 
@@ -1613,9 +1614,9 @@ Ignore cancellation error
 Обновити сторінку за необхідністю
   [Arguments]  ${username}  ${tender_uaid}
   ${list}  Set Variable
-  ...  Можливість звірити статус процедури в період кваліфікації
+  ...  Можливість звірити статус процедури в період кваліфікації_SmartTender_Owner
   ...  Something else
-  Run Keyword If  "${TESTNAME}" in ${list}  smarttender.Оновити сторінку з тендером  ${username}  ${tender_uaid}
+  Run Keyword If  "${TESTNAME}_${username}" in ${list}  smarttender.Оновити сторінку з тендером  ${username}  ${tender_uaid}
 
 
 Scroll Page To Element XPATH
