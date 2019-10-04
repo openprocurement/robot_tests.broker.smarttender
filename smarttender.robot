@@ -103,7 +103,7 @@ Login
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     Switch Browser    ${browserAlias}
-    Wait Until Keyword Succeeds  10m  5s  smarttender.Дочекатись синхронізації
+    #Wait Until Keyword Succeeds  5m  5s  smarttender.Дочекатись синхронізації
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
 Підготуватися до редагування
