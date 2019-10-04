@@ -64,12 +64,9 @@ def strip_string(s):
 
 
 def adapt_data(tender_data):
-    tender_data.data.procuringEntity[
-        'name'] = u"ФОНД ГАРАНТУВАННЯ ВКЛАДІВ ФІЗИЧНИХ ОСІБ"
-    tender_data.data.procuringEntity['identifier'][
-        'legalName'] = u"ФОНД ГАРАНТУВАННЯ ВКЛАДІВ ФІЗИЧНИХ ОСІБ"
+    tender_data.data.procuringEntity['name'] = u"PROZORRO. Продажі"
+    tender_data.data.procuringEntity['identifier']['legalName'] = u"PROZORRO. Продажі"
     tender_data.data.procuringEntity['identifier']['id'] = u"111111111111111"
-    tender_data.data.procuringEntity['name'] = u''
     for item in tender_data.data['items']:
         if item.unit['name'] == u"метри квадратні":
             item.unit['name'] = u"м.кв."
