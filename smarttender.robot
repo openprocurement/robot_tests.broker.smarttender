@@ -44,23 +44,29 @@ loading дочекатись закінчення загрузки сторін�
 loading дочекатися відображення елемента на сторінці
 	[Documentation]  timeout=...s/...m
 	[Arguments]  ${locator}  ${timeout}=10s
+	Set Selenium Implicit Wait  .1
 	Log  Element Should Be Visible "${locator}" after ${timeout}
 	Register Keyword To Run On Failure  No Operation
 	Run Keyword And Continue On Failure  Wait Until Keyword Succeeds  ${timeout}  .5  Element Should Be Visible  ${locator}
 	Register Keyword To Run On Failure  Capture Page Screenshot
 	[Teardown]  Run Keyword If  "${KEYWORD STATUS}" == "FAIL"
-	...  Element Should Be Visible  ${locator}  Oops!${\n}Element "${locator}" is not visible after ${timeout} (s/m).
+			...  run keywords
+				...  Element Should Be Visible  ${locator}  Oops!${\n}Element "${locator}" is not visible after ${timeout} (s/m).  AND
+				...  Set Selenium Implicit Wait  5
 
 
 loading дочекатися зникнення елемента зі сторінки
 	[Documentation]  timeout=...s/...m
 	[Arguments]  ${locator}  ${timeout}=10s
+	Set Selenium Implicit Wait  .1
 	Log  Element Should Not Be Visible "${locator}" after ${timeout}
 	Register Keyword To Run On Failure  No Operation
 	Run Keyword And Continue On Failure  Wait Until Keyword Succeeds  ${timeout}  .5  Element Should Not Be Visible  ${locator}
 	Register Keyword To Run On Failure  Capture Page Screenshot
 	[Teardown]  Run Keyword If  "${KEYWORD STATUS}" == "FAIL"
-	...  Element Should Not Be Visible  ${locator}  Oops!${\n}Element "${locator}" is visible after ${timeout} (s/m).
+			...  run keywords
+				...  Element Should Not Be Visible  ${locator}  Oops!${\n}Element "${locator}" is visible after ${timeout} (s/m).  AND
+				...  Set Selenium Implicit Wait  5
 
 
 Підготувати клієнт для користувача
