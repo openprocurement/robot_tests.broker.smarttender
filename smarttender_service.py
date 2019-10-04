@@ -302,7 +302,8 @@ def convert_result(field, value):
     elif "dgfDecisionDate" in field:
         ret = convert_date_offset_naive(value)
     elif "procurementMethodType" in field:
-        ret = u"dgfFinancialAssets" if value == u"Продаж права вимоги за кредитними договорами" else u"aaaaaaaaaaaaaaa"
+        if value == u"Продаж права вимоги за кредитними договорами":
+            ret = u"dgfFinancialAssets"
     else:
         ret = value
     return ret

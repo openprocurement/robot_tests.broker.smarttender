@@ -115,7 +115,7 @@ Login
     Sleep        5s
     Wait Until Page Contains    Робочий стіл    30
     Click Element    jquery=.listviewDataItem[data-itemkey='434']
-    Wait Until Page Contains        Тестові аукціони на продаж
+    Wait Until Page Contains        Тестові аукціони на продаж  20
     sleep    3s
     Focus    jquery=div[data-placeid='TENDER'] table.hdr tr:eq(2) td:eq(3) input:eq(0)
     sleep   1s
