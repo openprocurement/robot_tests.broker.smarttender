@@ -103,6 +103,7 @@ Login
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     Switch Browser    ${browserAlias}
+    #Wait Until Keyword Succeeds  10m  5s  smarttender.Дочекатись синхронізації
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
 Підготуватися до редагування
@@ -137,6 +138,8 @@ Login
     Capture Page Screenshot
     click element  //*[@data-qa="tender-0"]//a[@class]
     loading дочекатись закінчення загрузки сторінки
+    ${auction_href}  Get location
+    log  ${auction_href}  warn
 
 Focus And Input
     [Arguments]    ${selector}    ${value}    ${method}=SetText
@@ -1068,3 +1071,28 @@ Input Ade
     sleep      2s
     ${ContractState}=        Execute JavaScript        return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(6)").text();})()
     Should Be Equal     ${ContractState}     Підписаний
+
+
+
+################################################################################################################
+                                        ###   KEYWORDS   ###
+################################################################################################################
+Дочекатись синхронізації
+	${url}  Set Variable  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":6}
+	${response}  evaluate  requests.get('${url}').content  requests
+	${a}  Replace String  ${response}   \n  ${Empty}
+	${content}  Get Regexp Matches  ${a}  {(?P<content>.*)}  content
+	${reg}  evaluate  re.search(r'"DateStart":"(?P<DateStart>.*)","DateEnd":"(?P<DateEnd>.*)","WorkStatus":"(?P<WorkStatus>.*)","Success":(?P<Success>.*)', '${content[0]}')  re
+
+	${DateStart}  evaluate  "${reg.group('DateStart')}"
+	${DateEnd}  evaluate  "${reg.group('DateEnd')}"
+	${WorkStatus}  evaluate  "${reg.group('WorkStatus')}"
+	${Success}  evaluate  "${reg.group('Success')}"
+
+	${result}  Subtract Date From Date  ${DateStart}  ${TENDER['LAST_MODIFICATION_DATE']}  date1_format=%d.%m.%Y %H:%M:%S  date2_format=%Y-%m-%d %H:%M:%S.%f
+	${status}  set variable if  ${result} > 0  ${True}
+	${status}  Run Keyword if  ${status} and '${DateEnd}' != '${EMPTY}' and '${WorkStatus}' != 'working' and '${WorkStatus}' != 'fail' and '${Success}' == 'true'
+	...  Set Variable  Pass
+	Should Be Equal  ${status}  Pass
+	reload page
+	loading дочекатись закінчення загрузки сторінки

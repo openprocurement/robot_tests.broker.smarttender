@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # -- coding: utf-8 --
+
+
 from munch import munchify as smarttender_munchify
 from iso8601 import parse_date
 from dateutil.parser import parse
@@ -62,6 +64,12 @@ def strip_string(s):
 
 
 def adapt_data(tender_data):
+    tender_data.data.procuringEntity[
+        'name'] = u"ФОНД ГАРАНТУВАННЯ ВКЛАДІВ ФІЗИЧНИХ ОСІБ"
+    tender_data.data.procuringEntity['identifier'][
+        'legalName'] = u"ФОНД ГАРАНТУВАННЯ ВКЛАДІВ ФІЗИЧНИХ ОСІБ"
+    tender_data.data.procuringEntity['identifier']['id'] = u"111111111111111"
+    tender_data.data.procuringEntity['name'] = u''
     for item in tender_data.data['items']:
         if item.unit['name'] == u"метри квадратні":
             item.unit['name'] = u"м.кв."
@@ -302,8 +310,7 @@ def convert_result(field, value):
     elif "dgfDecisionDate" in field:
         ret = convert_date_offset_naive(value)
     elif "procurementMethodType" in field:
-        if value == u"Продаж права вимоги за кредитними договорами":
-            ret = u"dgfFinancialAssets"
+        ret = u"dgfFinancialAssets" if value == u"Продаж права вимоги за кредитними договорами" else u"aaaaaaaaaaaaaaa"
     else:
         ret = value
     return ret
