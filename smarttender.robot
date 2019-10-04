@@ -103,7 +103,7 @@ Login
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     Switch Browser    ${browserAlias}
-    #Wait Until Keyword Succeeds  10m  5s  smarttender.Дочекатись синхронізації
+    Wait Until Keyword Succeeds  10m  5s  smarttender.Дочекатись синхронізації
     smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
 Підготуватися до редагування
@@ -1078,7 +1078,7 @@ Input Ade
                                         ###   KEYWORDS   ###
 ################################################################################################################
 Дочекатись синхронізації
-	${url}  Set Variable  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":6}
+	${url}  Set Variable  http://test.smarttender.biz/ws/webservice.asmx/Execute?calcId=_QA.GET.LAST.SYNCHRONIZATION&args={"SEGMENT":4}
 	${response}  evaluate  requests.get('${url}').content  requests
 	${a}  Replace String  ${response}   \n  ${Empty}
 	${content}  Get Regexp Matches  ${a}  {(?P<content>.*)}  content
