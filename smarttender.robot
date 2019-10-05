@@ -104,7 +104,9 @@ Login
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     Switch Browser    ${browserAlias}
     #Wait Until Keyword Succeeds  5m  5s  smarttender.Дочекатись синхронізації
-    smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
+    Reload Page
+    loading дочекатись закінчення загрузки сторінки
+#    smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
 
 Підготуватися до редагування
     [Arguments]     ${USER}     ${TENDER_ID}
@@ -384,14 +386,7 @@ Input Ade
 Отримати інформацію із тендера
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
-    ...    ${ARGUMENTS[1]} == fieldname
-    ${isCancellationField}=     string_contains     ${ARGUMENTS[2]}    cancellation
-    ${isQuestionField}=     string_contains     ${ARGUMENTS[2]}    questions
-    ${isDataAuctionStart}=      string_contains     ${ARGUMENTS[2]}    auctionPeriod.startDate 
-    Run Keyword If    '${ARGUMENTS[2]}' == 'status' or '${isCancellationField}' == 'true' or '${isDataAuctionStart}' == 'true'
-    ...     smarttender.Оновити сторінку з тендером     @{ARGUMENTS}
-    Run Keyword If     '${isCancellationField}' == 'true'   smarttender.Відкрити сторінку із данними скасування
-    Run Keyword If    '${isQuestionField}' == 'true'    smarttender.Відкрити сторінку із даними запитань
+    ...    ${ARGUMENTS[2]} == fieldname
     ${selector}=     auction_field_info    ${ARGUMENTS[2]}
     ${ret}=  get text  xpath=${selector}
     ${ret}=             convert_result        ${ARGUMENTS[2]}       ${ret}

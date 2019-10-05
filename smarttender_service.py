@@ -172,7 +172,6 @@ def auction_field_info(field):
             "classification.id": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Класифікація"]/../following-sibling::div[contains(@class, "second")]/span""",
             "classification.description": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Класифікація"]/../following-sibling::div[contains(@class, "second")]/span""",
             "unit.name": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Кількість"]/../following-sibling::div[contains(@class, "second")]/span""",
-            "unit.code": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Кількість"]/../following-sibling::div[contains(@class, "second")]/span""",
             "quantity": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Кількість"]/../following-sibling::div[contains(@class, "second")]/span""",
         }
         return (map[result]).format(item_id)
@@ -183,7 +182,7 @@ def auction_field_info(field):
         result = string.join(splitted, '.')
         map = {
             "description": "div.q-content",
-            "title": "div.title-question span.question-title-inner",
+            "title": """qqqqq""""",
             "answer": "div.answer div:eq(2)"
         }
         return ("div.question:Contains('{0}') ".format(question_id)) + map[result]
@@ -198,14 +197,14 @@ def auction_field_info(field):
         return map[result].format(award_id)
     else:
         map = {
-            "dgfID": "span.info_dgfId",
-            "title": "span.info_orderItem",
-            "description": ".container-fluid .page-header .col-sm-7 span:eq(0)",
+            "dgfID": """//*[@data-qa="auction-dgfId"]""",
+            "title": """//*[@data-qa="auction-title"]""",
+            "description": """//*[@data-qa="auction-description"]""",
             "value.amount": """//*[@data-qa="initial-amount"]""",
-            "value.currency": "span.info_currencyId",
-            "value.valueAddedTaxIncluded": "span.info_withVat",
-            "auctionID": "span.info_tendernum",
-            "procuringEntity.name": "span.info_organization",
+            "value.currency": """//*[@data-qa="initial-amount"]""",
+            "value.valueAddedTaxIncluded": """//*[@data-qa="initial-amount"]""",
+            "auctionID": """//*[@data-qa="cdbNumber"]""",
+            "procuringEntity.name": """//*[@data-qa="auction-seller"]/../div[@class="ivu-poptip"]""",
             "enquiryPeriod.startDate": "span.info_enquirysta",
             "enquiryPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Період уточнень")]//span[not(@data-qa)]""",
             "tenderPeriod.startDate": "span.info_enquirysta",
@@ -278,22 +277,33 @@ def string_contains(check_string,value):
 
 
 def convert_result(field, value):
-    if field == "value.amount":
+    if "value." in field:
         search = re.search(u"(?P<amount>.+,[0-9]{2}) (?P<currency>[^\.]+)\. (?P<VAT>(без ПДВ)|(з ПДВ))", value)
-        ret = float(search.group("amount").replace(" ", "").replace(",", "."))
+        if field == "value.amount":
+            ret = float(search.group("amount").replace(" ", "").replace(",", "."))
+        elif field == "value.currency":
+            currency = search.group("currency")
+            ret = "UAH" if currency == u"грн" else u"ошибка"
+        elif field == "value.valueAddedTaxIncluded":
+            vat = search.group("VAT").replace(" ", "").replace(",", ".")
+            ret = False if vat == u"без ПДВ" else True
+    elif "classification." in field:
+        search = re.search("^(?P<scheme>.+): (?P<id>[0-9]+-[0-9]+) . (?P<description>.+)$", value)
+        if "classification.id" in field:
+            ret = search.group("id")
+        elif "classification.scheme" in field:
+            ret = search.group("scheme")
+        elif "classification.description" in field:
+            ret = search.group("description")
     elif field == "minimalStep.amount":
         search = re.search(u"^(?P<percent>[^%]+)% або (?P<amount>.+) грн", value)
         ret = float(search.group("amount").replace(" ", "").replace(",", "."))
     elif "quantity" in field:
-        ret = int(value)
-    elif field == "value.valueAddedTaxIncluded":
-        ret = value == "True"
-    elif field == "value.currency":
-        ret = convert_currency_from_smarttender_format(value)
-    elif "unit.code" in field:
-        ret = convert_edi_from_starttender_format(value)
+        search = re.search("^(?P<quantity>[^ ]+) (?P<unit>.*)$", value)
+        ret = int(search.group("quantity"))
     elif "unit.name" in field:
-        ret = convert_unit_from_smarttender_format(value)
+        search = re.search("^(?P<quantity>[^ ]+) (?P<unit>.*)$", value)
+        ret = search.group("unit")
     elif "auctionPeriod.startDate" in field:
         ret = convert_date(value)
     elif "tenderPeriod." in field:
