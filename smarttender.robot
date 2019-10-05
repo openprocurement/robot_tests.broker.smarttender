@@ -225,7 +225,8 @@ Input Ade
     Focus And Input     \#cpModalMode table[data-name='TITLE'] input     ${title}
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
-    # ввод procuringEntityName
+    # ввод procuringEntityId
+	Execute JavaScript  document.evaluate(`//div[@data-name='ORG_GPO_2']//input[@type="text"]`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value=""
     input text  //div[@data-name='ORG_GPO_2']//input[@type="text"]  ${procuringEntityId}
     press key  //div[@data-name='ORG_GPO_2']//input[@type="text"]  \\13
     loading дочекатися відображення елемента на сторінці  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
