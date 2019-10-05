@@ -131,7 +131,7 @@ Login
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
-    Go To    https://test.smarttender.biz/auktsiony-na-prodazh-aktyviv-bankiv/?tm=2
+    Go To    https://test.smarttender.biz/auktsiony-na-prodazh-aktyviv-bankiv
     loading дочекатись закінчення загрузки сторінки
 	input text  //*[@data-qa="search-block-input"]//input  ${ARGUMENTS[1]}
 	click element  //*[@data-qa="search-block-input"]//button
@@ -527,56 +527,41 @@ Input Ade
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} == ${test_bid_data}
-    smarttender.Пройти кваліфікацію для подачі пропозиції       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
+    smarttender.Подати заявку на участь в аукціоні       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     Log     ${mode}
-    ${response}=  Run Keyword If    '${mode}' == 'dgfInsider'   
-    ...     smarttender.Прийняти участь в тендері dgfInsider  ${ARGUMENTS[0]}     ${ARGUMENTS[1]}       ${ARGUMENTS[2]}
-    ...    ELSE        
-    ...     smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
+    ${response}=  smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     [Return]    ${response}
 
-Пройти кваліфікацію для подачі пропозиції
+Подати заявку на участь в аукціоні
     [Arguments]    ${user}    ${tenderId}    ${bid}
     Switch Browser  ${browserAlias}
-    ${temp}=    Get Variable Value    ${bid['data'].qualified}
-    ${shouldQualify}=    convert_bool_to_text    ${temp}
-    Return From Keyword If     '${shouldQualify}' == 'false'
-    Run Keyword     smarttender.Пошук тендера по ідентифікатору       ${user}    ${tenderId}
-    Wait Until Page Contains Element  jquery=a#participate  10s
-    ${lotId}=    Execute JavaScript    return(function(){return $("span.info_lotId").text()})()
-    Click Element     jquery=a#participate
-    Wait Until Page Contains Element  jquery=iframe#widgetIframe:eq(0)  10s
-    Select Frame      jquery=iframe#widgetIframe:eq(0)
-    Focus    jquery=input#firstName
-    Input Text      jquery=input#firstName    Іван
-    sleep    1s
-    Focus    jquery=input#secondName
-    Input Text      jquery=input#secondName    Іванов
-    sleep    1s
-    Focus    jquery=input#patronymic
-    Input Text      jquery=input#patronymic    Іванович
-    sleep    1s
-    Focus    jquery=input#phone
-    Input Text      jquery=input#phone    +38011111111
-    sleep    1s
-    Run Keyword And Ignore Error    smarttender.Заповнити поле значенням    jquery=input#licenseSeries    DI
-    Run Keyword And Ignore Error    smarttender.Заповнити поле значенням    jquery=input#licenseNumber    111111111
-    sleep    1s
-    Click Element    jquery=a.next
-    Wait Until Page Contains    Відправити
+    # натиснути "Взяти участь"
+    loading дочекатися відображення елемента на сторінці  //*[@data-qa="btn-participate"]
+    click element  //*[@data-qa="btn-participate"]
+    ${participate_modal_locator}  set variable  //*[@data-qa="dynamic-form-auction-request"]
+	loading дочекатися відображення елемента на сторінці  ${participate_modal_locator}//*[@placeholder="Ваше ім'я"]
+	# Заповнити всі поля
+	input text  ${participate_modal_locator}//*[@placeholder="Ваше ім'я"]  Іван
+	input text  ${participate_modal_locator}//*[@placeholder="Ваше прізвище"]  Іванов
+	input text  ${participate_modal_locator}//*[@placeholder="Як Вас по батькові"]  Іванович
+	input text  ${participate_modal_locator}//*[@placeholder="Ваш номер"]  +38011111111
+	# Завантажити документи
     ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
-    Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#GUARAN    ${file_path}
-    Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#FIN    ${file_path}
-    Run Keyword And Ignore Error    smarttender.Додати документ до кваліфікації    jquery=input#NOTDEP    ${file_path}
-    Click Element    jquery=input#regulationsAccept
-    Click Element    jquery=input#offerAccept
-    Click Element    jquery=input#instruction
-    Click Element    jquery=input#tariffAccept
-    Click Element    jquery=a.submit:eq(0)
-    Unselect Frame
-    sleep    5s
-    Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_QA.ACCEPTAUCTIONBIDREQUEST&args={"IDLOT":"${lotId}","SUCCESS":"true"}&ticket=
-    Wait Until Page Contains     True
+    smarttender.Додати документ до кваліфікації    xpath=(${participate_modal_locator}//input[@type="file"])[3]    ${file_path}
+    smarttender.Додати документ до кваліфікації    xpath=(${participate_modal_locator}//input[@type="file"])[1]    ${file_path}
+    # Відмітити всі чекбокси
+    click element  xpath=(${participate_modal_locator}//input[@type="checkbox"])[1]
+	sleep  5s
+	capture page screenshot
+	click element  ${participate_modal_locator}//*[@data-qa="dynamic-form-submit-button"]
+	loading дочекатись закінчення загрузки сторінки
+	# Підтвердити заявку
+	${resp}  evaluate  requests.get("""http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_QA.ACCEPTAUCTIONBIDREQUEST&args={"IDLOT":"${tenderId}","SUCCESS":"true"}&ticket=""")  requests
+	should be equal as integers  ${resp.status_code}  200
+	should contain  ${resp.text}  True
+	reload page
+	loading дочекатись закінчення загрузки сторінки
+
 
 Додати документ до кваліфікації
     [Arguments]    ${selector}    ${doc}
@@ -604,22 +589,13 @@ Input Ade
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} ==  ${test_bid_data}
     ${amount}=      Get From Dictionary    ${ARGUMENTS[2].data.value}      amount
-    smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    sleep    2s
-    ${href} =     Get Element Attribute      jquery=a#bid@href
-    Click Element     jquery=a#bid
-    sleep    3s
-    Select Window     url=${href}
-    sleep    3s
-    Wait Until Page Contains       Пропозиція по аукціону
-    sleep    2s
-    ${value}=     Execute JavaScript     return (function() { var a = ${${amount}}; return a.toString().replace('.',',') })()
-    Focus      jquery=div#lotAmount0 input
-    sleep   2s
-    Input text      jquery=div#lotAmount0 input    ${value}
-    sleep    1s
-    Click Element      jquery=button#submitBidPlease
-    Wait Until Page Contains       Пропозицію прийнято      15s
+    click element  //*[@data-qa="btn-bid-submit"]
+	loading дочекатись закінчення загрузки сторінки
+	loading дочекатися відображення елемента на сторінці  //input[@placeholder="Ваша ставка, грн."]
+	input text  //input[@placeholder="Ваша ставка, грн."]  "${amount}"
+	click element  //*[@id="submitBidPlease"]
+	loading дочекатись закінчення загрузки сторінки
+	Wait Until Page Contains       Пропозицію прийнято      15s
     ${response}=      smarttender_service.get_bid_response    ${${amount}}
     [Return]    ${response}
 
@@ -658,17 +634,12 @@ Input Ade
     ...    ${ARGUMENTS[1]} == path
     ...    ${ARGUMENTS[2]} == tenderid
     Pass Execution If     '${mode}' == 'dgfOtherAssets'     Для типа 'Продаж майна банків, що ліквідуються' документы не вкладываются
-    smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[2]}
-    Wait Until Page Contains Element        jquery=a#bid    5s
-    ${href} =     Get Element Attribute      jquery=a#bid@href
-    Click Element     jquery=a#bid
-    Select Window     url=${href}
-    Wait Until Page Contains       Пропозиція   10s
-    Wait Until Page Contains Element        jquery=button:contains('Обрати файли')    5s
-    Choose File     jquery=button:contains('Обрати файли')    ${ARGUMENTS[1]}
-    Click Element      jquery=button#submitBidPlease
-    Wait Until Page Contains Element        jquery=button:contains('Так')    5s
-    Click Element      jquery=button:contains('Так')
+    reload page
+    loading дочекатись закінчення загрузки сторінки
+	Choose File     //input[@type="file"]    ${ARGUMENTS[1]}
+	loading дочекатись закінчення загрузки сторінки
+	click element  //*[@id="submitBidPlease"]
+	loading дочекатись закінчення загрузки сторінки
     Wait Until Page Contains       Пропозицію прийнято      30s
 
 Змінити документ в ставці
