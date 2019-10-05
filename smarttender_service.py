@@ -119,6 +119,7 @@ def convert_award_status_from_smart_format(award_status):
         u"Оцінка": u"pending",
         u"Очікує дискваліфікації першого учасника": u"pending.waiting",
         u"Дискваліфікований": u"unsuccessful",
+        u"Рішення скасовано": u"cancelled",
     }
     return map[award_status]
 

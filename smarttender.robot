@@ -82,7 +82,7 @@ loading дочекатися зникнення елемента зі сторі
 Login
     [Arguments]     @{ARGUMENTS}
     return from keyword if  '${ARGUMENTS[0]}' == 'SmartTender_Viewer'
-    go to  http://test.smarttender.biz/
+#    go to  http://test.smarttender.biz/
     loading дочекатись закінчення загрузки сторінки
     Click Element    //*[@data-qa="title-btn-modal-login"]
     loading дочекатися відображення елемента на сторінці  //*[@data-qa="title-modal-login"]
@@ -110,23 +110,18 @@ Login
 
 Підготуватися до редагування
     [Arguments]     ${USER}     ${TENDER_ID}
-    Go To    http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
-    Wait Until Page Contains     True     30s
-    sleep    10s
-    Go To    ${USERS.users['${USER}'].homepage}
-    Click Element    LoginAnchor
-    Sleep        5s
-    Wait Until Page Contains    Робочий стіл    30
-    Click Element    jquery=.listviewDataItem[data-itemkey='434']
+    Go To    https://test.smarttender.biz/webclient/?testmode=1&proj=it_uk
     loading дочекатись закінчення загрузки сторінки
-    Wait Until Page Contains        Тестові аукціони на продаж  20
-    sleep    3s
+    loading дочекатися відображення елемента на сторінці  //*[@title="Аукціони ФГВ(Тестові)"]
+    Click Element    //*[@title="Аукціони ФГВ(Тестові)"]
+    loading дочекатись закінчення загрузки сторінки
+    Wait Until Page Contains        Тестові аукціони на продаж  30
     Focus    jquery=div[data-placeid='TENDER'] table.hdr tr:eq(2) td:eq(3) input:eq(0)
     sleep   1s
     Input Text      jquery=div[data-placeid='TENDER'] table.hdr tr:eq(2) td:eq(3) input:eq(0)    ${TENDER_ID}
     sleep   1s
     Press Key       jquery=div[data-placeid='TENDER'] table.hdr tr:eq(2) td:eq(3) input:eq(0)        \\13
-    sleep    3s
+	loading дочекатись закінчення загрузки сторінки
 
 Пошук тендера по ідентифікатору
     [Arguments]    @{ARGUMENTS}
@@ -868,6 +863,7 @@ Input Ade
 
 Підтвердити наявність протоколу аукціону
     [Arguments]    ${user}     ${tenderId}    ${bidIndex}
+    log to console  1
 	debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -881,6 +877,7 @@ Input Ade
 
 Отримати кількість документів в ставці
     [Arguments]    ${user}     ${tenderId}    ${bidIndex}
+    log to console  2
     debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -923,6 +920,7 @@ Input Ade
 
 Отримати дані із документу пропозиції
     [Arguments]    ${user}    ${tenderId}    ${bid_index}    ${document_index}    ${field}
+    log to console  3
     debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -935,6 +933,7 @@ Input Ade
 
 Скасування рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${tenderId}    ${index}
+    log to console  4
     debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'tender_owner'   Доступно тільки для другого учасника
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
@@ -1000,6 +999,7 @@ Input Ade
 
 Завантажити протокол аукціону в авард
     [Arguments]    ${username}    ${tender_uaid}    ${filepath}    ${award_index}
+    log to console  5
     debug
     smarttender.Завантажити документ рішення кваліфікаційної комісії    ${username}    ${filepath}    ${tender_uaid}     ${award_index}
     Sleep    3s    reason=None
@@ -1011,6 +1011,7 @@ Input Ade
 
 Завантажити документ рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${filePath}    ${tenderId}    ${index}
+    log to console  6
     debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підтвердити постачальника
     Підготуватися до редагування     ${user}      ${tenderId}
