@@ -107,9 +107,10 @@ def get_question_data(id):
 
 def convert_auction_status_from_smart_format(auction_status):
     map = {
-        u"Аукціон": u"active.auction",
-        u"Торги не відбулися": u"unsuccessful",
         u"Прийом пропозицій": u"active.tendering",
+        u"Аукціон": u"active.auction",
+        u"Кваліфікація": u"active.qualification",
+        u"Торги не відбулися": u"unsuccessful",
     }
     return map[auction_status]
 
