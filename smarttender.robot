@@ -236,13 +236,6 @@ Input Ade
     press key  ${org_search_input}  \\13
     click element  //*[@data-name="OkButton"][contains(@id,"ORGSRCH")]
     Підтвердити вибір(F10)
-        #Execute JavaScript  document.evaluate(`//div[@data-name='ORG_GPO_2']//input[@type="text"]`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value=""
-        #clear element text  //div[@data-name='ORG_GPO_2']//input[@type="text"]
-        #input text  //div[@data-name='ORG_GPO_2']//input[@type="text"]  ${procuringEntity_legalName}
-        #press key  //div[@data-name='ORG_GPO_2']//input[@type="text"]  \\13
-        #loading дочекатись закінчення загрузки сторінки
-        #loading дочекатися відображення елемента на сторінці  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
-        #click element  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
 	# ввод tenderAttempts
 	click element  //*[@data-name='ATTEMPT']
 	loading дочекатися відображення елемента на сторінці  //*[@class="dxpcDropDown_DevEx dxpclW dxpc-ddSys" and not(contains(@style, "display:none"))]
@@ -870,7 +863,8 @@ Input Ade
 ####################################
 
 Підтвердити наявність протоколу аукціону
-	  [Arguments]    ${user}     ${tenderId}    ${bidIndex}
+    [Arguments]    ${user}     ${tenderId}    ${bidIndex}
+	debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep     1s
@@ -883,6 +877,7 @@ Input Ade
 
 Отримати кількість документів в ставці
     [Arguments]    ${user}     ${tenderId}    ${bidIndex}
+    debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep     1s
@@ -897,23 +892,34 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підтвердити постачальника
     Підготуватися до редагування     ${ARGUMENTS[0]}      ${ARGUMENTS[1]}
-    sleep    3s
-    Click Element      jquery=#MainSted2TabPageHeaderLabelActive_1
-    sleep    1s
-    ${normalizedIndex}=     normalize_index    ${ARGUMENTS[2]}     1
-    Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
-    sleep    2s
-    Click Element      jquery=a[title='Квалификация']
-    sleep    5s
-    Click Element    jquery=div.dxbButton_DevEx:contains('Підтвердити оплату')
-    sleep    3s
-    Click Element    jquery=div#IMMessageBoxBtnYes
+    loading дочекатись закінчення загрузки сторінки
+	click element  //*[@id="MainSted2TabPageHeaderLabelActive_1" and contains(., "Пропозиції")]
+	loading дочекатись закінчення загрузки сторінки
+    ${normalizedIndex}=     evaluate  int(${ARGUMENTS[2]}) + 1
+    click element  xpath=(//*[@data-placeid="BIDS"]//*[@class="objbox selectable objbox-scrollable"]//tr[not(@style)])[${normalizedIndex}]
+    loading дочекатись закінчення загрузки сторінки
+	loading дочекатися відображення елемента на сторінці  //*[@title="Кваліфікація"]
+    click element  //*[@title="Кваліфікація"]
+    ${qual_sceen_locator}  set variable  //*[@id="pcModalMode_PW-1" and contains(., "Рішення кваліфікації")]
+	loading дочекатися відображення елемента на сторінці  ${qual_sceen_locator}
+	# Підтвердити перевірку протоколу
+	click element  ${qual_sceen_locator}//*[text()="Підтвердити перевірку протоколу"]
+	loading дочекатись закінчення загрузки сторінки
+	# Натиснути зберегти
+	click element  ${qual_sceen_locator}//*[@title="Зберегти"]
+	loading дочекатись закінчення загрузки сторінки
+	# Натиснути "Так" в валідаційному вікні
+	loading дочекатися відображення елемента на сторінці  //*[@id="IMMessageBox_PW-1" and contains(., "Ви впевнені у своєму рішенні?")]
+	click element  //*[@id="IMMessageBox_PW-1" and contains(., "Ви впевнені у своєму рішенні?")]//*[@id="IMMessageBoxBtnYes"]
+	loading дочекатись закінчення загрузки сторінки
     sleep    10s
-    ${status}=     Execute JavaScript      return  (function() { return $("div[data-placeid='BIDS'] tr.rowselected td:eq(5)").text() } )()
-    Should Be Equal       '${status}'      'Визначений переможцем'
+    # Отримати статус біда
+    ${status}  get element attribute  (//*[@data-placeid="BIDS"]//*[@class="objbox selectable objbox-scrollable"]//tr[not(@style) and contains(@class, "rowselected")]//td)[6]@innerText
+    should be equal as strings  ${status}  Визначений переможцем
 
 Отримати дані із документу пропозиції
     [Arguments]    ${user}    ${tenderId}    ${bid_index}    ${document_index}    ${field}
+    debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep     1s
@@ -925,6 +931,7 @@ Input Ade
 
 Скасування рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${tenderId}    ${index}
+    debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'tender_owner'   Доступно тільки для другого учасника
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
     Sleep    4s
@@ -939,6 +946,7 @@ Input Ade
 
 Дискваліфікувати постачальника
     [Arguments]    ${user}    ${tenderId}    ${index}    ${description}
+    debug
     Підготуватися до редагування     ${user}      ${tenderId}
     sleep    3s
     Click Element      jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -957,6 +965,7 @@ Input Ade
 
 Завантажити протокол аукціону
     [Arguments]    ${user}    ${tenderId}    ${filePath}    ${index}
+    debug
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
     ${href}=    Get Element Attribute    jquery=div#auctionResults div.row.well:eq(${index}) a.btn.btn-primary@href
     Go To      ${href}
@@ -975,6 +984,7 @@ Input Ade
 
 Завантажити протокол аукціону в авард
     [Arguments]    ${username}    ${tender_uaid}    ${filepath}    ${award_index}
+    debug
     smarttender.Завантажити документ рішення кваліфікаційної комісії    ${username}    ${filepath}    ${tender_uaid}     ${award_index}
     Sleep    3s    reason=None
     Click Element    jquery=a[title='Зберегти']
@@ -985,6 +995,7 @@ Input Ade
 
 Завантажити документ рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${filePath}    ${tenderId}    ${index}
+    debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підтвердити постачальника
     Підготуватися до редагування     ${user}      ${tenderId}
     sleep    3s
@@ -993,7 +1004,7 @@ Input Ade
     ${normalizedIndex}=     normalize_index    ${index}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
     sleep    2s
-    Click Element      jquery=a[title='Квалификация']
+    Click Element      jquery=a[title='Кваліфікація']
     sleep    5s
     Click Element    jquery=span:contains('Обзор')
     Wait Until Page Contains    Список файлів
