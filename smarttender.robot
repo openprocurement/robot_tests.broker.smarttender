@@ -226,13 +226,23 @@ Input Ade
     Focus And Input     \#cpModalMode table[data-name='DESCRIPT'] textarea     ${description}
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
     # ввод procuringEntityId
-	Execute JavaScript  document.evaluate(`//div[@data-name='ORG_GPO_2']//input[@type="text"]`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value=""
-    clear element text  //div[@data-name='ORG_GPO_2']//input[@type="text"]
-    input text  //div[@data-name='ORG_GPO_2']//input[@type="text"]  ${procuringEntity_legalName}
-    press key  //div[@data-name='ORG_GPO_2']//input[@type="text"]  \\13
+    ${legalName_input}  set variable  //div[@data-name='ORG_GPO_2']//input[not(contains(@type,'hidden'))]
+    click element  ${legalName_input}
+    loading дочекатися відображення елемента на сторінці  ${legalName_input}/ancestor::tr/td[@title="Вибір з довідника (F10)"]
+    Click Element  ${legalName_input}/ancestor::tr/td[@title="Вибір з довідника (F10)"]
     loading дочекатись закінчення загрузки сторінки
-    #loading дочекатися відображення елемента на сторінці  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
-    #click element  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
+    ${org_search_input}  set variable  //*[@data-name="ORG"]//input[not(contains(@type,'hidden'))]
+    input text  ${org_search_input}  ${procuringEntity_legalName}
+    press key  ${org_search_input}  \\13
+    click element  //*[@data-name="OkButton"][contains(@id,"ORGSRCH")]
+    Підтвердити вибір(F10)
+        #Execute JavaScript  document.evaluate(`//div[@data-name='ORG_GPO_2']//input[@type="text"]`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value=""
+        #clear element text  //div[@data-name='ORG_GPO_2']//input[@type="text"]
+        #input text  //div[@data-name='ORG_GPO_2']//input[@type="text"]  ${procuringEntity_legalName}
+        #press key  //div[@data-name='ORG_GPO_2']//input[@type="text"]  \\13
+        #loading дочекатись закінчення загрузки сторінки
+        #loading дочекатися відображення елемента на сторінці  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
+        #click element  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
 	# ввод tenderAttempts
 	click element  //*[@data-name='ATTEMPT']
 	loading дочекатися відображення елемента на сторінці  //*[@class="dxpcDropDown_DevEx dxpclW dxpc-ddSys" and not(contains(@style, "display:none"))]
@@ -835,26 +845,17 @@ Input Ade
 Отримати посилання на аукціон для глядача
     [Arguments]    @{ARGUMENTS}
     Switch Browser  ${browserAlias}
-    reload page
-    loading дочекатись закінчення загрузки сторінки
-    click element  //*[@data-qa="button-poptip-view"]
-    sleep  3
-	loading дочекатися відображення елемента на сторінці  //a[@data-qa="link-view"]
-	${href}  get element attribute  //a[@data-qa="link-view"]@href
+    smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
+    ${href} =     Get Element Attribute      jquery=a#view-auction@href
+    Click Element    jquery=a#view-auction
+    sleep   10s
+    Select Window     url=${href}
     Log    ${href}
     [Return]      ${href}
 
 Отримати посилання на аукціон для учасника
     [Arguments]    @{ARGUMENTS}
     Switch Browser  ${browserAlias}
-    reload page
-    loading дочекатись закінчення загрузки сторінки
-	click element  //*[@data-qa="button-poptip-participate-view"]
-	sleep  5
-	loading дочекатися відображення елемента на сторінці  //a[@data-qa="link-participate"]
-	${href}  get element attribute  //a[@data-qa="link-participate"]@href
-
-
     smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
     Wait Until Page Contains Element        jquery=a#to-auction  5s
     Click Element    jquery=a#to-auction
@@ -1076,3 +1077,12 @@ Input Ade
 	Should Be Equal  ${status}  Pass
 	reload page
 	loading дочекатись закінчення загрузки сторінки
+
+
+Підтвердити вибір(F10)
+	${ok button}  Set Variable  //*[@title="Вибрати"]|//*[@title="Выбрать"]
+	loading дочекатися відображення елемента на сторінці  ${ok button}
+	loading дочекатись закінчення загрузки сторінки
+	Click Element  ${ok button}
+	loading дочекатись закінчення загрузки сторінки
+	Wait Until Page Does Not Contain Element  ${ok button}
