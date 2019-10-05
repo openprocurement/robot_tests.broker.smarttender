@@ -946,7 +946,6 @@ Input Ade
 
 Дискваліфікувати постачальника
     [Arguments]    ${user}    ${tenderId}    ${index}    ${description}
-    debug
     Підготуватися до редагування     ${user}      ${tenderId}
     sleep    3s
     Click Element      jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -954,14 +953,22 @@ Input Ade
     ${normalizedIndex}=     normalize_index    ${index}     1
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:eq(${normalizedIndex}) td:eq(1)
     sleep    2s
-    Click Element      jquery=a[title='Квалификация']
+    Click Element      jquery=a[title='Дисквалификация']
     sleep    5s
-    #Focus    jquery=#cpModalMode textarea
-    #Input Text    jquery=#cpModalMode textarea    ${description}
+    # Додати файл
+    click element  //input[@value="Перегляд..."]/../..
+    loading дочекатись закінчення загрузки сторінки
+    ${file_path}  ${file_title}  ${file_content}=  create_fake_doc
+    choose file  //input[@name="fileUpload[]"]  ${file_path}
+    sleep  10
+    click element  //*[@id="OpenFileRibbon_T0G0"]
+    loading дочекатись закінчення загрузки сторінки
+    Focus    jquery=#cpModalMode textarea
+    Input Text    jquery=#cpModalMode textarea    ${description}
     Click Element    jquery=div.dxbButton_DevEx.dxbButtonSys.dxbTSys span:contains('Відхилити пропозицію')
     Wait Until Page Contains    Ви впевнені у своєму рішенні?
     Click Element    jquery=#IMMessageBoxBtnYes
-    sleep    10s
+    loading дочекатись закінчення загрузки сторінки
 
 Завантажити протокол аукціону
     [Arguments]    ${user}    ${tenderId}    ${filePath}    ${index}
