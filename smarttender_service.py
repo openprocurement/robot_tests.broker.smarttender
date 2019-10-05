@@ -105,6 +105,15 @@ def get_question_data(id):
     return smarttender_munchify({'data': {'id': id}})
 
 
+def convert_auction_status_from_smart_format(auction_status):
+    map = {
+        u"Аукціон": u"active.auction",
+        u"Торги не відбулися": u"unsuccessful",
+        u"Прийом пропозицій": u"active.tendering",
+    }
+    return map[auction_status]
+
+
 def convert_unit_to_smarttender_format(unit):
     map = {
         u"кілограми": u"кг",
@@ -205,13 +214,13 @@ def auction_field_info(field):
             "value.valueAddedTaxIncluded": """//*[@data-qa="initial-amount"]""",
             "auctionID": """//*[@data-qa="cdbNumber"]""",
             "procuringEntity.name": """//*[@data-qa="auction-seller"]/../div[@class="ivu-poptip"]""",
-            "enquiryPeriod.startDate": "span.info_enquirysta",
+            "enquiryPeriod.startDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Період уточнень")]//span[not(@data-qa)]""",
             "enquiryPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Період уточнень")]//span[not(@data-qa)]""",
-            "tenderPeriod.startDate": "span.info_enquirysta",
+            "tenderPeriod.startDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Прийом пропозицій")]//span[not(@data-qa)]""",
             "tenderPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Прийом пропозицій")]//span[not(@data-qa)]""",
-            "auctionPeriod.startDate": "span.info_dtauction:eq(0)",
-            "auctionPeriod.endDate": "span.info_dtauctionEnd:eq(0)",
-            "status": "span.info_tender_status:eq(0)",
+            "auctionPeriod.startDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Початок аукціону")]//span[not(@data-qa)]""",
+            "auctionPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Початок аукціону")]//span[not(@data-qa)]""",
+            "status": """//*[@data-qa="auctionStatus"]""",
             "minimalStep.amount": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Мінімальний крок аукціону")]//span[not(@data-qa)]""",
             "cancellations[0].reason": "span.info_cancellation_reason",
             "cancellations[0].status": "span.info_cancellation_status",
@@ -304,8 +313,12 @@ def convert_result(field, value):
     elif "unit.name" in field:
         search = re.search("^(?P<quantity>[^ ]+) (?P<unit>.*)$", value)
         ret = search.group("unit")
-    elif "auctionPeriod.startDate" in field:
-        ret = convert_date(value)
+    elif "auctionPeriod" in field:
+        search = re.search(u"з (?P<startDate>.+) по (?P<endDate>.+)", value)
+        if "startDate" in field:
+            ret = convert_date(search.group("startDate"))
+        elif "endDate" in field:
+            ret = convert_date(search.group("endDate"))
     elif "tenderPeriod." in field:
         search = re.search(u"з (?P<startDate>.+) по (?P<endDate>.+)", value)
         if "startDate" in field:
@@ -318,6 +331,8 @@ def convert_result(field, value):
         ret = convert_date_offset_naive(value)
     elif "procurementMethodType" in field:
         ret = u"dgfFinancialAssets" if value == u"Продаж права вимоги за кредитними договорами" else u"aaaaaaaaaaaaaaa"
+    elif "status" == field:
+        ret = convert_auction_status_from_smart_format(value)
     else:
         ret = value
     return ret
