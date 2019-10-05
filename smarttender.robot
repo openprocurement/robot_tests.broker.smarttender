@@ -213,6 +213,7 @@ Input Ade
     ${tenderAttempts}=    Get From Dictionary    ${tender_data.data}    tenderAttempts
     Wait Until Page Contains    Робочий стіл    30
     Click Element    jquery=.listviewDataItem[data-itemkey='434']
+    loading дочекатись закінчення загрузки сторінки
     Wait Until Page Contains        Тестові аукціони на продаж
     Click Image    jquery=.dxrControl_DevEx a[title*='(F7)'] img:eq(0)
     Wait Until Element Contains    cpModalMode    Оголошення   20
