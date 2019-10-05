@@ -216,7 +216,7 @@ Input Ade
     loading дочекатись закінчення загрузки сторінки
     Wait Until Page Contains        Тестові аукціони на продаж
     Click Image    jquery=.dxrControl_DevEx a[title*='(F7)'] img:eq(0)
-    Wait Until Element Contains    cpModalMode    Оголошення   20
+    Wait Until Element Contains    cpModalMode    Оголошення   30
     Run Keyword If     '${mode}' == 'dgfOtherAssets'    Змінити процедуру
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
     Focus And Input     \#cpModalMode table[data-name='INITAMOUNT'] input      ${budget}
