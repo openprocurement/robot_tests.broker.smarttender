@@ -395,6 +395,10 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[2]} == fieldname
+    run keyword if  "${ARGUMENTS[2]}" == "status"
+        ...  run keywords
+                ...  reload page  AND
+                ...  loading дочекатись закінчення загрузки сторінки
     ${selector}=     auction_field_info    ${ARGUMENTS[2]}
     ${ret}=  get text  xpath=${selector}
     ${ret}=             convert_result        ${ARGUMENTS[2]}       ${ret}
