@@ -914,7 +914,7 @@ Input Ade
 	loading дочекатись закінчення загрузки сторінки
     sleep    10s
     # Отримати статус біда
-    ${status}  get element attribute  (//*[@data-placeid="BIDS"]//*[@class="objbox selectable objbox-scrollable"]//tr[not(@style) and contains(@class, "rowselected")]//td)[6]@innerText
+    ${status}  get element attribute  xpath=(//*[@data-placeid="BIDS"]//*[@class="objbox selectable objbox-scrollable"]//tr[not(@style) and contains(@class, "rowselected")]//td)[6]@innerText
     should be equal as strings  ${status}  Визначений переможцем
 
 Отримати дані із документу пропозиції
@@ -965,22 +965,27 @@ Input Ade
 
 Завантажити протокол аукціону
     [Arguments]    ${user}    ${tenderId}    ${filePath}    ${index}
-    debug
-    Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
-    ${href}=    Get Element Attribute    jquery=div#auctionResults div.row.well:eq(${index}) a.btn.btn-primary@href
-    Go To      ${href}
-    sleep    7s
-    Click Element    jquery=a.attachment-button:eq(0)
-    ${hrefQualification}=    Get Element Attribute    jquery=a.attachment-button:eq(0)@href
-    Select Window    url=${hrefQualification}
-    sleep    3s
-    Select Frame    jquery=iframe:eq(0)
-    sleep    10s
-    Choose File    jquery=input[name='fieldUploaderTender_TextBox0_Input']:eq(0)    ${filePath}
-    sleep    1s
-    Click Element    jquery=div#SubmitButton__1_CD
-    sleep    10s
-    Page Should Contain     Кваліфікаційні документи відправлені
+    Підготуватися до редагування     ${user}    ${tenderId}
+    loading дочекатись закінчення загрузки сторінки
+	click element  //*[@id="MainSted2TabPageHeaderLabelActive_1" and contains(., "Пропозиції")]
+	loading дочекатись закінчення загрузки сторінки
+    ${normalizedIndex}=     evaluate  int(${index}) + 1
+    click element  xpath=(//*[@data-placeid="BIDS"]//*[@class="objbox selectable objbox-scrollable"]//tr[not(@style)])[${normalizedIndex}]
+    loading дочекатись закінчення загрузки сторінки
+	loading дочекатися відображення елемента на сторінці  //*[@title="Кваліфікація"]
+    click element  //*[@title="Кваліфікація"]
+    ${qual_sceen_locator}  set variable  //*[@id="pcModalMode_PW-1" and contains(., "Рішення кваліфікації")]
+	loading дочекатися відображення елемента на сторінці  ${qual_sceen_locator}
+	# Завантажити протокол аукціону
+	click element  ${qual_sceen_locator}//*[text()="Перегляд..."]
+	loading дочекатися відображення елемента на сторінці  //*[@id="pcModalMode_PW-1" and contains(., "Виберіть протокол(и) рішення Кваліфікаційного комітету")]
+	Choose File  //*[@id="pcModalMode_PW-1" and contains(., "Виберіть протокол(и) рішення Кваліфікаційного комітету")]//input[@name="fileUpload[]"]  ${filePath}
+	sleep  10
+	click element  //*[@id="OpenFileRibbon_T0G0"]
+	# Натиснути зберегти
+	click element  ${qual_sceen_locator}//*[@title="Зберегти"]
+	loading дочекатись закінчення загрузки сторінки
+
 
 Завантажити протокол аукціону в авард
     [Arguments]    ${username}    ${tender_uaid}    ${filepath}    ${award_index}
