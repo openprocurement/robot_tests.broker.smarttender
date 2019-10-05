@@ -845,25 +845,25 @@ Input Ade
 Отримати посилання на аукціон для глядача
     [Arguments]    @{ARGUMENTS}
     Switch Browser  ${browserAlias}
-    smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-    ${href} =     Get Element Attribute      jquery=a#view-auction@href
-    Click Element    jquery=a#view-auction
-    sleep   10s
-    Select Window     url=${href}
+    reload page
+    loading дочекатись закінчення загрузки сторінки
+    click element  //*[@data-qa="button-poptip-view"]
+    sleep  3
+	loading дочекатися відображення елемента на сторінці  //a[@data-qa="link-view"]
+	${href}  get element attribute  //a[@data-qa="link-view"]@href
     Log    ${href}
     [Return]      ${href}
 
 Отримати посилання на аукціон для учасника
     [Arguments]    @{ARGUMENTS}
     Switch Browser  ${browserAlias}
-    smarttender.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-    Wait Until Page Contains Element        jquery=a#to-auction  5s
-    Click Element    jquery=a#to-auction
-    Wait Until Page Contains Element        jquery=iframe#widgetIframe  5s
-    Select Frame    jquery=iframe#widgetIframe
-    Wait Until Page Contains Element        jquery=a.link-button:eq(0)  10s
-    ${return_value}=    Get Element Attribute     jquery=a.link-button:eq(0)@href
-    [return]      ${return_value}
+    reload page
+    loading дочекатись закінчення загрузки сторінки
+	click element  //*[@data-qa="button-poptip-participate-view"]
+	sleep  5
+	loading дочекатися відображення елемента на сторінці  //a[@data-qa="link-participate"]
+	${href}  get element attribute  //a[@data-qa="link-participate"]@href
+	[Return]      ${href}
 
 ####################################
 #          QUALIFICATION           #
