@@ -192,7 +192,7 @@ Input Ade
     [Arguments]    @{ARGUMENTS}
     ${tender_data}=    Set Variable    ${ARGUMENTS[1]}
     ${items}=    Get From Dictionary    ${tender_data.data}    items
-    ${procuringEntityId}=    Get From Dictionary     ${tender_data.data.procuringEntity.identifier}    id
+    ${procuringEntity_legalName}=    Get From Dictionary     ${tender_data.data.procuringEntity.identifier}    legalName
     ${title}=    Get From Dictionary    ${tender_data.data}    title
     ${description}=    Get From Dictionary    ${tender_data.data}    description
     ${budget}=    Get From Dictionary    ${tender_data.data.value}    amount
@@ -227,10 +227,12 @@ Input Ade
     Focus And Input     \#cpModalMode table[data-name='DGFID'] input:eq(0)    ${dgfID}
     # ввод procuringEntityId
 	Execute JavaScript  document.evaluate(`//div[@data-name='ORG_GPO_2']//input[@type="text"]`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value=""
-    input text  //div[@data-name='ORG_GPO_2']//input[@type="text"]  ${procuringEntityId}
+    clear element text  //div[@data-name='ORG_GPO_2']//input[@type="text"]
+    input text  //div[@data-name='ORG_GPO_2']//input[@type="text"]  ${procuringEntity_legalName}
     press key  //div[@data-name='ORG_GPO_2']//input[@type="text"]  \\13
-    loading дочекатися відображення елемента на сторінці  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
-    click element  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
+    loading дочекатись закінчення загрузки сторінки
+    #loading дочекатися відображення елемента на сторінці  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
+    #click element  //*[@class="ade-list-back" and contains(@style, "display: block")]//*[@class="dhxcombo_option_text"]
 	# ввод tenderAttempts
 	click element  //*[@data-name='ATTEMPT']
 	loading дочекатися відображення елемента на сторінці  //*[@class="dxpcDropDown_DevEx dxpclW dxpc-ddSys" and not(contains(@style, "display:none"))]
