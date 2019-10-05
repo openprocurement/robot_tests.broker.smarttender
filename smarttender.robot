@@ -115,6 +115,8 @@ Login
     loading дочекатися відображення елемента на сторінці  //*[@title="Аукціони ФГВ(Тестові)"]
     Click Element    //*[@title="Аукціони ФГВ(Тестові)"]
     loading дочекатись закінчення загрузки сторінки
+    loading дочекатись закінчення загрузки сторінки
+    loading дочекатись закінчення загрузки сторінки
     Wait Until Page Contains        Тестові аукціони на продаж  30
     Focus    jquery=div[data-placeid='TENDER'] table.hdr tr:eq(2) td:eq(3) input:eq(0)
     sleep   1s
@@ -933,19 +935,21 @@ Input Ade
 
 Скасування рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${tenderId}    ${index}
-    log to console  4
-    debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'tender_owner'   Доступно тільки для другого учасника
+    # Відкрити сторінку детальної
     Run Keyword    smarttender.Пошук тендера по ідентифікатору    ${user}    ${tenderId}
-    Sleep    4s
-    Click Element    jquery=div#auctionResults div.row.well:eq(${index}) div.btn.withdraw:eq(0)
-    Sleep    7s
-    Select Frame    jquery=iframe#cancelPropositionFrame
-    Sleep    2s
-    Click Element    jquery=#firstYes
-    sleep    2s
-    Click Element    jquery=#secondYes
-    Sleep    5s
+    # Натиснути "Забрати ГВ"
+    loading дочекатися відображення елемента на сторінці  //*[@data-qa="btn-withdraw-participation-auction"]
+    click element  //*[@data-qa="btn-withdraw-participation-auction"]
+    # Активувати айфрейм в модалці
+    loading дочекатися відображення елемента на сторінці  //*[@data-qa="modal-withdraw"]
+	Select Frame  //iframe[@data-qa="modal-withdraw-frame"]
+	# Погодитися в першому вікні
+	click element  //*[@id="firstYes"]
+	# Погодитися в другому вікні
+	click element  //*[@id="secondYes"]
+	Unselect Frame
+	sleep  5s
 
 Дискваліфікувати постачальника
     [Arguments]    ${user}    ${tenderId}    ${index}    ${description}
@@ -1037,6 +1041,8 @@ Input Ade
 
 Завантажити угоду до тендера
     [Arguments]    @{ARGUMENTS}
+    log to console  7
+    debug
     Run Keyword    smarttender.Підготуватися до редагування      ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
     sleep    1s
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -1065,6 +1071,8 @@ Input Ade
 
 Підтвердити підписання контракту
     [Arguments]    @{ARGUMENTS}
+    log to console  8
+    debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підписати договір
     Run Keyword    smarttender.Завантажити угоду до тендера    @{ARGUMENTS}
     smarttender.Підготуватися до редагування    ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
