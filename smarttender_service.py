@@ -114,6 +114,13 @@ def convert_auction_status_from_smart_format(auction_status):
     }
     return map[auction_status]
 
+def convert_award_status_from_smart_format(award_status):
+    map = {
+        u"Оцінка": u"pending",
+        u"Очікує дискваліфікації першого учасника": u"pending.waiting",
+        u"Дискваліфікований": u"unsuccessful",
+    }
+    return map[award_status]
 
 def convert_unit_to_smarttender_format(unit):
     map = {
@@ -196,15 +203,9 @@ def auction_field_info(field):
             "answer": "div.answer div:eq(2)"
         }
         return ("div.question:Contains('{0}') ".format(question_id)) + map[result]
-    elif "awards" in field:
-        award_id = re.search("\d",field).group(0)
-        splitted = field.split(".")
-        splitted.remove(splitted[0])
-        result = string.join(splitted, '.')
-        map = {
-            "status": "div#auctionResults div.row.well:eq({0}) span.info_award_status:eq(0)"
-        }
-        return map[result].format(award_id)
+    elif "awards" in field and ".status" in field:
+        award_id = int(re.search("\d",field).group(0)) + 1
+        return """(//*[@data-qa="auction-participants-awardStatusTitle"])[{0}]""".format(award_id)
     else:
         map = {
             "dgfID": """//*[@data-qa="auction-dgfId"]""",
