@@ -210,7 +210,7 @@ def auction_field_info(field):
         award_id = int(re.search("\d",field).group(0)) + 1
         return """(//*[@data-qa="auction-participants-awardStatusTitle"])[{0}]""".format(award_id)
     elif "contracts" in field:
-        return u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Дата оплати")]//span[not(@data-qa)]"""
+        return u"""(//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Дата оплати")]//span[not(@data-qa)])[last()]"""
     else:
         map = {
             "dgfID": """//*[@data-qa="auction-dgfId"]""",

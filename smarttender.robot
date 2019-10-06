@@ -992,6 +992,7 @@ Input Ade
 	Choose File  //*[@id="pcModalMode_PW-1" and contains(., "Виберіть протокол(и) рішення Кваліфікаційного комітету")]//input[@name="fileUpload[]"]  ${filePath}
 	sleep  10
 	click element  //*[@id="OpenFileRibbon_T0G0"]
+	loading дочекатись закінчення загрузки сторінки
 	# Натиснути зберегти
 	click element  ${qual_sceen_locator}//*[@title="Зберегти"]
 	loading дочекатись закінчення загрузки сторінки
@@ -1038,18 +1039,15 @@ Input Ade
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep    1s
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
-    sleep     2s
+    loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=a[title='Прикріпити договір']:eq(0)
     loading дочекатись закінчення загрузки сторінки
     ${date_to_smart_format}  convert_datetime_to_smarttender_format  ${ARGUMENTS[3]}
-    input text  //*[@data-name="_Z4CZ2GQEP"]//input  ${date_to_smart_format}
+    input text  xpath=//*[text()="Дата оплати"]//following-sibling::table//input  ${date_to_smart_format}
+    Input Text  xpath=//*[text()="Номер договору"]//following-sibling::table//input    11111111111111
     loading дочекатись закінчення загрузки сторінки
     Click Element    //*[@data-name="OkButton"]
     loading дочекатись закінчення загрузки сторінки
-    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
-    loading дочекатись закінчення загрузки сторінки
-    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
-
 
 Завантажити угоду до тендера
     [Arguments]    @{ARGUMENTS}
@@ -1058,31 +1056,23 @@ Input Ade
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep    1s
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
-    sleep     2s
+    loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=a[title='Прикріпити договір']:eq(0)
     Wait Until Page Contains    Вкладення договірних документів
     sleep    2s
-    Focus     jquery=td.dxic input[maxlength='30']
-    Input Text    //*[@data-name="_Z4CZ24HQ1"]//input    11111111111111
-    sleep    1s
     ${file_path}  ${file_title}  ${file_content}=  create_fake_doc
     ${argCount}=    Get Length    ${ARGUMENTS}
     ${doc}=    Set Variable If
     ...        '${argCount}' == '4'    ${ARGUMENTS[3]}
     ...        ${file_path}
     Click Element    jquery=.dxbButton_DevEx span:Contains('Перегляд...'):eq(0)
-    Wait Until Page Contains    Список файлів
+    loading дочекатись закінчення загрузки сторінки
     Choose File    //input[@name="fileUpload[]"]     ${doc}
-    sleep     3s
+    sleep     10s
     Click Element    jquery=span:Contains('ОК'):eq(0)
-    sleep     3s
+    loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=a[title='OK']:eq(0)
     loading дочекатись закінчення загрузки сторінки
-	loading дочекатись закінчення загрузки сторінки
-    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
-    loading дочекатись закінчення загрузки сторінки
-    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
-
 
 Підтвердити підписання контракту
     [Arguments]    @{ARGUMENTS}
@@ -1091,9 +1081,9 @@ Input Ade
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep    1s
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
-    sleep     2s
+    loading дочекатися відображення елемента на сторінці
     Click Element    //*[@title="Завершити електронні торги"]
-    sleep    3s
+    loading дочекатися відображення елемента на сторінці
     Click Element    jquery=#IMMessageBoxBtnYes_CD:eq(0)
     loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
