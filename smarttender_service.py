@@ -111,6 +111,7 @@ def convert_auction_status_from_smart_format(auction_status):
         u"Аукціон": u"active.auction",
         u"Кваліфікація": u"active.qualification",
         u"Торги не відбулися": u"unsuccessful",
+        u"Завершено": u"complete",
     }
     return map[auction_status]
 
@@ -120,6 +121,7 @@ def convert_award_status_from_smart_format(award_status):
         u"Очікує дискваліфікації першого учасника": u"pending.waiting",
         u"Дискваліфікований": u"unsuccessful",
         u"Рішення скасовано": u"cancelled",
+        u"Переможець": u"active",
     }
     return map[award_status]
 
@@ -207,6 +209,8 @@ def auction_field_info(field):
     elif "awards" in field and ".status" in field:
         award_id = int(re.search("\d",field).group(0)) + 1
         return """(//*[@data-qa="auction-participants-awardStatusTitle"])[{0}]""".format(award_id)
+    elif "contracts" in field:
+        return """(//*[@data-qa="page-block-timeline"]//*[@class="circle-text"])[last()]"""
     else:
         map = {
             "dgfID": """//*[@data-qa="auction-dgfId"]""",
@@ -336,6 +340,10 @@ def convert_result(field, value):
         ret = u"dgfFinancialAssets" if value == u"Продаж права вимоги за кредитними договорами" else u"aaaaaaaaaaaaaaa"
     elif "status" == field:
         ret = convert_auction_status_from_smart_format(value)
+    elif "award" in field:
+        ret = convert_award_status_from_smart_format(value)
+    elif "contracts" in field:
+        ret = value
     else:
         ret = value
     return ret

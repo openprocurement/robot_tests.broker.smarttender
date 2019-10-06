@@ -82,7 +82,7 @@ loading дочекатися зникнення елемента зі сторі
 Login
     [Arguments]     @{ARGUMENTS}
     return from keyword if  '${ARGUMENTS[0]}' == 'SmartTender_Viewer'
-#    go to  http://test.smarttender.biz/
+    go to  http://test.smarttender.biz/
     loading дочекатись закінчення загрузки сторінки
     Click Element    //*[@data-qa="title-btn-modal-login"]
     loading дочекатися відображення елемента на сторінці  //*[@data-qa="title-modal-login"]
@@ -103,6 +103,7 @@ Login
     [Documentation]    ${ARGUMENTS[0]} = username
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     Switch Browser    ${browserAlias}
+    log  Ждемс синхронизацию на тесте  WARN
     Wait Until Keyword Succeeds  10m  5s  smarttender.Дочекатись синхронізації
     Reload Page
     loading дочекатись закінчення загрузки сторінки
@@ -643,8 +644,9 @@ Input Ade
     ...    ${ARGUMENTS[1]} == path
     ...    ${ARGUMENTS[2]} == tenderid
     Pass Execution If     '${mode}' == 'dgfOtherAssets'     Для типа 'Продаж майна банків, що ліквідуються' документы не вкладываются
-    reload page
-    loading дочекатись закінчення загрузки сторінки
+    Run Keyword     smarttender.Пошук тендера по ідентифікатору     ${ARGUMENTS[0]}     ${ARGUMENTS[2]}
+	click element  //*[@data-qa="btn-bid-submit"]
+	loading дочекатись закінчення загрузки сторінки
 	Choose File     //input[@type="file"]    ${ARGUMENTS[1]}
 	loading дочекатись закінчення загрузки сторінки
 	click element  //*[@id="submitBidPlease"]
@@ -865,8 +867,6 @@ Input Ade
 
 Підтвердити наявність протоколу аукціону
     [Arguments]    ${user}     ${tenderId}    ${bidIndex}
-    log to console  1
-	debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep     1s
@@ -879,8 +879,6 @@ Input Ade
 
 Отримати кількість документів в ставці
     [Arguments]    ${user}     ${tenderId}    ${bidIndex}
-    log to console  2
-    debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep     1s
@@ -922,8 +920,6 @@ Input Ade
 
 Отримати дані із документу пропозиції
     [Arguments]    ${user}    ${tenderId}    ${bid_index}    ${document_index}    ${field}
-    log to console  3
-    debug
     Run Keyword    smarttender.Підготуватися до редагування    ${user}    ${tenderId}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep     1s
@@ -1003,8 +999,6 @@ Input Ade
 
 Завантажити протокол аукціону в авард
     [Arguments]    ${username}    ${tender_uaid}    ${filepath}    ${award_index}
-    log to console  5
-    debug
     smarttender.Завантажити документ рішення кваліфікаційної комісії    ${username}    ${filepath}    ${tender_uaid}     ${award_index}
     Sleep    3s    reason=None
     Click Element    jquery=a[title='Зберегти']
@@ -1015,8 +1009,6 @@ Input Ade
 
 Завантажити документ рішення кваліфікаційної комісії
     [Arguments]    ${user}    ${filePath}    ${tenderId}    ${index}
-    log to console  6
-    debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підтвердити постачальника
     Підготуватися до редагування     ${user}      ${tenderId}
     sleep    3s
@@ -1038,11 +1030,29 @@ Input Ade
 ####################################
 #         CONTRACT SIGNING         #
 ####################################
+Вказати дату отримання оплати
+	[Arguments]    @{ARGUMENTS}
+	Run Keyword    smarttender.Підготуватися до редагування      ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
+	Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
+    sleep    1s
+    Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
+    sleep    1s
+    Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
+    sleep     2s
+    Click Element    jquery=a[title='Прикріпити договір']:eq(0)
+    loading дочекатись закінчення загрузки сторінки
+    ${date_to_smart_format}  convert_datetime_to_smarttender_format  ${ARGUMENTS[3]}
+    input text  //*[@data-name="_Z4CZ2GQEP"]//input  ${date_to_smart_format}
+    loading дочекатись закінчення загрузки сторінки
+    Click Element    //*[@data-name="OkButton"]
+    loading дочекатись закінчення загрузки сторінки
+    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
+    loading дочекатись закінчення загрузки сторінки
+    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
+
 
 Завантажити угоду до тендера
     [Arguments]    @{ARGUMENTS}
-    log to console  7
-    debug
     Run Keyword    smarttender.Підготуватися до редагування      ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
     sleep    1s
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
@@ -1053,40 +1063,42 @@ Input Ade
     Wait Until Page Contains    Вкладення договірних документів
     sleep    2s
     Focus     jquery=td.dxic input[maxlength='30']
-    Input Text    jquery=td.dxic input[maxlength='30']    11111111111111
+    Input Text    //*[@data-name="_Z4CZ24HQ1"]//input    11111111111111
     sleep    1s
     ${file_path}  ${file_title}  ${file_content}=  create_fake_doc
     ${argCount}=    Get Length    ${ARGUMENTS}
     ${doc}=    Set Variable If
     ...        '${argCount}' == '4'    ${ARGUMENTS[3]}
     ...        ${file_path}
-    Click Element    jquery=.dxbButton_DevEx span:Contains('Обзор...'):eq(0)
+    Click Element    jquery=.dxbButton_DevEx span:Contains('Перегляд...'):eq(0)
     Wait Until Page Contains    Список файлів
-    Choose File    jquery=#OpenFileUploadControl_TextBox0_Input:eq(0)     ${doc}
+    Choose File    //input[@name="fileUpload[]"]     ${doc}
     sleep     3s
     Click Element    jquery=span:Contains('ОК'):eq(0)
     sleep     3s
     Click Element    jquery=a[title='OK']:eq(0)
-    sleep     13s
+    loading дочекатись закінчення загрузки сторінки
+	loading дочекатись закінчення загрузки сторінки
+    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
+    loading дочекатись закінчення загрузки сторінки
+    run keyword and ignore error  click element  //*[@id="IMMessageBoxBtnOK"]
+
 
 Підтвердити підписання контракту
     [Arguments]    @{ARGUMENTS}
-    log to console  8
-    debug
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може підписати договір
-    Run Keyword    smarttender.Завантажити угоду до тендера    @{ARGUMENTS}
     smarttender.Підготуватися до редагування    ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep    1s
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
     sleep     2s
-    Click Element    jquery=a[title='Підписати договір']:eq(0)
+    Click Element    //*[@title="Завершити електронні торги"]
     sleep    3s
     Click Element    jquery=#IMMessageBoxBtnYes_CD:eq(0)
-    sleep    10s
+    loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
     sleep      2s
-    ${ContractState}=        Execute JavaScript        return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(6)").text();})()
+    ${ContractState}=        Execute JavaScript        return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(7)").text();})()
     Should Be Equal     ${ContractState}     Підписаний
 
 
@@ -1100,7 +1112,6 @@ Input Ade
 	${a}  Replace String  ${response}   \n  ${Empty}
 	${content}  Get Regexp Matches  ${a}  {(?P<content>.*)}  content
 	${reg}  evaluate  re.search(r'"DateStart":"(?P<DateStart>.*)","DateEnd":"(?P<DateEnd>.*)","WorkStatus":"(?P<WorkStatus>.*)","Success":(?P<Success>.*)', '${content[0]}')  re
-	log  Ждемс синхронизацию на тесте  WARN
 	${DateStart}  evaluate  "${reg.group('DateStart')}"
 	${DateEnd}  evaluate  "${reg.group('DateEnd')}"
 	${WorkStatus}  evaluate  "${reg.group('WorkStatus')}"
