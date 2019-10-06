@@ -1100,7 +1100,7 @@ Input Ade
 	${a}  Replace String  ${response}   \n  ${Empty}
 	${content}  Get Regexp Matches  ${a}  {(?P<content>.*)}  content
 	${reg}  evaluate  re.search(r'"DateStart":"(?P<DateStart>.*)","DateEnd":"(?P<DateEnd>.*)","WorkStatus":"(?P<WorkStatus>.*)","Success":(?P<Success>.*)', '${content[0]}')  re
-
+	log  Ждемс синхронизацию на тесте  WARN
 	${DateStart}  evaluate  "${reg.group('DateStart')}"
 	${DateEnd}  evaluate  "${reg.group('DateEnd')}"
 	${WorkStatus}  evaluate  "${reg.group('WorkStatus')}"
@@ -1111,8 +1111,6 @@ Input Ade
 	${status}  Run Keyword if  ${status} and '${DateEnd}' != '${EMPTY}' and '${WorkStatus}' != 'working' and '${WorkStatus}' != 'fail' and '${Success}' == 'true'
 	...  Set Variable  Pass
 	Should Be Equal  ${status}  Pass
-	reload page
-	loading дочекатись закінчення загрузки сторінки
 
 
 Підтвердити вибір(F10)
