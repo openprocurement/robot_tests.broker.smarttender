@@ -211,7 +211,10 @@ def auction_field_info(field):
     elif "awards" in field and ".status" in field:
         award_id = int(re.search("\d",field).group(0)) + 1
         return """(//*[@data-qa="auction-participants-awardStatusTitle"])[{0}]""".format(award_id)
-    elif "contracts" in field:
+    elif "contracts[1].status" == field:
+        award_id = int(re.search("\d",field).group(0)) + 1
+        return """(//*[@data-qa="auction-participants-awardStatusTitle"])[{0}]""".format(award_id)
+    elif "contracts" in field and "datePaid" in field:
         return u"""(//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Дата оплати")]//span[not(@data-qa)])[last()]"""
     else:
         map = {
@@ -344,7 +347,9 @@ def convert_result(field, value):
         ret = convert_auction_status_from_smart_format(value)
     elif "award" in field:
         ret = convert_award_status_from_smart_format(value)
-    elif "contracts" in field:
+    elif "contracts[1].status" == field:
+        ret = convert_award_status_from_smart_format(value)
+    elif "contracts[1].datePaid" == field:
         ret = convert_date(value)
     else:
         ret = value
