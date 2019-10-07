@@ -73,7 +73,8 @@ loading дочекатися зникнення елемента зі сторі
     [Arguments]    @{ARGUMENTS}
     [Documentation]      Відкрити браузер, створити об’єкт api wrapper, тощо
     ...    ${ARGUMENTS[0]} == username
-    Open Browser    http://test.smarttender.biz/    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}
+    ${options}  evaluate  {'browserName': 'chrome', 'version': '', 'platform': 'ANY', 'goog:chromeOptions': {'extensions': [], 'args': ['--headless', '--disable-gpu', '--window-size=1920,1080']}}
+    Open Browser    http://test.smarttender.biz/    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}  desired_capabilities=${options}
 #    Set Window Size    @{USERS.users['${ARGUMENTS[0]}'].size}
     Maximize Browser Window
 #    Set Window Position    @{USERS.users['${ARGUMENTS[0]}'].position}
