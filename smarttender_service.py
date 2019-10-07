@@ -122,6 +122,8 @@ def convert_award_status_from_smart_format(award_status):
         u"Дискваліфікований": u"unsuccessful",
         u"Рішення скасовано": u"cancelled",
         u"Переможець": u"active",
+        u"Переможець\nНе підписаний": u"active",
+        u"Переможець\nПідписаний": u"active",
     }
     return map[award_status]
 

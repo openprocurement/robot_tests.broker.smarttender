@@ -73,7 +73,7 @@ loading дочекатися зникнення елемента зі сторі
     [Arguments]    @{ARGUMENTS}
     [Documentation]      Відкрити браузер, створити об’єкт api wrapper, тощо
     ...    ${ARGUMENTS[0]} == username
-    Open Browser    ${USERS.users['${ARGUMENTS[0]}'].homepage}    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}
+    Open Browser    http://test.smarttender.biz/    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}
 #    Set Window Size    @{USERS.users['${ARGUMENTS[0]}'].size}
     Maximize Browser Window
 #    Set Window Position    @{USERS.users['${ARGUMENTS[0]}'].position}
@@ -82,7 +82,6 @@ loading дочекатися зникнення елемента зі сторі
 Login
     [Arguments]     @{ARGUMENTS}
     return from keyword if  '${ARGUMENTS[0]}' == 'SmartTender_Viewer'
-    go to  http://test.smarttender.biz/
     loading дочекатись закінчення загрузки сторінки
     Click Element    //*[@data-qa="title-btn-modal-login"]
     loading дочекатися відображення елемента на сторінці  //*[@data-qa="title-modal-login"]
