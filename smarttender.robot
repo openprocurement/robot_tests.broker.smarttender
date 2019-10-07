@@ -73,10 +73,9 @@ loading дочекатися зникнення елемента зі сторі
     [Arguments]    @{ARGUMENTS}
     [Documentation]      Відкрити браузер, створити об’єкт api wrapper, тощо
     ...    ${ARGUMENTS[0]} == username
-    Open Browser    http://test.smarttender.biz/    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}
-#    Set Window Size    @{USERS.users['${ARGUMENTS[0]}'].size}
-    Maximize Browser Window
-#    Set Window Position    @{USERS.users['${ARGUMENTS[0]}'].position}
+    Open Browser    ${USERS.users['${ARGUMENTS[0]}'].homepage}    ${USERS.users['${ARGUMENTS[0]}'].browser}  alias=${browserAlias}
+    Set Window Size    @{USERS.users['${ARGUMENTS[0]}'].size}
+    Set Window Position    @{USERS.users['${ARGUMENTS[0]}'].position}
     Login      @{ARGUMENTS}
 
 Login
@@ -540,6 +539,11 @@ Input Ade
     ...    ${ARGUMENTS[2]} == ${test_bid_data}
     smarttender.Подати заявку на участь в аукціоні       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     Log     ${mode}
+    ${response}=  Run Keyword If    '${mode}' == 'dgfInsider'
+    ...     smarttender.Прийняти участь в тендері dgfInsider  ${ARGUMENTS[0]}     ${ARGUMENTS[1]}       ${ARGUMENTS[2]}
+    ...    ELSE
+    ...     smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
+
     ${response}=  smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     [Return]    ${response}
 
