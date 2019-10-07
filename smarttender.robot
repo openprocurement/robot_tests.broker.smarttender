@@ -212,7 +212,9 @@ Input Ade
     Click Element    jquery=.listviewDataItem[data-itemkey='434']
     loading дочекатись закінчення загрузки сторінки
     Wait Until Page Contains        Тестові аукціони на продаж
-    Click Image    jquery=.dxrControl_DevEx a[title*='(F7)'] img:eq(0)
+    loading дочекатися відображення елемента на сторінці  //*[@title="Додати (F7)"]
+    click element  //*[@title="Додати (F7)"]
+    loading дочекатись закінчення загрузки сторінки
     Wait Until Element Contains    cpModalMode    Оголошення   30
     Run Keyword If     '${mode}' == 'dgfOtherAssets'    Змінити процедуру
     Focus And Input     \#cpModalMode table[data-name='DTAUCTION'] input    ${auction_start}    SetTextInternal
