@@ -103,7 +103,7 @@ Login
     ...    ${ARGUMENTS[1]} = ${TENDER_UAID}
     Switch Browser    ${browserAlias}
     log  Ждемс синхронизацию на тесте  WARN
-    Wait Until Keyword Succeeds  10m  5s  smarttender.Дочекатись синхронізації
+    Wait Until Keyword Succeeds  20m  5s  smarttender.Дочекатись синхронізації
     Reload Page
     loading дочекатись закінчення загрузки сторінки
 #    smarttender.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
