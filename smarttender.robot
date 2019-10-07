@@ -539,11 +539,6 @@ Input Ade
     ...    ${ARGUMENTS[2]} == ${test_bid_data}
     smarttender.Подати заявку на участь в аукціоні       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     Log     ${mode}
-    ${response}=  Run Keyword If    '${mode}' == 'dgfInsider'
-    ...     smarttender.Прийняти участь в тендері dgfInsider  ${ARGUMENTS[0]}     ${ARGUMENTS[1]}       ${ARGUMENTS[2]}
-    ...    ELSE
-    ...     smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
-
     ${response}=  smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
     [Return]    ${response}
 
@@ -1086,15 +1081,17 @@ Input Ade
     Click Element     jquery=#MainSted2TabPageHeaderLabelActive_1
     sleep    1s
     Click Element    jquery=div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(1)
-    loading дочекатися відображення елемента на сторінці
+    loading дочекатись закінчення загрузки сторінки
     Click Element    //*[@title="Завершити електронні торги"]
-    loading дочекатися відображення елемента на сторінці
+    loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=#IMMessageBoxBtnYes_CD:eq(0)
     loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=#IMMessageBoxBtnOK:eq(0)
     sleep      2s
     ${ContractState}=        Execute JavaScript        return (function(){ return $("div[data-placeid='BIDS'] div.objbox.selectable.objbox-scrollable table tbody tr:contains('Визначений переможцем') td:eq(7)").text();})()
     Should Be Equal     ${ContractState}     Підписаний
+    smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
+
 
 
 
