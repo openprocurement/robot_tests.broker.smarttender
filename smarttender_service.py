@@ -1,4 +1,8 @@
-﻿from munch import munchify as smarttender_munchify
+#! /usr/bin/env python
+# -- coding: utf-8 --
+
+
+from munch import munchify as smarttender_munchify
 from iso8601 import parse_date
 from dateutil.parser import parse
 from dateutil.parser import parserinfo
@@ -60,16 +64,11 @@ def strip_string(s):
 
 
 def adapt_data(tender_data):
-    tender_data.data.procuringEntity[
-        'name'] = u"ФОНД ГАРАНТУВАННЯ ВКЛАДІВ ФІЗИЧНИХ ОСІБ"
-    tender_data.data.procuringEntity['identifier'][
-        'legalName'] = u"ФОНД ГАРАНТУВАННЯ ВКЛАДІВ ФІЗИЧНИХ ОСІБ"
+    tender_data.data.procuringEntity['name'] = u"PROZORRO. Продажі"
+    tender_data.data.procuringEntity['identifier']['legalName'] = u"PROZORRO. Продажі"
     tender_data.data.procuringEntity['identifier']['id'] = u"111111111111111"
-    tender_data.data['items'][0].deliveryAddress.locality = u"Київ"
     for item in tender_data.data['items']:
-        if item.unit['name'] == u"послуга":
-            item.unit['name'] = u"усл."
-        elif item.unit['name'] == u"метри квадратні":
+        if item.unit['name'] == u"метри квадратні":
             item.unit['name'] = u"м.кв."
         elif item.unit['name'] == u"штуки":
             item.unit['name'] = u"шт"
@@ -105,6 +104,28 @@ def get_bid_status(status):
 def get_question_data(id):
     return smarttender_munchify({'data': {'id': id}})
 
+
+def convert_auction_status_from_smart_format(auction_status):
+    map = {
+        u"Прийом пропозицій": u"active.tendering",
+        u"Аукціон": u"active.auction",
+        u"Кваліфікація": u"active.qualification",
+        u"Торги не відбулися": u"unsuccessful",
+        u"Завершено": u"complete",
+    }
+    return map[auction_status]
+
+def convert_award_status_from_smart_format(award_status):
+    map = {
+        u"Оцінка": u"pending",
+        u"Очікує дискваліфікації першого учасника": u"pending.waiting",
+        u"Дискваліфікований": u"unsuccessful",
+        u"Рішення скасовано": u"cancelled",
+        u"Переможець": u"active",
+        u"Переможець\nНе підписаний": u"active",
+        u"Переможець\nПідписаний": u"active",
+    }
+    return map[award_status]
 
 def convert_unit_to_smarttender_format(unit):
     map = {
@@ -163,18 +184,17 @@ def convert_cpv_from_smarttender_format(cpv):
 
 def auction_field_info(field):
     if "items" in field:
-        item_id = re.search("\d",field).group(0)
+        item_id = int(re.search("\d",field).group(0)) + 1
         splitted = field.split(".")
         splitted.remove(splitted[0])
         result = string.join(splitted, '.')
         map = {
-            "description": "span[data-itemid]:eq({0}) span.info_name",
-            "classification.scheme": "span[data-itemid]:eq({0}) span.info_cpv",
-            "classification.id": "span[data-itemid]:eq({0}) span.info_cpv_code",
-            "classification.description": "span[data-itemid]:eq({0}) span.info_cpv_name",
-            "unit.name": "span[data-itemid]:eq({0}) span.info_snedi",
-            "unit.code": "span[data-itemid]:eq({0}) span.info_edi",
-            "quantity": "span[data-itemid]:eq({0}) span.info_count",
+            "description": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Назва позиції"]/../following-sibling::div[contains(@class, "second")]/span""",
+            "classification.scheme": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Класифікація"]/../following-sibling::div[contains(@class, "second")]/span""",
+            "classification.id": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Класифікація"]/../following-sibling::div[contains(@class, "second")]/span""",
+            "classification.description": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Класифікація"]/../following-sibling::div[contains(@class, "second")]/span""",
+            "unit.name": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Кількість"]/../following-sibling::div[contains(@class, "second")]/span""",
+            "quantity": u"""(//*[@data-qa="page-block-auction-items"]//*[contains(@class, "margin-top-")])[{}]/div//span[@class="key key-value" and text()="Кількість"]/../following-sibling::div[contains(@class, "second")]/span""",
         }
         return (map[result]).format(item_id)
     elif "questions" in field:
@@ -184,37 +204,33 @@ def auction_field_info(field):
         result = string.join(splitted, '.')
         map = {
             "description": "div.q-content",
-            "title": "div.title-question span.question-title-inner",
+            "title": """qqqqq""""",
             "answer": "div.answer div:eq(2)"
         }
         return ("div.question:Contains('{0}') ".format(question_id)) + map[result]
-    elif "awards" in field:
-        award_id = re.search("\d",field).group(0)
-        splitted = field.split(".")
-        splitted.remove(splitted[0])
-        result = string.join(splitted, '.')
-        map = {
-            "status": "div#auctionResults div.row.well:eq({0}) span.info_award_status:eq(0)"
-        }
-        return map[result].format(award_id)
+    elif "awards" in field and ".status" in field:
+        award_id = int(re.search("\d",field).group(0)) + 1
+        return """(//*[@data-qa="auction-participants-awardStatusTitle"])[{0}]""".format(award_id)
+    elif "contracts" in field:
+        return u"""(//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Дата оплати")]//span[not(@data-qa)])[last()]"""
     else:
         map = {
-            "dgfID": "span.info_dgfId",
-            "title": "span.info_orderItem",
-            "description": ".container-fluid .page-header .col-sm-7 span:eq(0)",
-            "value.amount": "span.info_budget:eq(0)",
-            "value.currency": "span.info_currencyId",
-            "value.valueAddedTaxIncluded": "span.info_withVat",
-            "auctionID": "span.info_tendernum",
-            "procuringEntity.name": "span.info_organization",
-            "enquiryPeriod.startDate": "span.info_enquirysta",
-            "enquiryPeriod.endDate": "span.info_ddm",
-            "tenderPeriod.startDate": "span.info_enquirysta",
-            "tenderPeriod.endDate": "span.info_ddm",
-            "auctionPeriod.startDate": "span.info_dtauction:eq(0)",
-            "auctionPeriod.endDate": "span.info_dtauctionEnd:eq(0)",
-            "status": "span.info_tender_status:eq(0)",
-            "minimalStep.amount": "span.info_minstep",
+            "dgfID": """//*[@data-qa="auction-dgfId"]""",
+            "title": """//*[@data-qa="auction-title"]""",
+            "description": """//*[@data-qa="auction-description"]""",
+            "value.amount": """//*[@data-qa="initial-amount"]""",
+            "value.currency": """//*[@data-qa="initial-amount"]""",
+            "value.valueAddedTaxIncluded": """//*[@data-qa="initial-amount"]""",
+            "auctionID": """//*[@data-qa="cdbNumber"]""",
+            "procuringEntity.name": """//*[@data-qa="auction-seller"]/../div[@class="ivu-poptip"]""",
+            "enquiryPeriod.startDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Період уточнень")]//span[not(@data-qa)]""",
+            "enquiryPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Період уточнень")]//span[not(@data-qa)]""",
+            "tenderPeriod.startDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Прийом пропозицій")]//span[not(@data-qa)]""",
+            "tenderPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Прийом пропозицій")]//span[not(@data-qa)]""",
+            "auctionPeriod.startDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Початок аукціону")]//span[not(@data-qa)]""",
+            "auctionPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Початок аукціону")]//span[not(@data-qa)]""",
+            "status": """//*[@data-qa="auctionStatus"]""",
+            "minimalStep.amount": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Мінімальний крок аукціону")]//span[not(@data-qa)]""",
             "cancellations[0].reason": "span.info_cancellation_reason",
             "cancellations[0].status": "span.info_cancellation_status",
             "eligibilityCriteria": "span.info_eligibilityCriteria",
@@ -222,7 +238,7 @@ def auction_field_info(field):
             "dgfDecisionID": "span.info_dgfDecisionId",
             "dgfDecisionDate": "span.info_dgfDecisionDate",
             "tenderAttempts": "span.info_tenderAttempts",
-            "procurementMethodType": "span.info_procurementMethodType"
+            "procurementMethodType": """//*[contains(@data-qa, "bidding-type")]/div"""
         }
         return map[field]
 
@@ -279,28 +295,57 @@ def string_contains(check_string,value):
 
 
 def convert_result(field, value):
-    if field == "value.amount" or field == "minimalStep.amount":
-        ret = float(value)
+    if "value." in field:
+        search = re.search(u"(?P<amount>.+,[0-9]{2}) (?P<currency>[^\.]+)\. (?P<VAT>(без ПДВ)|(з ПДВ))", value)
+        if field == "value.amount":
+            ret = float(search.group("amount").replace(" ", "").replace(",", "."))
+        elif field == "value.currency":
+            currency = search.group("currency")
+            ret = "UAH" if currency == u"грн" else u"ошибка"
+        elif field == "value.valueAddedTaxIncluded":
+            vat = search.group("VAT").replace(" ", "").replace(",", ".")
+            ret = False if vat == u"без ПДВ" else True
+    elif "classification." in field:
+        search = re.search("^(?P<scheme>.+): (?P<id>[0-9]+-[0-9]+) . (?P<description>.+)$", value)
+        if "classification.id" in field:
+            ret = search.group("id")
+        elif "classification.scheme" in field:
+            ret = search.group("scheme")
+        elif "classification.description" in field:
+            ret = search.group("description")
+    elif field == "minimalStep.amount":
+        search = re.search(u"^(?P<percent>[^%]+)% або (?P<amount>.+) грн", value)
+        ret = float(search.group("amount").replace(" ", "").replace(",", "."))
     elif "quantity" in field:
-        ret = int(value)
-    elif field == "value.valueAddedTaxIncluded":
-        ret = value == "True"
-    elif field == "value.currency":
-        ret = convert_currency_from_smarttender_format(value)
-    elif "unit.code" in field:
-        ret = convert_edi_from_starttender_format(value)
+        search = re.search("^(?P<quantity>[^ ]+) (?P<unit>.*)$", value)
+        ret = int(search.group("quantity"))
     elif "unit.name" in field:
-        ret = convert_unit_from_smarttender_format(value)
-    elif "auctionPeriod.startDate" in field:
-        ret = convert_date(value)
-    elif "tenderPeriod.endDate" in field:
-        ret = convert_date(value)
-    elif "tenderPeriod.startDate" in field:
-        ret = convert_date(value)
+        search = re.search("^(?P<quantity>[^ ]+) (?P<unit>.*)$", value)
+        ret = search.group("unit")
+    elif "auctionPeriod" in field:
+        search = re.search(u"з (?P<startDate>.+) по (?P<endDate>.+)", value)
+        if "startDate" in field:
+            ret = convert_date(search.group("startDate"))
+        elif "endDate" in field:
+            ret = convert_date(search.group("endDate"))
+    elif "tenderPeriod." in field:
+        search = re.search(u"з (?P<startDate>.+) по (?P<endDate>.+)", value)
+        if "startDate" in field:
+            ret = convert_date(search.group("startDate"))
+        elif "endDate" in field:
+            ret = convert_date(search.group("endDate"))
     elif "tenderAttempts" in field:
         ret = int(value)
     elif "dgfDecisionDate" in field:
         ret = convert_date_offset_naive(value)
+    elif "procurementMethodType" in field:
+        ret = u"dgfFinancialAssets" if value == u"Продаж права вимоги за кредитними договорами" else u"aaaaaaaaaaaaaaa"
+    elif "status" == field:
+        ret = convert_auction_status_from_smart_format(value)
+    elif "award" in field:
+        ret = convert_award_status_from_smart_format(value)
+    elif "contracts" in field:
+        ret = convert_date(value)
     else:
         ret = value
     return ret
