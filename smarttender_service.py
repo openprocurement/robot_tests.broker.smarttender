@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+﻿#! /usr/bin/env python
 # -- coding: utf-8 --
 
 
@@ -111,6 +111,7 @@ def convert_auction_status_from_smart_format(auction_status):
         u"Аукціон": u"active.auction",
         u"Кваліфікація": u"active.qualification",
         u"Торги не відбулися": u"unsuccessful",
+        u"Торги скасовано": u"cancelled",
         u"Завершено": u"complete",
     }
     return map[auction_status]
@@ -182,6 +183,10 @@ def convert_cpv_from_smarttender_format(cpv):
     return map[cpv]
 
 
+def auction_cancellation_field_info(field, doc_id=None):
+    if "title" == field:
+        return """//*[@data-qa="page-block-cancellation"]//*[@data-qa="file-name"]"""
+
 def auction_field_info(field):
     if "items" in field:
         item_id = int(re.search("\d",field).group(0)) + 1
@@ -234,8 +239,8 @@ def auction_field_info(field):
             "auctionPeriod.endDate": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Початок аукціону")]//span[not(@data-qa)]""",
             "status": """//*[@data-qa="auctionStatus"]""",
             "minimalStep.amount": u"""//*[@data-qa="page-block-conditions"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Мінімальний крок аукціону")]//span[not(@data-qa)]""",
-            "cancellations[0].reason": "span.info_cancellation_reason",
-            "cancellations[0].status": "span.info_cancellation_status",
+            "cancellations[0].reason": u"""//*[@data-qa="page-block-cancellation"]//*[@class="margin-bottom-16 ivu-row with-border" and contains(., "Причина скасування")]//span[@data-qa="value"]""",
+            "cancellations[0].status": """//*[@data-qa="auctionStatus"]""",
             "eligibilityCriteria": "span.info_eligibilityCriteria",
             "contracts[-1].status": "span.info_contractStatus",
             "dgfDecisionID": "span.info_dgfDecisionId",
@@ -248,7 +253,7 @@ def auction_field_info(field):
 
 def document_fields_info(field,docId,is_cancellation_document):
     map = {
-        "description": "span.info_attachment_description:eq(0)",
+        "description": """//*[@data-qa="page-block-cancellation"]//*[@data-qa="file-name"]""",
         "title": "span.info_attachment_title:eq(0)",
         "content": "span.info_attachment_title:eq(0)",
         "type": "span.info_attachment_type:eq(0)"
@@ -351,6 +356,8 @@ def convert_result(field, value):
         ret = convert_award_status_from_smart_format(value)
     elif "contracts[1].datePaid" == field:
         ret = convert_date(value)
+    elif "cancellations[0].status" == field:
+        ret = u"active" if value == u"Торги скасовано" else u"error"
     else:
         ret = value
     return ret
