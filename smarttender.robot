@@ -1,4 +1,4 @@
-*** Settings ***
+﻿*** Settings ***
 Library           String
 Library           DateTime
 Library           smarttender_service.py
@@ -232,6 +232,7 @@ Input Ade
     ${org_search_input}  set variable  //*[@data-name="ORG"]//input[not(contains(@type,'hidden'))]
     input text  ${org_search_input}  ${procuringEntity_legalName}
     press key  ${org_search_input}  \\13
+    loading дочекатись закінчення загрузки сторінки
     click element  //*[@data-name="OkButton"][contains(@id,"ORGSRCH")]
     Підтвердити вибір(F10)
 	# ввод tenderAttempts
@@ -449,9 +450,17 @@ Input Ade
     [Arguments]    ${username}  ${tender_uaid}  ${doc_id}  ${field}
     Run Keyword     smarttender.Пошук тендера по ідентифікатору     ${username}     ${tender_uaid}
 	${isCancellation}=    Set Variable If    '${TEST NAME}' == 'Відображення опису документа до скасування лоту' or '${TEST NAME}' == 'Відображення заголовку документа до скасування лоту' or '${TEST NAME}' == 'Відображення вмісту документа до скасування лоту'   True    False
-    Run Keyword If       ${isCancellation} == True     smarttender.Відкрити сторінку із данними скасування
+    ${result}  Run Keyword If  ${isCancellation} == True
+        ...  smarttender.Отримати інформацію про скасування аукціону  ${username}  ${tender_uaid}  ${doc_id}  ${field}
+    return from keyword if  ${isCancellation} == True  ${result}
     ${selector}=     document_fields_info     ${field}    ${doc_id}   ${isCancellation}
     ${result}=      Execute JavaScript    return (function() { return $("${selector}").text() })()
+    [Return]    ${result}
+
+Отримати інформацію про скасування аукціону
+	[Arguments]    ${username}  ${tender_uaid}  ${doc_id}  ${field}
+	${selector}=     auction_cancellation_field_info     ${field}    ${doc_id}
+    ${result}=     get text  ${selector}
     [Return]    ${result}
 
 Перейти до запитань
@@ -780,9 +789,8 @@ Input Ade
     Pass Execution If      '${role}' == 'provider' or '${role}' == 'viewer'     Даний учасник не може скасувати тендер
     ${documents}=    create_fake_doc
     Підготуватися до редагування    ${user}     ${tenderId}
-    Click Element       jquery=a[data-name='F2_________GPCANCEL']
-    Wait Until Page Contains    Протоколи скасування
-    sleep    2s
+    Click Element       //*[@title="Скасування аукціону"]
+    loading дочекатись закінчення загрузки сторінки
     Focus    jquery=#cpModalMode table[data-name='reason'] input:eq(1)
     Execute JavaScript    (function(){$("#cpModalMode table[data-name='reason'] input:eq(1)").val('');})()
     sleep    3s
@@ -792,19 +800,14 @@ Input Ade
     sleep    2s
     Click Element       jquery=div[title='Додати']
     Wait Until Page Contains       Список файлів
-    Choose File      jquery=#cpModalMode input[type=file]:eq(1)    ${file}
-    sleep    2s
-    Click Element    jquery=span:Contains('ОК'):eq(0)
-    Wait Until Page Contains    Протоколи скасування
-    Click Element    jquery=label:Contains('Завантажений файл'):eq(0)
-    sleep    1s
-    Focus    jquery=table[data-name='DocumentDescription'] input:eq(0)
-    Input Text    jquery=table[data-name='DocumentDescription'] input:eq(0)    ${descript}
-    Wait Until Page Contains    Протоколи скасування
+    Choose File      //input[@name="fileUpload[]"]    ${file}
+    sleep    5s
+    Click Element    //*[@id="OpenFileRibbon_T0G0I0"]
+    loading дочекатись закінчення загрузки сторінки
     Click Element       jquery=a[title='OK']
-    Wait Until Page Contains    аукціон буде
+    loading дочекатись закінчення загрузки сторінки
     Click Element    jquery=#IMMessageBoxBtnYes
-    sleep   3s
+    loading дочекатись закінчення загрузки сторінки
 
 Скасувати цінову пропозицію
     [Arguments]    @{ARGUMENTS}
@@ -822,17 +825,6 @@ Input Ade
     sleep    2s
     Wait Until Keyword Succeeds    10 sec    2 sec    Current Frame Contains    Пропозиція анульована
 
-Відкрити сторінку із данними скасування
-    Click Element       jquery=a#cancellation:eq(0)
-    Select Frame    jquery=#widgetIframe
-    sleep    10s
-    [Return]
-
-Закрити сторінку із данними скасування
-    Click button       jquery=button.close:eq(0)
-    Select Frame    jquery=iframe:eq(0)
-    sleep       3s
-    [Return]
 
 ####################################
 #             AUCTION              #
