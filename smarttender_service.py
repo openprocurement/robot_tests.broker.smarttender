@@ -70,8 +70,6 @@ def adapt_data(tender_data):
     for item in tender_data.data['items']:
         if item.unit['name'] == u"метри квадратні":
             item.unit['name'] = u"м.кв."
-        elif item.unit['name'] == u"штуки":
-            item.unit['name'] = u"шт"
     return tender_data
 
 
@@ -347,7 +345,12 @@ def convert_result(field, value):
     elif "dgfDecisionDate" in field:
         ret = convert_date_offset_naive(value)
     elif "procurementMethodType" in field:
-        ret = u"dgfFinancialAssets" if value == u"Продаж права вимоги за кредитними договорами" else u"aaaaaaaaaaaaaaa"
+        if u"Продаж права вимоги за кредитними договорами" == value:
+            ret = "dgfFinancialAssets"
+        elif u"Голландський аукціон" == value:
+            ret = "dgfInsider"
+        elif u"Продаж майна банків, що ліквідуються" == value:
+            ret = "dgfOtherAssets"
     elif "status" == field:
         ret = convert_auction_status_from_smart_format(value)
     elif "award" in field:
