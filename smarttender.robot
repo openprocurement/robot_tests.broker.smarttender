@@ -596,7 +596,15 @@ Input Ade
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} ==  value.amount
     ...    ${ARGUMENTS[3]} ==  50000
-    smarttender.Прийняти участь в тендері      ${ARGUMENTS[0]}    ${ARGUMENTS[1]}    ${ARGUMENTS[3]}
+    ${amount}  set variable  ${ARGUMENTS[2]}
+	Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
+    click element  //*[@data-qa="btn-bid-submit"]
+	loading дочекатись закінчення загрузки сторінки
+	loading дочекатися відображення елемента на сторінці  //input[@placeholder="Ваша ставка, грн."]
+	input text  //input[@placeholder="Ваша ставка, грн."]  "${amount}"
+	click element  //*[@id="submitBidPlease"]
+	loading дочекатись закінчення загрузки сторінки
+	Wait Until Page Contains       Пропозицію прийнято      15s
 
 Прийняти участь в тендері
     [Arguments]    @{ARGUMENTS}
