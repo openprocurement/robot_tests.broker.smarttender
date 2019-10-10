@@ -546,9 +546,11 @@ Input Ade
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} == ${test_bid_data}
-    smarttender.Подати заявку на участь в аукціоні       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
-    Log     ${mode}
-    ${response}=  smarttender.Прийняти участь в тендері     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
+    run keyword  smarttender.Подати заявку на участь в аукціоні       ${ARGUMENTS[0]}     ${ARGUMENTS[1]}     ${ARGUMENTS[2]}
+	${response}  Run Keyword If  '${mode}' == 'dgfInsider'
+			...  smarttender.Прийняти участь в тендері dgfInsider  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}  ${ARGUMENTS[2]}
+	...  ELSE
+			...  smarttender.Прийняти участь в тендері  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}  ${ARGUMENTS[2]}
     [Return]    ${response}
 
 Подати заявку на участь в аукціоні
@@ -562,11 +564,11 @@ Input Ade
 	# Заповнити всі поля
 	input text  ${participate_modal_locator}//*[@placeholder="Ваше ім'я"]  Іван
 	input text  ${participate_modal_locator}//*[@placeholder="Ваше прізвище"]  Іванов
-	input text  ${participate_modal_locator}//*[@placeholder="Як Вас по батькові"]  Іванович
 	input text  ${participate_modal_locator}//*[@placeholder="Ваш номер"]  +38011111111
 	# Завантажити документи
     ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
-    smarttender.Додати документ до кваліфікації    xpath=(${participate_modal_locator}//input[@type="file"])[3]    ${file_path}
+    run keyword if  "${mode}" != "dgfOtherAssets"
+        ...  smarttender.Додати документ до кваліфікації    xpath=(${participate_modal_locator}//input[@type="file"])[3]    ${file_path}
     smarttender.Додати документ до кваліфікації    xpath=(${participate_modal_locator}//input[@type="file"])[1]    ${file_path}
     # Відмітити всі чекбокси
     click element  xpath=(${participate_modal_locator}//input[@type="checkbox"])[1]
@@ -574,6 +576,7 @@ Input Ade
 	capture page screenshot
 	click element  ${participate_modal_locator}//*[@data-qa="dynamic-form-submit-button"]
 	loading дочекатись закінчення загрузки сторінки
+	sleep  10s
 	# Підтвердити заявку
 	${resp}  evaluate  requests.get("""http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_QA.ACCEPTAUCTIONBIDREQUEST&args={"IDLOT":"${tenderId}","SUCCESS":"true"}&ticket=""")  requests
 	should be equal as integers  ${resp.status_code}  200
@@ -587,20 +590,21 @@ Input Ade
     Choose File    ${selector}    ${doc}
     sleep    2s
 
-Заповнити поле значенням
-    [Arguments]    ${selector}     ${value}
-    Focus    ${selector}
-    sleep    1s
-    Input Text    ${selector}    ${value}
-    sleep    1s
-
 Змінити цінову пропозицію
     [Arguments]    @{ARGUMENTS}
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} ==  value.amount
     ...    ${ARGUMENTS[3]} ==  50000
-    smarttender.Прийняти участь в тендері      ${ARGUMENTS[0]}    ${ARGUMENTS[1]}    ${ARGUMENTS[3]}
+    ${amount}  set variable  ${ARGUMENTS[2]}
+	Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
+    click element  //*[@data-qa="btn-bid-submit"]
+	loading дочекатись закінчення загрузки сторінки
+	loading дочекатися відображення елемента на сторінці  //input[@placeholder="Ваша ставка, грн."]
+	input text  //input[@placeholder="Ваша ставка, грн."]  "${amount}"
+	click element  //*[@id="submitBidPlease"]
+	loading дочекатись закінчення загрузки сторінки
+	Wait Until Page Contains       Пропозицію прийнято      15s
 
 Прийняти участь в тендері
     [Arguments]    @{ARGUMENTS}
@@ -623,18 +627,14 @@ Input Ade
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     ...    ${ARGUMENTS[2]} == bid_info
-    smarttender.Пошук тендера по ідентифікатору      ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    Wait Until Page Contains Element        jquery=a#bid    5s
-    ${href} =     Get Element Attribute      jquery=a#bid@href
-    Click Element     jquery=a#bid
-    sleep  5s
-    Select Window     url=${href}
-    Wait Until Page Contains       Пропозиція по аукціону   10s
-    Wait Until Page Contains Element        jquery=button#submitBidPlease    5s
-    Click Element      jquery=button#submitBidPlease
-    Wait Until Page Contains Element        jquery=button:contains('Так')    5s
-    Click Element      jquery=button:contains('Так')
-    Wait Until Page Contains       Пропозицію прийнято      30s
+    loading дочекатися відображення елемента на сторінці  //*[@data-qa="btn-bid-submit"]
+    click element  //*[@data-qa="btn-bid-submit"]
+	loading дочекатись закінчення загрузки сторінки
+	click element  //*[@id="submitBidPlease"]
+	loading дочекатися відображення елемента на сторінці  //button[contains(., "Так")]
+	click element  //button[contains(., "Так")]
+	loading дочекатись закінчення загрузки сторінки
+	Wait Until Page Contains       Пропозицію прийнято      15s
     [Return]    ${ARGUMENTS[2]}
 
 Отримати інформацію із пропозиції
@@ -814,16 +814,13 @@ Input Ade
     [Documentation]    ${ARGUMENTS[0]} == username
     ...    ${ARGUMENTS[1]} == ${TENDER_UAID}
     smarttender.Пошук тендера по ідентифікатору     ${ARGUMENTS[0]}     ${ARGUMENTS[1]}
-    ${href} =     Get Element Attribute      jquery=a:Contains('Подати пропозицію')@href
-    Click Element      jquery=a:Contains('Подати пропозицію')
-    sleep    3s
-    Select Window     url=${href}
-    sleep     3s
-    Select Frame     jquery=iframe#iframe
-    sleep    1s
-    Click Element      jquery=#btCancellationOffers
-    sleep    2s
-    Wait Until Keyword Succeeds    10 sec    2 sec    Current Frame Contains    Пропозиція анульована
+    click element  //*[@data-qa="btn-bid-submit"]
+	loading дочекатись закінчення загрузки сторінки
+	click element  //*[@class="bt-bid-cancel ivu-btn ivu-btn-ghost ivu-btn-long ivu-btn-circle ivu-btn-large"]
+	loading дочекатися відображення елемента на сторінці  //button[contains(., "Так")]
+	click element  //button[contains(., "Так")]
+	loading дочекатись закінчення загрузки сторінки
+	loading дочекатися відображення елемента на сторінці  //*[@class="ivu-modal-body" and contains(., "Пропозиція анульована.")]  30
 
 
 ####################################
